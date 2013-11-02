@@ -9,6 +9,8 @@
 #import <XCTest/XCTest.h>
 
 #include <ogg/ogg.h>
+#include <vorbis/vorbisfile.h>
+#include <theora/theora.h>
 
 @interface OgvDemoTests : XCTestCase
 
@@ -28,11 +30,30 @@
     [super tearDown];
 }
 
-- (void)testExample
+- (void)testOgg
 {
     ogg_sync_state syncState;
+
     int ret = ogg_sync_init(&syncState);
-    XCTAssertEqual(ret, 0, @"ogg_sync_init returns 0");
+    XCTAssertEqual(ret, 0, @"ogg_sync_init links, runs and returns 0");
+
+    ret = ogg_sync_clear(&syncState);
+    XCTAssertEqual(ret, 0, @"ogg_sync_clear links, runs and returns 0");
 }
 
+- (void)testVorbis
+{
+    vorbis_info info;
+    vorbis_info_init(&info);
+    vorbis_info_clear(&info);
+    XCTAssert(YES, @"vorbis_info_init/clear link and run");
+}
+
+- (void)testTheora
+{
+    theora_info info;
+    theora_info_init(&info);
+    theora_info_clear(&info);
+    XCTAssert(YES, @"theora_info_init/clear link and run");
+}
 @end
