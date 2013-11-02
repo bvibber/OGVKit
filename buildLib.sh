@@ -67,6 +67,6 @@ echo ./configure --host=$HOST --prefix="$OUTDIR" $CONFIGOPT
 ./configure --host=$HOST --prefix="$OUTDIR" $CONFIGOPT || exit 1
 
 # compile $TARGET
-make clean && make && make install
+make clean && make && make install || exit 1
 
 cd ..
