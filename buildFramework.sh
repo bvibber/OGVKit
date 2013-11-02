@@ -25,5 +25,5 @@ echo $LIPO
 
 echo "Building $NAME.framework"
 test -d build/$NAME.framework/Headers || mkdir -p build/$NAME.framework/Headers
-rsync -av build/$LIB/multiarch/include/ build/$NAME.framework/Headers/ || exit 1
+rsync -av build/$LIB/multiarch/include/$NAME/ build/$NAME.framework/Headers/ || exit 1
 cp -p build/$LIB/multiarch/lib/$LIB.a build/$NAME.framework/$NAME
