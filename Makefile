@@ -2,7 +2,7 @@
 
 ARCHES=i386 x86_64 armv7 armv7s arm64
 
-all : build/Ogg.framework/Ogg
+all : build/Ogg.framework/Ogg build/Vorbis.framework/Vorbis
 
 clean:
 	rm -rf build
@@ -17,8 +17,21 @@ clean:
 # libogg
 
 build/Ogg.framework/Ogg : buildLib.sh buildFramework.sh
-	./buildFramework.sh libogg Ogg "$(ARCHES)"
+	./buildFramework.sh \
+	  libogg \
+	  Ogg \
+	  "$(ARCHES)" \
+	  "" \
+	  "--disable-shared"
 
 # libvorbis
+
+build/Vorbis.framework/Vorbis : buildLib.sh buildFramework.sh
+	./buildFramework.sh \
+	  libvorbis \
+	  Vorbis \
+	  "$(ARCHES)" \
+	  "" \
+	  "--with-ogg=`pwd`/build/libogg/multiarch --disable-shared --disable-oggtest"
 
 # libtheora

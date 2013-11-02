@@ -12,6 +12,10 @@ if [ "x$ARCH" == "x" ]; then
 	exit 1
 fi
 
+FLAGS="$3"
+
+CONFIGOPT="$4"
+
 # Adapted from http://iosdeveloperzone.com/2012/09/29/tutorial-open-source-on-ios-part-2-compiling-libogg-on-ios/
 
 case $ARCH in
@@ -37,15 +41,18 @@ SDK_MINVER=6.0
 XCODE_ROOT=`xcode-select -print-path`
 PLATFORM_PATH="$XCODE_ROOT/Platforms/$PLATFORM.platform/Developer"
 SDK_PATH="$PLATFORM_PATH/SDKs/$PLATFORM$SDK_VERSION.sdk"
-FLAGS="-isysroot $SDK_PATH -arch $ARCH -miphoneos-version-min=$SDK_MINVER"
+FLAGS="$FLAGS -isysroot $SDK_PATH -arch $ARCH -miphoneos-version-min=$SDK_MINVER"
 
 # note: this "gcc" is actually clang
-CC=`xcrun -find -sdk $platform clang`
+CC=`xcrun -find -sdk $platform gcc`
 CXX=`xcrun -find -sdk $platform g++`
 CFLAGS="$FLAGS"
 CXXFLAGS="$FLAGS"
 LDFLAGS="$FLAGS"
 export CC CXX CFLAGS CXXFLAGS LDFLAGS
+echo "CC=$CC"
+echo "CXX=$CXX"
+echo "CFLAGS=$CFLAGS"
 
 OUTDIR=`pwd`"/build/$TARGET/$ARCH"
 mkdir -p $OUTDIR
@@ -54,9 +61,10 @@ mkdir -p $OUTDIR
 cd $TARGET
 
 # generate configuration script
-./autogen.sh --host=$HOST --prefix="$OUTDIR" --disable-shared
-echo ./configure --host=$HOST --prefix="$OUTDIR" --disable-shared
-./configure --host=$HOST --prefix="$OUTDIR" --disable-shared || exit 1
+echo ./autogen.sh --host=$HOST --prefix="$OUTDIR" $CONFIGOPT
+./autogen.sh --host=$HOST --prefix="$OUTDIR" $CONFIGOPT
+echo ./configure --host=$HOST --prefix="$OUTDIR" $CONFIGOPT
+./configure --host=$HOST --prefix="$OUTDIR" $CONFIGOPT || exit 1
 
 # compile $TARGET
 make clean && make && make install
