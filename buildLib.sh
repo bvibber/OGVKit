@@ -1,6 +1,12 @@
 #!/bin/bash
 
-ARCH="$1"
+TARGET="$1"
+if [ "x$TARGET" == "x" ]; then
+	echo "Pass a library subdirectory and an arch to build..."
+	exit 1
+fi
+
+ARCH="$2"
 if [ "x$ARCH" == "x" ]; then
 	echo "Pass an arch such as i386 or armv7 to build..."
 	exit 1
@@ -44,15 +50,15 @@ export CC CXX CFLAGS CXXFLAGS LDFLAGS
 OUTDIR=`pwd`"/build/$ARCH"
 mkdir -p $OUTDIR
 
-# configure libogg
-cd libogg
+# configure $TARGET
+cd $TARGET
 
 # generate configuration script
 ./autogen.sh --host=$HOST --prefix="$OUTDIR" --disable-shared
 echo ./configure --host=$HOST --prefix="$OUTDIR" --disable-shared
 ./configure --host=$HOST --prefix="$OUTDIR" --disable-shared || exit 1
 
-# compile libogg
+# compile $TARGET
 make clean && make && make install
 
 cd ..

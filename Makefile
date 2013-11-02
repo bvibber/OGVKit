@@ -11,12 +11,12 @@ clean:
 	test -f libtheora/Makefile && (cd libtheora && make distclean) || true
 	rm -f libtheora/configure
 
-build/out/libogg.a : compileOgg.sh
-	./compileOgg.sh i386
-	./compileOgg.sh x86_64
-	./compileOgg.sh armv7
-	./compileOgg.sh armv7s
-	./compileOgg.sh arm64
+build/out/libogg.a : buildLib.sh
+	./buildLib.sh libogg i386
+	./buildLib.sh libogg x86_64
+	./buildLib.sh libogg armv7
+	./buildLib.sh libogg armv7s
+	./buildLib.sh libogg arm64
 	#
 	test -d build/out/include || mkdir -p build/out/include
 	rsync -av build/i386/include/ build/out/include/
