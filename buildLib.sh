@@ -47,7 +47,7 @@ CXXFLAGS="$FLAGS"
 LDFLAGS="$FLAGS"
 export CC CXX CFLAGS CXXFLAGS LDFLAGS
 
-OUTDIR=`pwd`"/build/$ARCH"
+OUTDIR=`pwd`"/build/$TARGET/$ARCH"
 mkdir -p $OUTDIR
 
 # configure $TARGET
