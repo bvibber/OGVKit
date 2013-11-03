@@ -53,10 +53,23 @@
         }
     };
     // show first frame
-    //[decoder process];
-    
+    [decoder process];
+}
+
+- (void)viewDidAppear:(BOOL)animated
+{
+    [super viewDidAppear:animated];
     // Quickie loop through the rest
     timer = [NSTimer scheduledTimerWithTimeInterval:(1.0f / decoder.frameRate) target:self selector:@selector(processNextFrame) userInfo:nil repeats:YES];
+}
+
+- (void)viewWillDisappear:(BOOL)animated
+{
+    if (timer) {
+        [timer invalidate];
+        timer = nil;
+    }
+    [super viewDidDisappear:animated];
 }
 
 - (void)processNextFrame
@@ -87,7 +100,7 @@
                                         32 /* bitsPerPixel */,
                                         4 * decoder.frameWidth /* bytesPerRow */,
                                         colorSpaceRef,
-                                        kCGBitmapByteOrder32Big | kCGImageAlphaPremultipliedLast,
+                                        kCGBitmapByteOrder32Big | kCGImageAlphaNone,
                                         dataProviderRef,
                                         NULL,
                                         YES /* shouldInterpolate */,
@@ -103,9 +116,7 @@
 
 - (void)drawImage:(UIImage *)image
 {
-    NSLog(@"image is %@", image);
     self.imageView.image = image;
-    [self.imageView setNeedsLayout];
 }
 
 - (NSData *)convertYCbCrToRGBA:(OGVFrameBuffer)buffer
@@ -124,7 +135,7 @@
             *(outptr++) = *inptr;
             *(outptr++) = *inptr;
             *(outptr++) = *inptr;
-            *(outptr++) = 255;
+            *(outptr++) = 0;
             inptr++;
         }
     }
