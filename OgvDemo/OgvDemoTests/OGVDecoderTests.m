@@ -97,4 +97,22 @@
     XCTAssertEqual(decoder.vDecimation, 1);
 }
 
+- (void)testVideoFrames
+{
+    NSData *data = [self loadVideoSample];
+    XCTAssertEqual(data.length, (NSUInteger)317364, @"Sample file is as expected");
+
+    __block int frameCount = 0;
+    decoder.onframe = ^(OGVFrameBuffer buffer) {
+        frameCount++;
+    };
+
+    [decoder receiveInput:data];
+    while ([decoder process]) {
+        // process that input!
+    }
+
+    XCTAssertEqual(frameCount, 46, @"expect 46 frames in this file");
+}
+
 @end

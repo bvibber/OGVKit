@@ -38,29 +38,15 @@ typedef struct {
 @property int hDecimation;
 @property int vDecimation;
 
-@property BOOL frameReady;
-@property OGVFrameBuffer currentFrame;
-
 @property BOOL hasAudio;
 @property int audioChannels;
 @property int audioRate;
+
+@property(strong) void (^onframe)(OGVFrameBuffer);
+@property(strong) void (^onaudio)(OGVAudioBuffer);
 
 - (id)init;
 - (void)receiveInput:(NSData *)data;
 - (BOOL)process;
 
-@end
-
-@protocol OGVDecoderDelegate<NSObject>
-
-- (void)ogvDecoderInitVideo:(OGVDecoder *)decoder;
-- (void)ogvDecoderInitAudio:(OGVDecoder *)decoder;
-- (void)ogvDecoder:(OGVDecoder *)decoder audioBuffer:(OGVAudioBuffer)buffer;
-- (void)ogvDecoder:(OGVDecoder *)decoder frameBuffer:(OGVFrameBuffer)buffer;
-
-@end
-
-// Have to declare this late to get the protocols happy
-@interface OGVDecoder()
-@property(weak) id<OGVDecoderDelegate> delegate;
 @end

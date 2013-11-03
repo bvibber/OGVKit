@@ -215,9 +215,6 @@
             self.pictureOffsetY = theoraInfo.pic_y;
             self.hDecimation = !(theoraInfo.pixel_fmt & 1);
             self.vDecimation = !(theoraInfo.pixel_fmt & 2);
-            if (self.delegate) {
-                [self.delegate ogvDecoderInitVideo:self];
-            }
         }
         
 		if (vorbis_p) {
@@ -229,9 +226,6 @@
             self.hasAudio = YES;
             self.audioChannels = vi.channels;
             self.audioRate = vi.rate;
-            if (self.delegate) {
-                [self.delegate ogvDecoderInitAudio:self];
-            }
 		}
         
         appState = STATE_DECODING;
@@ -262,7 +256,7 @@
             th_ycbcr_buffer ycbcr;
             th_decode_ycbcr_out(theoraDecoderContext,ycbcr);
             
-            if (self.delegate) {
+            if (self.onframe) {
                 OGVFrameBuffer buffer;
                 buffer.YData = ycbcr[0].data;
                 buffer.CbData = ycbcr[1].data;
@@ -270,7 +264,7 @@
                 buffer.YStride = ycbcr[0].stride;
                 buffer.CbStride = ycbcr[1].stride;
                 buffer.CrStride = ycbcr[2].stride;
-                [self.delegate ogvDecoder:self frameBuffer:buffer];
+                self.onframe(buffer);
             }
 			videobuf_ready=0;
 		}
@@ -284,8 +278,8 @@
 				// fixme -- timing etc!
                 OGVAudioBuffer buffer;
 				buffer.sampleCount = vorbis_synthesis_pcmout(&vd, &buffer.pcm);
-                if (self.delegate) {
-                    [self.delegate ogvDecoder:self audioBuffer:buffer];
+                if (self.onaudio) {
+                    self.onaudio(buffer);
                 }
 				vorbis_synthesis_read(&vd, buffer.sampleCount);
 			}
