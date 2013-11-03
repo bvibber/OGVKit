@@ -48,6 +48,9 @@
     }
     
     XCTAssert(decoder.hasAudio, @"decoder.hasAudio is true");
+    XCTAssertEqual(decoder.audioChannels, 1);
+    XCTAssertEqual(decoder.audioRate, 44100);
+
     XCTAssertFalse(decoder.hasVideo, @"decoder.hasVideo is false");
 }
 
@@ -63,7 +66,19 @@
     }
     
     XCTAssert(decoder.hasAudio, @"decoder.hasAudio is true");
+    XCTAssertEqual(decoder.audioChannels, 1);
+    XCTAssertEqual(decoder.audioRate, 44100);
+
     XCTAssert(decoder.hasVideo, @"decoder.hasVideo is true");
+    XCTAssertEqual(decoder.frameWidth, 320);
+    XCTAssertEqual(decoder.frameHeight, 240);
+    XCTAssertEqual(decoder.frameRate, 15.0f);
+    XCTAssertEqual(decoder.pictureWidth, 320);
+    XCTAssertEqual(decoder.pictureHeight, 240);
+    XCTAssertEqual(decoder.pictureOffsetX, 0);
+    XCTAssertEqual(decoder.pictureOffsetY, 0);
+    XCTAssertEqual(decoder.hDecimation, 1);
+    XCTAssertEqual(decoder.vDecimation, 1);
 }
 
 @end
