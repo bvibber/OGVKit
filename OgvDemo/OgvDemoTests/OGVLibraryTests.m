@@ -8,6 +8,7 @@
 
 #import <XCTest/XCTest.h>
 
+#define OV_EXCLUDE_STATIC_CALLBACKS
 #include <ogg/ogg.h>
 #include <vorbis/vorbisfile.h>
 #include <theora/theora.h>
