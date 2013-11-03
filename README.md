@@ -23,5 +23,4 @@ Now build the frameworks!
   make
 
 There is a sample application, OgvDemo, which can be opened and built in Xcode.
-Currently it displays one grayscale frame of a small sample video file.
-It's supposed to play 3 seconds of video, but only the first frame plays. :P
+It plays a 3-second sample video (currently in grayscale without audio).

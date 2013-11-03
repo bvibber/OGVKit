@@ -23,7 +23,7 @@
     [super viewDidLoad];
 
     // In real life, don't do any of this on the main thread!
-    [self loadFirstFrame];
+    [self startPlayback];
 }
 
 - (void)didReceiveMemoryWarning
@@ -32,7 +32,7 @@
     // Dispose of any resources that can be recreated.
 }
 
-- (void)loadFirstFrame
+- (void)startPlayback
 {
     decoder = [[OGVDecoder alloc] init];
 
@@ -45,15 +45,8 @@
     
     __unsafe_unretained typeof(self) weakSelf = self; // is this *really* necessary?
     decoder.onframe = ^(OGVFrameBuffer buffer) {
-        if (weakSelf) {
-            NSLog(@"draw buffer...");
-            [weakSelf drawBuffer:buffer];
-        } else {
-            NSLog(@"weakSelf is empty");
-        }
+        [weakSelf drawBuffer:buffer];
     };
-    // show first frame
-    [decoder process];
 }
 
 - (void)viewDidAppear:(BOOL)animated
@@ -74,7 +67,6 @@
 
 - (void)processNextFrame
 {
-    NSLog(@"processing...");
     if (![decoder process]) {
         [timer invalidate];
         timer = nil;
@@ -92,7 +84,7 @@
 - (void)drawBuffer:(OGVFrameBuffer)buffer
 {
     NSData *data = [self convertYCbCrToRGBA:buffer];
-    CGDataProviderRef dataProviderRef = CGDataProviderCreateWithData(NULL, data.bytes, data.length, nil);
+    CGDataProviderRef dataProviderRef = CGDataProviderCreateWithCFData((__bridge CFDataRef)data);
     CGColorSpaceRef colorSpaceRef = CGColorSpaceCreateDeviceRGB();
     CGImageRef imageRef = CGImageCreate(decoder.frameWidth,
                                         decoder.frameHeight,
@@ -116,7 +108,6 @@
 
 - (void)drawImage:(UIImage *)image
 {
-    NSLog(@"Image is %@", image);
     self.imageView.image = image;
 }
 
