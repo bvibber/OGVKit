@@ -15,6 +15,7 @@
 
 @implementation OGVViewController {
     OGVDecoder *decoder;
+    NSTimer *timer;
 }
 
 - (void)viewDidLoad
@@ -44,10 +45,28 @@
     
     __unsafe_unretained typeof(self) weakSelf = self; // is this *really* necessary?
     decoder.onframe = ^(OGVFrameBuffer buffer) {
-        [weakSelf drawBuffer:buffer];
+        if (weakSelf) {
+            NSLog(@"draw buffer...");
+            [weakSelf drawBuffer:buffer];
+        } else {
+            NSLog(@"weakSelf is empty");
+        }
     };
+    // show first frame
     [decoder process];
-    decoder.onframe = nil;
+    
+    // Quickie loop through the rest
+    timer = [NSTimer scheduledTimerWithTimeInterval:(1.0f / decoder.frameRate) target:self selector:@selector(processNextFrame) userInfo:nil repeats:YES];
+}
+
+- (void)processNextFrame
+{
+    NSLog(@"processing...");
+    if (![decoder process]) {
+        [timer invalidate];
+        timer = nil;
+        NSLog(@"done!");
+    }
 }
 
 - (NSData *)loadVideoSample
@@ -56,6 +75,7 @@
     return [NSData dataWithContentsOfFile:path];
 }
 
+// Incredibly inefficient \o/
 - (void)drawBuffer:(OGVFrameBuffer)buffer
 {
     NSData *data = [self convertYCbCrToRGBA:buffer];
@@ -73,8 +93,12 @@
                                         YES /* shouldInterpolate */,
                                         kCGRenderingIntentDefault);
 
-    self.imageView.image = [UIImage imageWithCGImage:imageRef];
-
+    UIImage *image = [UIImage imageWithCGImage:imageRef];
+    NSLog(@"image is %@", image);
+    self.imageView.image = nil;
+    self.imageView.image = image;
+    [self.imageView setNeedsDisplay];
+    
     CGDataProviderRelease(dataProviderRef);
     CGColorSpaceRelease(colorSpaceRef);
     CGImageRelease(imageRef);
