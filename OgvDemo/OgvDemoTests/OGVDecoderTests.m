@@ -36,40 +36,56 @@
     XCTAssertNotNil(decoder, @"Decoder gets allocated!");
 }
 
-- (void)testAudioFile
+- (NSData *)loadAudioSample
 {
     NSString *path = [[NSBundle mainBundle] pathForResource:@"samples/En-us-Wikipedia" ofType:@"oga"];
-    NSData *data = [NSData dataWithContentsOfFile:path];
+    return [NSData dataWithContentsOfFile:path];
+}
+
+- (void)testAudioFile
+{
+    NSData *data = [self loadAudioSample];
     XCTAssertEqual(data.length, (NSUInteger)13696, @"Sample file is as expected");
 
+    XCTAssertFalse(decoder.dataReady);
     [decoder receiveInput:data];
-    while ([decoder process]) {
+
+    XCTAssertFalse(decoder.dataReady);
+    while (!decoder.dataReady && [decoder process]) {
         // process that input!
     }
-    
-    XCTAssert(decoder.hasAudio, @"decoder.hasAudio is true");
+    XCTAssert(decoder.dataReady);
+
+    XCTAssert(decoder.hasAudio);
     XCTAssertEqual(decoder.audioChannels, 1);
     XCTAssertEqual(decoder.audioRate, 44100);
 
-    XCTAssertFalse(decoder.hasVideo, @"decoder.hasVideo is false");
+    XCTAssertFalse(decoder.hasVideo);
+}
+
+- (NSData *)loadVideoSample
+{
+    NSString *path = [[NSBundle mainBundle] pathForResource:@"samples/Peacock_Mating_Call" ofType:@"ogv"];
+    return [NSData dataWithContentsOfFile:path];
 }
 
 - (void)testVideoFile
 {
-    NSString *path = [[NSBundle mainBundle] pathForResource:@"samples/Peacock_Mating_Call" ofType:@"ogv"];
-    NSData *data = [NSData dataWithContentsOfFile:path];
+    NSData *data = [self loadVideoSample];
     XCTAssertEqual(data.length, (NSUInteger)317364, @"Sample file is as expected");
     
     [decoder receiveInput:data];
-    while ([decoder process]) {
+    XCTAssertFalse(decoder.dataReady);
+    while (!decoder.dataReady && [decoder process]) {
         // process that input!
     }
+    XCTAssert(decoder.dataReady);
     
-    XCTAssert(decoder.hasAudio, @"decoder.hasAudio is true");
+    XCTAssert(decoder.hasAudio);
     XCTAssertEqual(decoder.audioChannels, 1);
     XCTAssertEqual(decoder.audioRate, 44100);
 
-    XCTAssert(decoder.hasVideo, @"decoder.hasVideo is true");
+    XCTAssert(decoder.hasVideo);
     XCTAssertEqual(decoder.frameWidth, 320);
     XCTAssertEqual(decoder.frameHeight, 240);
     XCTAssertEqual(decoder.frameRate, 15.0f);

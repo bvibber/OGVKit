@@ -25,6 +25,8 @@ typedef struct {
 
 @interface OGVDecoder : NSObject
 
+@property BOOL dataReady;
+
 @property BOOL hasVideo;
 @property int frameWidth;
 @property int frameHeight;
@@ -35,6 +37,9 @@ typedef struct {
 @property int pictureOffsetY;
 @property int hDecimation;
 @property int vDecimation;
+
+@property BOOL frameReady;
+@property OGVFrameBuffer currentFrame;
 
 @property BOOL hasAudio;
 @property int audioChannels;

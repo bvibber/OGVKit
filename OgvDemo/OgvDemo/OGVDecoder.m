@@ -64,6 +64,8 @@
 {
     self = [super init];
     if (self) {
+        self.dataReady = NO;
+        
         appState = STATE_BEGIN;
         
         /* start up Ogg stream synchronization layer */
@@ -233,6 +235,7 @@
 		}
         
         appState = STATE_DECODING;
+        self.dataReady = YES;
         NSLog(@"Done with headers step");
 	}
 }
