@@ -111,24 +111,44 @@
     self.imageView.image = image;
 }
 
+static int clamp(int i) {
+    if (i < 0) {
+        return 0;
+    } else if (i > 0xff00) {
+        return 0xff00;
+    } else {
+        return i;
+    }
+}
+
 - (NSData *)convertYCbCrToRGBA:(OGVFrameBuffer)buffer
 {
-    unsigned int width = decoder.frameWidth,
-        height = decoder.frameHeight,
-        length = width * height * 4;
-    unsigned char *bytes = malloc(length),
-        *inptr = buffer.YData,
-        *outptr = bytes;
+    int width = decoder.frameWidth;
+    int height = decoder.frameHeight;
+    int length = width * height * 4;
+    int hdec = decoder.hDecimation;
+    int vdec = decoder.vDecimation;
+    unsigned char *bytes = malloc(length);
+    unsigned char *outPtr = bytes;
     
     for (unsigned int y = 0; y < height; y++) {
-        inptr = buffer.YData + y * buffer.YStride;
+        int ydec = y >> vdec;
+        unsigned char *YPtr = buffer.YData + y * buffer.YStride;
+        unsigned char *CbPtr = buffer.CbData + ydec * buffer.CbStride;
+        unsigned char *CrPtr = buffer.CrData + ydec * buffer.CrStride;
         for (unsigned int x = 0; x < width; x++) {
-            // As temp hack, just grayscale
-            *(outptr++) = *inptr;
-            *(outptr++) = *inptr;
-            *(outptr++) = *inptr;
-            *(outptr++) = 0;
-            inptr++;
+            int xdec = x >> hdec;
+            int colorY = YPtr[x];
+            int colorCb = CbPtr[xdec];
+            int colorCr = CrPtr[xdec];
+
+            // Quickie YUV conversion
+            // https://en.wikipedia.org/wiki/YCbCr#ITU-R_BT.2020_conversion
+            unsigned int multY = (298 * colorY);
+            *(outPtr++) = clamp((multY + (409 * colorCr) - 223*256)) >> 8;
+            *(outPtr++) = clamp((multY - (100 * colorCb) - (208 * colorCr) + 136*256)) >> 8;
+            *(outPtr++) = clamp((multY + (516 * colorCb) - 277*256)) >> 8;
+            *(outPtr++) = 0;
         }
     }
     

@@ -230,7 +230,7 @@
                 OGVFrameBuffer buffer;
                 buffer.YData = ycbcr[0].data;
                 buffer.CbData = ycbcr[1].data;
-                buffer.CrData = ycbcr[1].data;
+                buffer.CrData = ycbcr[2].data;
                 buffer.YStride = ycbcr[0].stride;
                 buffer.CbStride = ycbcr[1].stride;
                 buffer.CrStride = ycbcr[2].stride;
