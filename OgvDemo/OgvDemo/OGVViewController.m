@@ -53,7 +53,7 @@
         }
     };
     // show first frame
-    [decoder process];
+    //[decoder process];
     
     // Quickie loop through the rest
     timer = [NSTimer scheduledTimerWithTimeInterval:(1.0f / decoder.frameRate) target:self selector:@selector(processNextFrame) userInfo:nil repeats:YES];
@@ -94,14 +94,18 @@
                                         kCGRenderingIntentDefault);
 
     UIImage *image = [UIImage imageWithCGImage:imageRef];
-    NSLog(@"image is %@", image);
-    self.imageView.image = nil;
-    self.imageView.image = image;
-    [self.imageView setNeedsDisplay];
+    [self performSelectorOnMainThread:@selector(drawImage:) withObject:image waitUntilDone:YES];
     
     CGDataProviderRelease(dataProviderRef);
     CGColorSpaceRelease(colorSpaceRef);
     CGImageRelease(imageRef);
+}
+
+- (void)drawImage:(UIImage *)image
+{
+    NSLog(@"image is %@", image);
+    self.imageView.image = image;
+    [self.imageView setNeedsLayout];
 }
 
 - (NSData *)convertYCbCrToRGBA:(OGVFrameBuffer)buffer

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D41B41341826926D009D8652 /* black.png in Resources */ = {isa = PBXBuildFile; fileRef = D41B41331826926D009D8652 /* black.png */; };
 		D42F48371825F79700F7ED1F /* samples in Resources */ = {isa = PBXBuildFile; fileRef = D42F48361825F79700F7ED1F /* samples */; };
 		D42F48381825F79700F7ED1F /* samples in Resources */ = {isa = PBXBuildFile; fileRef = D42F48361825F79700F7ED1F /* samples */; };
 		D432751F1825C66500A43CE7 /* OGVDecoder.m in Sources */ = {isa = PBXBuildFile; fileRef = D432751E1825C66500A43CE7 /* OGVDecoder.m */; };
@@ -46,6 +47,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		D41B41331826926D009D8652 /* black.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = black.png; sourceTree = "<group>"; };
 		D42F48361825F79700F7ED1F /* samples */ = {isa = PBXFileReference; lastKnownFileType = folder; path = samples; sourceTree = SOURCE_ROOT; };
 		D432751D1825C66400A43CE7 /* OGVDecoder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVDecoder.h; sourceTree = "<group>"; };
 		D432751E1825C66500A43CE7 /* OGVDecoder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVDecoder.m; sourceTree = "<group>"; };
@@ -141,6 +143,7 @@
 		D4EB24711825A81E008B9160 /* OgvDemo */ = {
 			isa = PBXGroup;
 			children = (
+				D41B41331826926D009D8652 /* black.png */,
 				D42F48361825F79700F7ED1F /* samples */,
 				D4EB247A1825A81E008B9160 /* OGVAppDelegate.h */,
 				D4EB247B1825A81E008B9160 /* OGVAppDelegate.m */,
@@ -268,6 +271,7 @@
 				D42F48371825F79700F7ED1F /* samples in Resources */,
 				D4EB247F1825A81E008B9160 /* Main_iPhone.storyboard in Resources */,
 				D4EB24761825A81E008B9160 /* InfoPlist.strings in Resources */,
+				D41B41341826926D009D8652 /* black.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
