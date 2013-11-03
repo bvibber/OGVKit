@@ -116,6 +116,7 @@
 
 - (void)drawImage:(UIImage *)image
 {
+    NSLog(@"Image is %@", image);
     self.imageView.image = image;
 }
 
