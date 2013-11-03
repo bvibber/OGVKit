@@ -441,6 +441,7 @@
 				GCC_PREFIX_HEADER = "OgvDemo/OgvDemo-Prefix.pch";
 				INFOPLIST_FILE = "OgvDemo/OgvDemo-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
+				LLVM_LTO = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};
@@ -459,6 +460,7 @@
 				GCC_PREFIX_HEADER = "OgvDemo/OgvDemo-Prefix.pch";
 				INFOPLIST_FILE = "OgvDemo/OgvDemo-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
+				LLVM_LTO = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};
@@ -482,6 +484,8 @@
 					"$(inherited)",
 				);
 				INFOPLIST_FILE = "OgvDemoTests/OgvDemoTests-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
+				LLVM_LTO = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUNDLE_LOADER)";
 				WRAPPER_EXTENSION = xctest;
@@ -502,6 +506,8 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "OgvDemo/OgvDemo-Prefix.pch";
 				INFOPLIST_FILE = "OgvDemoTests/OgvDemoTests-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
+				LLVM_LTO = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUNDLE_LOADER)";
 				WRAPPER_EXTENSION = xctest;

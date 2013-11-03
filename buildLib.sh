@@ -22,12 +22,13 @@ case $ARCH in
   i386 | x86_64 )
     PLATFORM=iPhoneSimulator
     platform=iphonesimulator
-    HOST=$ARCH-apple-darwin
+    # darwin13 == iOS 6 min requirement
+    HOST=$ARCH-apple-darwin13
     ;;
   armv7 | armv7s | arm64 )
     PLATFORM=iPhoneOS
     platform=iphoneos
-    HOST=arm-apple-darwin
+    HOST=arm-apple-darwin13
     ;;
   * )
     echo "Unrecognized architecture $ARCH"
