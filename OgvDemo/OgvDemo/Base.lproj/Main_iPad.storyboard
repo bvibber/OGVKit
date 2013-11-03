@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="4514" systemVersion="13A603" targetRuntime="iOS.CocoaTouch.iPad" propertyAccessControl="none" useAutolayout="YES" initialViewController="BYZ-38-t0r">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="4511" systemVersion="13A598" targetRuntime="iOS.CocoaTouch.iPad" propertyAccessControl="none" useAutolayout="YES" initialViewController="BYZ-38-t0r">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="3746"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="3745"/>
     </dependencies>
     <scenes>
         <!--View Controller-->
@@ -16,17 +16,18 @@
                         <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="tWm-Tg-BOm">
-                                <rect key="frame" x="-83" y="-52" width="768" height="1024"/>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="tWm-Tg-BOm">
+                                <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                <color key="backgroundColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                             </imageView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                         <constraints>
-                            <constraint firstItem="tWm-Tg-BOm" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" id="23I-A2-pBB"/>
-                            <constraint firstItem="tWm-Tg-BOm" firstAttribute="top" secondItem="8bC-Xf-vdC" secondAttribute="top" id="59o-sh-ffo"/>
-                            <constraint firstItem="s4X-X7-Q6e" firstAttribute="top" secondItem="tWm-Tg-BOm" secondAttribute="bottom" id="IWh-s3-1mY"/>
-                            <constraint firstAttribute="trailing" secondItem="tWm-Tg-BOm" secondAttribute="trailing" id="T9j-qQ-F15"/>
+                            <constraint firstAttribute="trailing" secondItem="tWm-Tg-BOm" secondAttribute="trailing" id="8db-hL-bFh"/>
+                            <constraint firstItem="s4X-X7-Q6e" firstAttribute="top" secondItem="tWm-Tg-BOm" secondAttribute="bottom" id="IW3-Yd-zT7"/>
+                            <constraint firstItem="tWm-Tg-BOm" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" id="eFD-bi-Gbi"/>
+                            <constraint firstItem="tWm-Tg-BOm" firstAttribute="top" secondItem="8bC-Xf-vdC" secondAttribute="top" id="lUR-LC-zIz"/>
                         </constraints>
                     </view>
                     <connections>
