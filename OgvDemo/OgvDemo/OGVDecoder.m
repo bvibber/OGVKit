@@ -76,6 +76,9 @@
         /* init supporting Theora structures needed in header parsing */
         th_comment_init(&theoraComment);
         th_info_init(&theoraInfo);
+        
+        process_audio = 1;
+        process_video = 1;
     }
     return self;
 }

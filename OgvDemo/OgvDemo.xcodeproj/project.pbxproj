@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D42F48371825F79700F7ED1F /* samples in Resources */ = {isa = PBXBuildFile; fileRef = D42F48361825F79700F7ED1F /* samples */; };
+		D42F48381825F79700F7ED1F /* samples in Resources */ = {isa = PBXBuildFile; fileRef = D42F48361825F79700F7ED1F /* samples */; };
 		D432751F1825C66500A43CE7 /* OGVDecoder.m in Sources */ = {isa = PBXBuildFile; fileRef = D432751E1825C66500A43CE7 /* OGVDecoder.m */; };
 		D43275201825C66500A43CE7 /* OGVDecoder.m in Sources */ = {isa = PBXBuildFile; fileRef = D432751E1825C66500A43CE7 /* OGVDecoder.m */; };
 		D432752A1825DD9800A43CE7 /* OGVDecoderTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D43275291825DD9800A43CE7 /* OGVDecoderTests.m */; };
@@ -44,6 +46,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		D42F48361825F79700F7ED1F /* samples */ = {isa = PBXFileReference; lastKnownFileType = folder; path = samples; sourceTree = SOURCE_ROOT; };
 		D432751D1825C66400A43CE7 /* OGVDecoder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVDecoder.h; sourceTree = "<group>"; };
 		D432751E1825C66500A43CE7 /* OGVDecoder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVDecoder.m; sourceTree = "<group>"; };
 		D43275291825DD9800A43CE7 /* OGVDecoderTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVDecoderTests.m; sourceTree = "<group>"; };
@@ -138,6 +141,7 @@
 		D4EB24711825A81E008B9160 /* OgvDemo */ = {
 			isa = PBXGroup;
 			children = (
+				D42F48361825F79700F7ED1F /* samples */,
 				D4EB247A1825A81E008B9160 /* OGVAppDelegate.h */,
 				D4EB247B1825A81E008B9160 /* OGVAppDelegate.m */,
 				D4EB247D1825A81E008B9160 /* Main_iPhone.storyboard */,
@@ -261,6 +265,7 @@
 			files = (
 				D4EB24821825A81E008B9160 /* Main_iPad.storyboard in Resources */,
 				D4EB24871825A81E008B9160 /* Images.xcassets in Resources */,
+				D42F48371825F79700F7ED1F /* samples in Resources */,
 				D4EB247F1825A81E008B9160 /* Main_iPhone.storyboard in Resources */,
 				D4EB24761825A81E008B9160 /* InfoPlist.strings in Resources */,
 			);
@@ -270,6 +275,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D42F48381825F79700F7ED1F /* samples in Resources */,
 				D4EB24981825A81E008B9160 /* InfoPlist.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

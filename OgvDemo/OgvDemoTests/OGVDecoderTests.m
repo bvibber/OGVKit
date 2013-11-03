@@ -31,9 +31,39 @@
     [super tearDown];
 }
 
-- (void)testExample
+- (void)testItWorks
 {
     XCTAssertNotNil(decoder, @"Decoder gets allocated!");
+}
+
+- (void)testAudioFile
+{
+    NSString *path = [[NSBundle mainBundle] pathForResource:@"samples/En-us-Wikipedia" ofType:@"oga"];
+    NSData *data = [NSData dataWithContentsOfFile:path];
+    XCTAssertEqual(data.length, (NSUInteger)13696, @"Sample file is as expected");
+
+    [decoder receiveInput:data];
+    while ([decoder process]) {
+        // process that input!
+    }
+    
+    XCTAssert(decoder.hasAudio, @"decoder.hasAudio is true");
+    XCTAssertFalse(decoder.hasVideo, @"decoder.hasVideo is false");
+}
+
+- (void)testVideoFile
+{
+    NSString *path = [[NSBundle mainBundle] pathForResource:@"samples/Peacock_Mating_Call" ofType:@"ogv"];
+    NSData *data = [NSData dataWithContentsOfFile:path];
+    XCTAssertEqual(data.length, (NSUInteger)317364, @"Sample file is as expected");
+    
+    [decoder receiveInput:data];
+    while ([decoder process]) {
+        // process that input!
+    }
+    
+    XCTAssert(decoder.hasAudio, @"decoder.hasAudio is true");
+    XCTAssert(decoder.hasVideo, @"decoder.hasVideo is true");
 }
 
 @end
