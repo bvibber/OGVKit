@@ -12,11 +12,11 @@
 #include <vorbis/vorbisfile.h>
 #include <theora/theora.h>
 
-@interface OgvDemoTests : XCTestCase
+@interface OGVLibraryTests : XCTestCase
 
 @end
 
-@implementation OgvDemoTests
+@implementation OGVLibraryTests
 
 - (void)setUp
 {

@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D432751F1825C66500A43CE7 /* OGVDecoder.m in Sources */ = {isa = PBXBuildFile; fileRef = D432751E1825C66500A43CE7 /* OGVDecoder.m */; };
+		D43275201825C66500A43CE7 /* OGVDecoder.m in Sources */ = {isa = PBXBuildFile; fileRef = D432751E1825C66500A43CE7 /* OGVDecoder.m */; };
+		D432752A1825DD9800A43CE7 /* OGVDecoderTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D43275291825DD9800A43CE7 /* OGVDecoderTests.m */; };
 		D4EB246C1825A81E008B9160 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4EB246B1825A81E008B9160 /* Foundation.framework */; };
 		D4EB246E1825A81E008B9160 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4EB246D1825A81E008B9160 /* CoreGraphics.framework */; };
 		D4EB24701825A81E008B9160 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4EB246F1825A81E008B9160 /* UIKit.framework */; };
@@ -21,7 +24,7 @@
 		D4EB248F1825A81E008B9160 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4EB246B1825A81E008B9160 /* Foundation.framework */; };
 		D4EB24901825A81E008B9160 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4EB246F1825A81E008B9160 /* UIKit.framework */; };
 		D4EB24981825A81E008B9160 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = D4EB24961825A81E008B9160 /* InfoPlist.strings */; };
-		D4EB249A1825A81E008B9160 /* OgvDemoTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D4EB24991825A81E008B9160 /* OgvDemoTests.m */; };
+		D4EB249A1825A81E008B9160 /* OGVLibraryTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D4EB24991825A81E008B9160 /* OGVLibraryTests.m */; };
 		D4EB24A61825A872008B9160 /* Ogg.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4EB24A31825A872008B9160 /* Ogg.framework */; };
 		D4EB24A71825A872008B9160 /* Theora.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4EB24A41825A872008B9160 /* Theora.framework */; };
 		D4EB24A81825A872008B9160 /* Vorbis.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4EB24A51825A872008B9160 /* Vorbis.framework */; };
@@ -41,6 +44,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		D432751D1825C66400A43CE7 /* OGVDecoder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVDecoder.h; sourceTree = "<group>"; };
+		D432751E1825C66500A43CE7 /* OGVDecoder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVDecoder.m; sourceTree = "<group>"; };
+		D43275291825DD9800A43CE7 /* OGVDecoderTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVDecoderTests.m; sourceTree = "<group>"; };
 		D4EB24681825A81E008B9160 /* OgvDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OgvDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D4EB246B1825A81E008B9160 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		D4EB246D1825A81E008B9160 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -60,7 +66,7 @@
 		D4EB248D1825A81E008B9160 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
 		D4EB24951825A81E008B9160 /* OgvDemoTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "OgvDemoTests-Info.plist"; sourceTree = "<group>"; };
 		D4EB24971825A81E008B9160 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		D4EB24991825A81E008B9160 /* OgvDemoTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = OgvDemoTests.m; sourceTree = "<group>"; };
+		D4EB24991825A81E008B9160 /* OGVLibraryTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = OGVLibraryTests.m; sourceTree = "<group>"; };
 		D4EB24A31825A872008B9160 /* Ogg.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Ogg.framework; path = ../build/Ogg.framework; sourceTree = "<group>"; };
 		D4EB24A41825A872008B9160 /* Theora.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Theora.framework; path = ../build/Theora.framework; sourceTree = "<group>"; };
 		D4EB24A51825A872008B9160 /* Vorbis.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Vorbis.framework; path = ../build/Vorbis.framework; sourceTree = "<group>"; };
@@ -140,6 +146,8 @@
 				D4EB24841825A81E008B9160 /* OGVViewController.m */,
 				D4EB24861825A81E008B9160 /* Images.xcassets */,
 				D4EB24721825A81E008B9160 /* Supporting Files */,
+				D432751D1825C66400A43CE7 /* OGVDecoder.h */,
+				D432751E1825C66500A43CE7 /* OGVDecoder.m */,
 			);
 			path = OgvDemo;
 			sourceTree = "<group>";
@@ -158,7 +166,8 @@
 		D4EB24931825A81E008B9160 /* OgvDemoTests */ = {
 			isa = PBXGroup;
 			children = (
-				D4EB24991825A81E008B9160 /* OgvDemoTests.m */,
+				D4EB24991825A81E008B9160 /* OGVLibraryTests.m */,
+				D43275291825DD9800A43CE7 /* OGVDecoderTests.m */,
 				D4EB24941825A81E008B9160 /* Supporting Files */,
 			);
 			path = OgvDemoTests;
@@ -273,6 +282,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D4EB24781825A81E008B9160 /* main.m in Sources */,
+				D432751F1825C66500A43CE7 /* OGVDecoder.m in Sources */,
 				D4EB247C1825A81E008B9160 /* OGVAppDelegate.m in Sources */,
 				D4EB24851825A81E008B9160 /* OGVViewController.m in Sources */,
 			);
@@ -282,7 +292,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D4EB249A1825A81E008B9160 /* OgvDemoTests.m in Sources */,
+				D432752A1825DD9800A43CE7 /* OGVDecoderTests.m in Sources */,
+				D4EB249A1825A81E008B9160 /* OGVLibraryTests.m in Sources */,
+				D43275201825C66500A43CE7 /* OGVDecoder.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -503,6 +515,7 @@
 				D4EB249F1825A81E008B9160 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		D4EB24A01825A81E008B9160 /* Build configuration list for PBXNativeTarget "OgvDemoTests" */ = {
 			isa = XCConfigurationList;
@@ -511,6 +524,7 @@
 				D4EB24A21825A81E008B9160 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
