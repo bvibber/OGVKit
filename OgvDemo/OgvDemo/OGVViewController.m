@@ -173,7 +173,7 @@
                                             kCGRenderingIntentDefault);
 
         UIImage *image = [UIImage imageWithCGImage:imageRef];
-        [self performSelectorOnMainThread:@selector(drawImage:) withObject:image waitUntilDone:YES];
+        [self drawImage:image];
         
         CGDataProviderRelease(dataProviderRef);
         CGColorSpaceRelease(colorSpaceRef);
