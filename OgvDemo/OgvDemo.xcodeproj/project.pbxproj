@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		D41B41341826926D009D8652 /* black.png in Resources */ = {isa = PBXBuildFile; fileRef = D41B41331826926D009D8652 /* black.png */; };
-		D42F48371825F79700F7ED1F /* samples in Resources */ = {isa = PBXBuildFile; fileRef = D42F48361825F79700F7ED1F /* samples */; };
 		D42F48381825F79700F7ED1F /* samples in Resources */ = {isa = PBXBuildFile; fileRef = D42F48361825F79700F7ED1F /* samples */; };
 		D432751F1825C66500A43CE7 /* OGVDecoder.m in Sources */ = {isa = PBXBuildFile; fileRef = D432751E1825C66500A43CE7 /* OGVDecoder.m */; };
 		D43275201825C66500A43CE7 /* OGVDecoder.m in Sources */ = {isa = PBXBuildFile; fileRef = D432751E1825C66500A43CE7 /* OGVDecoder.m */; };
@@ -144,7 +143,6 @@
 			isa = PBXGroup;
 			children = (
 				D41B41331826926D009D8652 /* black.png */,
-				D42F48361825F79700F7ED1F /* samples */,
 				D4EB247A1825A81E008B9160 /* OGVAppDelegate.h */,
 				D4EB247B1825A81E008B9160 /* OGVAppDelegate.m */,
 				D4EB247D1825A81E008B9160 /* Main_iPhone.storyboard */,
@@ -175,6 +173,7 @@
 			children = (
 				D4EB24991825A81E008B9160 /* OGVLibraryTests.m */,
 				D43275291825DD9800A43CE7 /* OGVDecoderTests.m */,
+				D42F48361825F79700F7ED1F /* samples */,
 				D4EB24941825A81E008B9160 /* Supporting Files */,
 			);
 			path = OgvDemoTests;
@@ -268,7 +267,6 @@
 			files = (
 				D4EB24821825A81E008B9160 /* Main_iPad.storyboard in Resources */,
 				D4EB24871825A81E008B9160 /* Images.xcassets in Resources */,
-				D42F48371825F79700F7ED1F /* samples in Resources */,
 				D4EB247F1825A81E008B9160 /* Main_iPhone.storyboard in Resources */,
 				D4EB24761825A81E008B9160 /* InfoPlist.strings in Resources */,
 				D41B41341826926D009D8652 /* black.png in Resources */,

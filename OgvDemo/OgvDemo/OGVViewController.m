@@ -16,14 +16,14 @@
 @implementation OGVViewController {
     OGVDecoder *decoder;
     NSTimer *timer;
+    NSURLConnection *connection;
+    BOOL doneDownloading;
 }
 
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-
-    // In real life, don't do any of this on the main thread!
-    [self startPlayback];
+    [self startDownload];
 }
 
 - (void)didReceiveMemoryWarning
@@ -32,16 +32,11 @@
     // Dispose of any resources that can be recreated.
 }
 
-- (void)startPlayback
+- (void)startDownload
 {
     decoder = [[OGVDecoder alloc] init];
 
-    NSData *data = [self loadVideoSample];
-    [decoder receiveInput:data];
-
-    while (!decoder.dataReady && [decoder process]) {
-        // whee!
-    }
+    [self loadVideoSample];
     
     __unsafe_unretained typeof(self) weakSelf = self; // is this *really* necessary?
     decoder.onframe = ^(OGVFrameBuffer buffer) {
@@ -52,32 +47,50 @@
 - (void)viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
-    // Quickie loop through the rest
-    timer = [NSTimer scheduledTimerWithTimeInterval:(1.0f / decoder.frameRate) target:self selector:@selector(processNextFrame) userInfo:nil repeats:YES];
+    if (decoder && decoder.dataReady) {
+        [self startTimer];
+    }
 }
 
 - (void)viewWillDisappear:(BOOL)animated
+{
+    [self stopTimer];
+    [super viewDidDisappear:animated];
+}
+
+- (void)startTimer
+{
+    [self stopTimer];
+    timer = [NSTimer scheduledTimerWithTimeInterval:(1.0f / decoder.frameRate) target:self selector:@selector(processNextFrame) userInfo:nil repeats:YES];
+}
+
+- (void)stopTimer
 {
     if (timer) {
         [timer invalidate];
         timer = nil;
     }
-    [super viewDidDisappear:animated];
 }
 
 - (void)processNextFrame
 {
-    if (![decoder process]) {
-        [timer invalidate];
-        timer = nil;
-        NSLog(@"done!");
+    if ([decoder process]) {
+        // more data to process...
+    } else {
+        NSLog(@"no more data to process");
+        if (doneDownloading) {
+            [timer invalidate];
+            timer = nil;
+            NSLog(@"done downloading too, stopping!");
+        }
     }
 }
 
-- (NSData *)loadVideoSample
+- (void)loadVideoSample
 {
-    NSString *path = [[NSBundle mainBundle] pathForResource:@"samples/Peacock_Mating_Call" ofType:@"ogv"];
-    return [NSData dataWithContentsOfFile:path];
+    NSURL *url = [NSURL URLWithString:@"https://upload.wikimedia.org/wikipedia/commons/3/3f/Jarry_-_M%C3%A9tro_de_Montr%C3%A9al_%28640%C3%97360%29.ogv"];
+    NSURLRequest *req = [NSURLRequest requestWithURL:url];
+    connection = [NSURLConnection connectionWithRequest:req delegate:self];
 }
 
 // Incredibly inefficient \o/
@@ -153,6 +166,32 @@ static int clamp(int i) {
     }
     
     return [NSData dataWithBytesNoCopy:bytes length:length];
+}
+
+
+#pragma mark NSURLConnectionDataDelegate methods
+
+- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
+{
+    NSLog(@"receive input: %d bytes", data.length);
+    [decoder receiveInput:data];
+    
+    if (!decoder.dataReady) {
+        // We need to process enough of the file that we can
+        // start a timer based on the frame rate...
+        while (!decoder.dataReady && [decoder process]) {
+            // whee!
+        }
+        if (decoder.dataReady) {
+            [self startTimer];
+        }
+    }
+}
+
+- (void)connectionDidFinishLoading:(NSURLConnection *)connection
+{
+    NSLog(@"done downloading");
+    doneDownloading = YES;
 }
 
 @end

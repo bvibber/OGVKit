@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 
-@interface OGVViewController : UIViewController
+@interface OGVViewController : UIViewController <NSURLConnectionDataDelegate>
 
 @property (weak, nonatomic) IBOutlet UIImageView *imageView;
 
