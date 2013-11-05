@@ -11,5 +11,6 @@
 @interface OGVViewController : UIViewController <NSURLConnectionDataDelegate>
 
 @property (weak, nonatomic) IBOutlet UIImageView *imageView;
+@property (weak, nonatomic) IBOutlet UILabel *statusLabel;
 
 @end

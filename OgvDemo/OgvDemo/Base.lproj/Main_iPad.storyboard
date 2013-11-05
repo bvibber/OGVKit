@@ -14,23 +14,36 @@
                         <viewControllerLayoutGuide type="bottom" id="s4X-X7-Q6e"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
-                        <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
+                        <rect key="frame" x="0.0" y="0.0" width="1024" height="768"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="black.png" translatesAutoresizingMaskIntoConstraints="NO" id="tWm-Tg-BOm">
-                                <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
+                                <rect key="frame" x="0.0" y="0.0" width="1024" height="768"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                             </imageView>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Initializing..." textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="2wl-Pk-laZ">
+                                <rect key="frame" x="0.0" y="747" width="1024" height="21"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <color key="backgroundColor" red="0.50263249870000004" green="0.50263249870000004" blue="0.50263249870000004" alpha="0.20000000000000001" colorSpace="calibratedRGB"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                         <constraints>
                             <constraint firstAttribute="trailing" secondItem="tWm-Tg-BOm" secondAttribute="trailing" id="8db-hL-bFh"/>
                             <constraint firstItem="s4X-X7-Q6e" firstAttribute="top" secondItem="tWm-Tg-BOm" secondAttribute="bottom" id="IW3-Yd-zT7"/>
+                            <constraint firstAttribute="trailing" secondItem="2wl-Pk-laZ" secondAttribute="trailing" id="WTU-YB-SCc"/>
                             <constraint firstItem="tWm-Tg-BOm" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" id="eFD-bi-Gbi"/>
+                            <constraint firstItem="2wl-Pk-laZ" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" id="frI-Sf-tMd"/>
                             <constraint firstItem="tWm-Tg-BOm" firstAttribute="top" secondItem="8bC-Xf-vdC" secondAttribute="top" id="lUR-LC-zIz"/>
+                            <constraint firstItem="s4X-X7-Q6e" firstAttribute="top" secondItem="2wl-Pk-laZ" secondAttribute="bottom" id="s6W-6F-p92"/>
                         </constraints>
+                        <simulatedOrientationMetrics key="simulatedOrientationMetrics" orientation="landscapeRight"/>
                     </view>
+                    <simulatedOrientationMetrics key="simulatedOrientationMetrics" orientation="landscapeRight"/>
                     <connections>
                         <outlet property="imageView" destination="tWm-Tg-BOm" id="3DV-cG-k1L"/>
                     </connections>
