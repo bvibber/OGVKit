@@ -19,6 +19,9 @@
     NSURLConnection *connection;
     BOOL doneDownloading;
     
+    dispatch_queue_t decodeQueue;
+    dispatch_queue_t drawingQueue;
+    
     // Stats
     double pixelsPerFrame;
     double targetPixelRate;
@@ -49,11 +52,20 @@
 {
     decoder = [[OGVDecoder alloc] init];
 
+    // decode on background thread
+    decodeQueue = dispatch_queue_create("Decoder", NULL);
+
+    // draw on UI thread
+    drawingQueue = dispatch_get_main_queue();
+
     [self loadVideoSample];
-    
+
     __unsafe_unretained typeof(self) weakSelf = self; // is this *really* necessary?
+    __unsafe_unretained typeof(drawingQueue) weakDrawingQueue = drawingQueue;
     decoder.onframe = ^(OGVFrameBuffer buffer) {
-        [weakSelf drawBuffer:buffer];
+        dispatch_async(weakDrawingQueue, ^() {
+            [weakSelf drawBuffer:buffer];
+        });
     };
 }
 
@@ -92,21 +104,23 @@
 
 - (void)processNextFrame
 {
-    NSDate *start = [NSDate date];
-    BOOL more = [decoder process];
-    NSTimeInterval delta = [[NSDate date] timeIntervalSinceDate:start];
-    decodingTime += delta;
-    
-    if (more) {
-        // more data to process...
-    } else {
-        NSLog(@"no more data to process");
-        if (doneDownloading) {
-            [timer invalidate];
-            timer = nil;
-            NSLog(@"done downloading too, stopping!");
+    dispatch_async(decodeQueue, ^() {
+        NSDate *start = [NSDate date];
+        BOOL more = [decoder process];
+        NSTimeInterval delta = [[NSDate date] timeIntervalSinceDate:start];
+        decodingTime += delta;
+        
+        if (more) {
+            // more data to process...
+        } else {
+            NSLog(@"no more data to process");
+            if (doneDownloading) {
+                [timer invalidate];
+                timer = nil;
+                NSLog(@"done downloading too, stopping!");
+            }
         }
-    }
+    });
 }
 
 - (void)loadVideoSample
@@ -140,35 +154,37 @@
 // Incredibly inefficient \o/
 - (void)drawBuffer:(OGVFrameBuffer)buffer
 {
-    NSDate *start = [NSDate date];
-    
-    NSData *data = [self convertYCbCrToRGBA:buffer];
-    CGDataProviderRef dataProviderRef = CGDataProviderCreateWithCFData((__bridge CFDataRef)data);
-    CGColorSpaceRef colorSpaceRef = CGColorSpaceCreateDeviceRGB();
-    CGImageRef imageRef = CGImageCreate(decoder.frameWidth,
-                                        decoder.frameHeight,
-                                        8 /* bitsPerColorComponent */,
-                                        32 /* bitsPerPixel */,
-                                        4 * decoder.frameWidth /* bytesPerRow */,
-                                        colorSpaceRef,
-                                        kCGBitmapByteOrder32Big | kCGImageAlphaNone,
-                                        dataProviderRef,
-                                        NULL,
-                                        YES /* shouldInterpolate */,
-                                        kCGRenderingIntentDefault);
+    dispatch_async(drawingQueue, ^() {
+        NSDate *start = [NSDate date];
+        
+        NSData *data = [self convertYCbCrToRGBA:buffer];
+        CGDataProviderRef dataProviderRef = CGDataProviderCreateWithCFData((__bridge CFDataRef)data);
+        CGColorSpaceRef colorSpaceRef = CGColorSpaceCreateDeviceRGB();
+        CGImageRef imageRef = CGImageCreate(decoder.frameWidth,
+                                            decoder.frameHeight,
+                                            8 /* bitsPerColorComponent */,
+                                            32 /* bitsPerPixel */,
+                                            4 * decoder.frameWidth /* bytesPerRow */,
+                                            colorSpaceRef,
+                                            kCGBitmapByteOrder32Big | kCGImageAlphaNone,
+                                            dataProviderRef,
+                                            NULL,
+                                            YES /* shouldInterpolate */,
+                                            kCGRenderingIntentDefault);
 
-    UIImage *image = [UIImage imageWithCGImage:imageRef];
-    [self performSelectorOnMainThread:@selector(drawImage:) withObject:image waitUntilDone:YES];
-    
-    CGDataProviderRelease(dataProviderRef);
-    CGColorSpaceRelease(colorSpaceRef);
-    CGImageRelease(imageRef);
-    
-    NSTimeInterval delta = [[NSDate date] timeIntervalSinceDate:start];
-    drawingTime += delta;
+        UIImage *image = [UIImage imageWithCGImage:imageRef];
+        [self performSelectorOnMainThread:@selector(drawImage:) withObject:image waitUntilDone:YES];
+        
+        CGDataProviderRelease(dataProviderRef);
+        CGColorSpaceRelease(colorSpaceRef);
+        CGImageRelease(imageRef);
+        
+        NSTimeInterval delta = [[NSDate date] timeIntervalSinceDate:start];
+        drawingTime += delta;
 
-    pixelsProcessed += pixelsPerFrame;
-    [self updateStats];
+        pixelsProcessed += pixelsPerFrame;
+        [self updateStats];
+    });
 }
 
 - (void)updateStats
