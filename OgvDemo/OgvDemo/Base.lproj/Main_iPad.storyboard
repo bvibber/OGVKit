@@ -46,6 +46,7 @@
                     <simulatedOrientationMetrics key="simulatedOrientationMetrics" orientation="landscapeRight"/>
                     <connections>
                         <outlet property="imageView" destination="tWm-Tg-BOm" id="3DV-cG-k1L"/>
+                        <outlet property="statusLabel" destination="2wl-Pk-laZ" id="oaB-Na-Gcc"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>

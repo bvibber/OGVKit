@@ -18,6 +18,17 @@
     NSTimer *timer;
     NSURLConnection *connection;
     BOOL doneDownloading;
+    
+    // Stats
+    double pixelsPerFrame;
+    double targetPixelRate;
+    double pixelsProcessed;
+    
+    NSTimeInterval decodingTime;
+    double averageDecodingRate;
+    
+    NSTimeInterval drawingTime;
+    double averageDrawingRate;
 }
 
 - (void)viewDidLoad
@@ -58,6 +69,11 @@
     [super viewDidDisappear:animated];
 }
 
+- (void)showStatus:(NSString *)status
+{
+    self.statusLabel.text = status;
+}
+
 - (void)startTimer
 {
     [self stopTimer];
@@ -74,7 +90,12 @@
 
 - (void)processNextFrame
 {
-    if ([decoder process]) {
+    NSDate *start = [NSDate date];
+    BOOL more = [decoder process];
+    NSTimeInterval delta = [[NSDate date] timeIntervalSinceDate:start];
+    decodingTime += delta;
+    
+    if (more) {
         // more data to process...
     } else {
         NSLog(@"no more data to process");
@@ -93,9 +114,32 @@
     connection = [NSURLConnection connectionWithRequest:req delegate:self];
 }
 
+- (void)initPlaybackState
+{
+    assert(decoder.dataReady);
+
+    [self showStatus:@"Starting playback"];
+
+    // Number of pixels per second we must decode and draw to keep up
+    pixelsPerFrame = decoder.frameWidth * decoder.frameHeight;
+    targetPixelRate = pixelsPerFrame * decoder.frameRate;
+    
+    pixelsProcessed = 0;
+
+    decodingTime = 0;
+    averageDecodingRate = 0;
+
+    drawingTime = 0;
+    averageDrawingRate = 0;
+}
+
+#pragma mark Drawing methods
+
 // Incredibly inefficient \o/
 - (void)drawBuffer:(OGVFrameBuffer)buffer
 {
+    NSDate *start = [NSDate date];
+    
     NSData *data = [self convertYCbCrToRGBA:buffer];
     CGDataProviderRef dataProviderRef = CGDataProviderCreateWithCFData((__bridge CFDataRef)data);
     CGColorSpaceRef colorSpaceRef = CGColorSpaceCreateDeviceRGB();
@@ -117,6 +161,25 @@
     CGDataProviderRelease(dataProviderRef);
     CGColorSpaceRelease(colorSpaceRef);
     CGImageRelease(imageRef);
+    
+    NSTimeInterval delta = [[NSDate date] timeIntervalSinceDate:start];
+    drawingTime += delta;
+
+    pixelsProcessed += pixelsPerFrame;
+    [self updateStats];
+}
+
+- (void)updateStats
+{
+    averageDecodingRate = pixelsProcessed / decodingTime;
+    averageDrawingRate = pixelsProcessed / drawingTime;
+    double megapixel = 1000000.0;
+    NSString *statusLine = [NSString stringWithFormat:@"%0.2lf MP/s decoded, %0.2lf MP/s drawn, %0.2lf MP/s target",
+                            averageDecodingRate / megapixel,
+                            averageDrawingRate / megapixel,
+                            targetPixelRate / megapixel];
+    [self showStatus:statusLine];
+    NSLog(@"%@", statusLine);
 }
 
 - (void)drawImage:(UIImage *)image
@@ -183,6 +246,7 @@ static int clamp(int i) {
             // whee!
         }
         if (decoder.dataReady) {
+            [self initPlaybackState];
             [self startTimer];
         }
     }
