@@ -2,7 +2,7 @@
 
 ARCHES=i386 x86_64 armv7 armv7s arm64
 
-all : build/Ogg.framework/Ogg build/Vorbis.framework/Vorbis build/Theora.framework/Theora
+all : build/ogg.framework/ogg build/vorbis.framework/vorbis build/theora.framework/theora
 
 clean:
 	rm -rf build
@@ -16,30 +16,30 @@ clean:
 
 # libogg
 
-build/Ogg.framework/Ogg : buildLib.sh buildFramework.sh
+build/ogg.framework/ogg : buildLib.sh buildFramework.sh
 	./buildFramework.sh \
 	  libogg \
-	  Ogg \
+	  ogg \
 	  "$(ARCHES)" \
 	  "" \
 	  "--disable-shared"
 
 # libvorbis
 
-build/Vorbis.framework/Vorbis : buildLib.sh buildFramework.sh build/Ogg.framework/Ogg
+build/vorbis.framework/vorbis : buildLib.sh buildFramework.sh build/ogg.framework/ogg
 	./buildFramework.sh \
 	  libvorbis \
-	  Vorbis \
+	  vorbis \
 	  "$(ARCHES)" \
 	  "" \
 	  "--with-ogg=`pwd`/build/libogg/multiarch --disable-shared --disable-oggtest"
 
 # libtheora
 # note asm is disabled due to lack of arm64 -- fix me!
-build/Theora.framework/Theora : buildLib.sh buildFramework.sh build/Ogg.framework/Ogg
+build/theora.framework/theora : buildLib.sh buildFramework.sh build/ogg.framework/ogg
 	./buildFramework.sh \
 	  libtheora \
-	  Theora \
+	  theora \
 	  "$(ARCHES)" \
 	  "" \
 	  "--with-ogg=`pwd`/build/libogg/multiarch --disable-shared --disable-oggtest --disable-vorbistest --disable-examples --disable-asm"
