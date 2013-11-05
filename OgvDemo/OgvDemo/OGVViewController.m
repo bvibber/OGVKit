@@ -29,6 +29,8 @@
     
     NSTimeInterval drawingTime;
     double averageDrawingRate;
+    
+    NSDate *lastStatsUpdate;
 }
 
 - (void)viewDidLoad
@@ -171,15 +173,21 @@
 
 - (void)updateStats
 {
-    averageDecodingRate = pixelsProcessed / decodingTime;
-    averageDrawingRate = pixelsProcessed / drawingTime;
-    double megapixel = 1000000.0;
-    NSString *statusLine = [NSString stringWithFormat:@"%0.2lf MP/s decoded, %0.2lf MP/s drawn, %0.2lf MP/s target",
-                            averageDecodingRate / megapixel,
-                            averageDrawingRate / megapixel,
-                            targetPixelRate / megapixel];
-    [self showStatus:statusLine];
-    NSLog(@"%@", statusLine);
+    NSDate *now = [NSDate date];
+    if (lastStatsUpdate == nil || [now timeIntervalSinceDate:lastStatsUpdate] > 1.0) {
+        averageDecodingRate = pixelsProcessed / decodingTime;
+        averageDrawingRate = pixelsProcessed / drawingTime;
+
+        double megapixel = 1000000.0;
+        NSString *statusLine = [NSString stringWithFormat:@"%0.2lf MP/s decoded, %0.2lf MP/s drawn, %0.2lf MP/s target",
+                                averageDecodingRate / megapixel,
+                                averageDrawingRate / megapixel,
+                                targetPixelRate / megapixel];
+
+        lastStatsUpdate = now;
+        [self showStatus:statusLine];
+        NSLog(@"%@", statusLine);
+    }
 }
 
 - (void)drawImage:(UIImage *)image
