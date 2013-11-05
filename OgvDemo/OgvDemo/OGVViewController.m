@@ -260,7 +260,7 @@ static int clamp(int i) {
 
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
 {
-    NSLog(@"receive input: %d bytes", data.length);
+    NSLog(@"receive input: %lu bytes", (unsigned long)data.length);
     [decoder receiveInput:data];
     
     if (!decoder.dataReady) {
