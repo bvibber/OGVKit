@@ -97,7 +97,8 @@
             NSLog(@"that was the last frame, done!");
         } else {
             // Don't decode the next frame until we're ready for it...
-            double delayInSeconds = (1.0 / decoder.frameRate) - delta;
+            NSTimeInterval delta2 = [[NSDate date] timeIntervalSinceDate:start]; // in case frame dequeue took some time?
+            double delayInSeconds = (1.0 / decoder.frameRate) - delta2;
             if (delayInSeconds < 0.0) {
                 // d'oh
                 NSLog(@"slow frame decode!");
@@ -212,7 +213,9 @@
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection
 {
     NSLog(@"done downloading");
-    doneDownloading = YES;
+    dispatch_async(decodeQueue, ^() {
+        doneDownloading = YES;
+    });
 }
 
 @end
