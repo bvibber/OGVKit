@@ -213,7 +213,7 @@
     self.imageView.image = image;
 }
 
-static int clamp(int i) {
+static inline int clamp(int i) {
     if (i < 0) {
         return 0;
     } else if (i > 0xff00) {
