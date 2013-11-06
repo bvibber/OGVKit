@@ -15,9 +15,9 @@
 
 @implementation OGVViewController {
     OGVDecoder *decoder;
-    NSTimer *timer;
     NSURLConnection *connection;
     BOOL doneDownloading;
+    BOOL waitingForData;
     
     dispatch_queue_t decodeQueue;
     dispatch_queue_t drawingQueue;
@@ -64,14 +64,12 @@
 - (void)viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
-    if (decoder && decoder.dataReady) {
-        [self startTimer];
-    }
+    // todo: continue paused video?
 }
 
 - (void)viewWillDisappear:(BOOL)animated
 {
-    [self stopTimer];
+    // todo: pause video?
     [super viewDidDisappear:animated];
 }
 
@@ -80,49 +78,46 @@
     self.statusLabel.text = status;
 }
 
-- (void)startTimer
-{
-    [self stopTimer];
-    timer = [NSTimer scheduledTimerWithTimeInterval:(1.0f / decoder.frameRate) target:self selector:@selector(processNextFrame) userInfo:nil repeats:YES];
-}
-
-- (void)stopTimer
-{
-    if (timer) {
-        [timer invalidate];
-        timer = nil;
-    }
-}
-
 - (void)processNextFrame
 {
-    dispatch_async(decodeQueue, ^() {
-        NSDate *start = [NSDate date];
-        BOOL more;
-        while (!decoder.frameReady) {
-            more = [decoder process];
-            if (!more) {
-                break;
-            }
+    NSDate *start = [NSDate date];
+    BOOL more;
+    while (!decoder.frameReady) {
+        more = [decoder process];
+        if (!more) {
+            break;
         }
-        NSTimeInterval delta = [[NSDate date] timeIntervalSinceDate:start];
-        decodingTime += delta;
-        
-        if (decoder.frameReady) {
-            [self drawBuffer:[decoder frameBuffer]];
-        }
-        
-        if (more) {
-            // more data to process...
+    }
+    NSTimeInterval delta = [[NSDate date] timeIntervalSinceDate:start];
+    decodingTime += delta;
+    
+    if (decoder.frameReady) {
+        [self drawBuffer:[decoder frameBuffer]];
+        if (!more && doneDownloading) {
+            NSLog(@"that was the last frame, done!");
         } else {
-            NSLog(@"no more data to process");
-            if (doneDownloading) {
-                [timer invalidate];
-                timer = nil;
-                NSLog(@"done downloading too, stopping!");
+            // Don't decode the next frame until we're ready for it...
+            double delayInSeconds = (1.0 / decoder.frameRate) - delta;
+            if (delayInSeconds < 0.0) {
+                // d'oh
+                NSLog(@"slow frame decode!");
+                delayInSeconds = 0.0;
             }
+            dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
+            dispatch_after(popTime, decodeQueue, ^(void){
+                [self processNextFrame];
+            });
         }
-    });
+    } else {
+        if (doneDownloading) {
+            NSLog(@"ran out of data, no more frames? done!");
+        } else {
+            // more data to process...
+            // tell the downloader to ping us when data comes in
+            waitingForData = YES;
+            NSLog(@"starved for data!");
+        }
+    }
 }
 
 - (void)loadVideoSample
@@ -272,11 +267,14 @@ static inline int clamp(int i) {
                 // whee!
             }
             if (decoder.dataReady) {
+                NSLog(@"Initializing playback!");
                 [self initPlaybackState];
-                dispatch_async(dispatch_get_main_queue(), ^() {
-                    [self startTimer];
-                });
+                [self processNextFrame];
             }
+        }
+        if (waitingForData) {
+            waitingForData = NO;
+            [self processNextFrame];
         }
     });
 }
