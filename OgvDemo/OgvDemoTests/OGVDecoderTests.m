@@ -97,19 +97,61 @@
     XCTAssertEqual(decoder.vDecimation, 1);
 }
 
+- (void)testAudioOnePacket
+{
+    NSData *data = [self loadVideoSample];
+    [decoder receiveInput:data];
+    while (!decoder.dataReady && [decoder process]) {
+        // process that input!
+    }
+    XCTAssert(decoder.dataReady);
+    
+    XCTAssertFalse(decoder.audioReady);
+    XCTAssertThrows([decoder audioBuffer], @"audioBuffer throws before audio ready");
+    
+    while (!decoder.audioReady && [decoder process]) {
+        // process...
+    }
+    XCTAssert(decoder.audioReady);
+    XCTAssertNoThrow([decoder audioBuffer], @"audioBuffer ok after audio ready");
+    XCTAssertFalse(decoder.audioReady);
+}
+
+- (void)testVideoOneFrame
+{
+    NSData *data = [self loadVideoSample];
+    XCTAssertEqual(data.length, (NSUInteger)317364, @"Sample file is as expected");
+    [decoder receiveInput:data];
+    while (!decoder.dataReady && [decoder process]) {
+        // process that input!
+    }
+    XCTAssert(decoder.dataReady);
+
+    XCTAssertFalse(decoder.frameReady);
+    XCTAssertThrows([decoder frameBuffer], @"frameBuffer throws before frame ready");
+
+    while (!decoder.frameReady && [decoder process]) {
+        // process...
+    }
+    XCTAssert(decoder.frameReady);
+    XCTAssertNoThrow([decoder frameBuffer], @"frameBuffer ok after frame ready");
+    XCTAssertFalse(decoder.frameReady);
+}
+
 - (void)testVideoFrames
 {
     NSData *data = [self loadVideoSample];
     XCTAssertEqual(data.length, (NSUInteger)317364, @"Sample file is as expected");
 
-    __block int frameCount = 0;
-    decoder.onframe = ^(OGVFrameBuffer buffer) {
-        frameCount++;
-    };
+    int frameCount = 0;
 
     [decoder receiveInput:data];
     while ([decoder process]) {
         // process that input!
+        if (decoder.frameReady) {
+            frameCount++;
+            [decoder frameBuffer];
+        }
     }
 
     XCTAssertEqual(frameCount, 46, @"expect 46 frames in this file");

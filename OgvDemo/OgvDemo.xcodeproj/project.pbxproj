@@ -12,6 +12,10 @@
 		D432751F1825C66500A43CE7 /* OGVDecoder.m in Sources */ = {isa = PBXBuildFile; fileRef = D432751E1825C66500A43CE7 /* OGVDecoder.m */; };
 		D43275201825C66500A43CE7 /* OGVDecoder.m in Sources */ = {isa = PBXBuildFile; fileRef = D432751E1825C66500A43CE7 /* OGVDecoder.m */; };
 		D432752A1825DD9800A43CE7 /* OGVDecoderTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D43275291825DD9800A43CE7 /* OGVDecoderTests.m */; };
+		D4DEC5A91829C104009234F9 /* OGVFrameBuffer.m in Sources */ = {isa = PBXBuildFile; fileRef = D4DEC5A81829C104009234F9 /* OGVFrameBuffer.m */; };
+		D4DEC5AA1829C104009234F9 /* OGVFrameBuffer.m in Sources */ = {isa = PBXBuildFile; fileRef = D4DEC5A81829C104009234F9 /* OGVFrameBuffer.m */; };
+		D4DEC5AD1829C294009234F9 /* OGVAudioBuffer.m in Sources */ = {isa = PBXBuildFile; fileRef = D4DEC5AC1829C294009234F9 /* OGVAudioBuffer.m */; };
+		D4DEC5AE1829C294009234F9 /* OGVAudioBuffer.m in Sources */ = {isa = PBXBuildFile; fileRef = D4DEC5AC1829C294009234F9 /* OGVAudioBuffer.m */; };
 		D4EB246C1825A81E008B9160 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4EB246B1825A81E008B9160 /* Foundation.framework */; };
 		D4EB246E1825A81E008B9160 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4EB246D1825A81E008B9160 /* CoreGraphics.framework */; };
 		D4EB24701825A81E008B9160 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4EB246F1825A81E008B9160 /* UIKit.framework */; };
@@ -51,6 +55,10 @@
 		D432751D1825C66400A43CE7 /* OGVDecoder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVDecoder.h; sourceTree = "<group>"; };
 		D432751E1825C66500A43CE7 /* OGVDecoder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVDecoder.m; sourceTree = "<group>"; };
 		D43275291825DD9800A43CE7 /* OGVDecoderTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVDecoderTests.m; sourceTree = "<group>"; };
+		D4DEC5A71829C104009234F9 /* OGVFrameBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVFrameBuffer.h; sourceTree = "<group>"; };
+		D4DEC5A81829C104009234F9 /* OGVFrameBuffer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVFrameBuffer.m; sourceTree = "<group>"; };
+		D4DEC5AB1829C294009234F9 /* OGVAudioBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVAudioBuffer.h; sourceTree = "<group>"; };
+		D4DEC5AC1829C294009234F9 /* OGVAudioBuffer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVAudioBuffer.m; sourceTree = "<group>"; };
 		D4EB24681825A81E008B9160 /* OgvDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OgvDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D4EB246B1825A81E008B9160 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		D4EB246D1825A81E008B9160 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -153,6 +161,10 @@
 				D4EB24721825A81E008B9160 /* Supporting Files */,
 				D432751D1825C66400A43CE7 /* OGVDecoder.h */,
 				D432751E1825C66500A43CE7 /* OGVDecoder.m */,
+				D4DEC5A71829C104009234F9 /* OGVFrameBuffer.h */,
+				D4DEC5A81829C104009234F9 /* OGVFrameBuffer.m */,
+				D4DEC5AB1829C294009234F9 /* OGVAudioBuffer.h */,
+				D4DEC5AC1829C294009234F9 /* OGVAudioBuffer.m */,
 			);
 			path = OgvDemo;
 			sourceTree = "<group>";
@@ -292,6 +304,8 @@
 				D4EB24781825A81E008B9160 /* main.m in Sources */,
 				D432751F1825C66500A43CE7 /* OGVDecoder.m in Sources */,
 				D4EB247C1825A81E008B9160 /* OGVAppDelegate.m in Sources */,
+				D4DEC5AD1829C294009234F9 /* OGVAudioBuffer.m in Sources */,
+				D4DEC5A91829C104009234F9 /* OGVFrameBuffer.m in Sources */,
 				D4EB24851825A81E008B9160 /* OGVViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -300,6 +314,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D4DEC5AA1829C104009234F9 /* OGVFrameBuffer.m in Sources */,
+				D4DEC5AE1829C294009234F9 /* OGVAudioBuffer.m in Sources */,
 				D432752A1825DD9800A43CE7 /* OGVDecoderTests.m in Sources */,
 				D4EB249A1825A81E008B9160 /* OGVLibraryTests.m in Sources */,
 				D43275201825C66500A43CE7 /* OGVDecoder.m in Sources */,

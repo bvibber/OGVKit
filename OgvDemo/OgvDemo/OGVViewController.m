@@ -59,14 +59,6 @@
     drawingQueue = dispatch_get_main_queue();
 
     [self loadVideoSample];
-
-    __unsafe_unretained typeof(self) weakSelf = self; // is this *really* necessary?
-    __unsafe_unretained typeof(drawingQueue) weakDrawingQueue = drawingQueue;
-    decoder.onframe = ^(OGVFrameBuffer buffer) {
-        dispatch_async(weakDrawingQueue, ^() {
-            [weakSelf drawBuffer:buffer];
-        });
-    };
 }
 
 - (void)viewDidAppear:(BOOL)animated
@@ -106,9 +98,19 @@
 {
     dispatch_async(decodeQueue, ^() {
         NSDate *start = [NSDate date];
-        BOOL more = [decoder process];
+        BOOL more;
+        while (!decoder.frameReady) {
+            more = [decoder process];
+            if (!more) {
+                break;
+            }
+        }
         NSTimeInterval delta = [[NSDate date] timeIntervalSinceDate:start];
         decodingTime += delta;
+        
+        if (decoder.frameReady) {
+            [self drawBuffer:[decoder frameBuffer]];
+        }
         
         if (more) {
             // more data to process...
@@ -152,7 +154,7 @@
 #pragma mark Drawing methods
 
 // Incredibly inefficient \o/
-- (void)drawBuffer:(OGVFrameBuffer)buffer
+- (void)drawBuffer:(OGVFrameBuffer *)buffer
 {
     dispatch_async(drawingQueue, ^() {
         NSDate *start = [NSDate date];
@@ -221,7 +223,7 @@ static int clamp(int i) {
     }
 }
 
-- (NSData *)convertYCbCrToRGBA:(OGVFrameBuffer)buffer
+- (NSData *)convertYCbCrToRGBA:(OGVFrameBuffer *)buffer
 {
     int width = decoder.frameWidth;
     int height = decoder.frameHeight;
@@ -233,9 +235,9 @@ static int clamp(int i) {
     
     for (unsigned int y = 0; y < height; y++) {
         int ydec = y >> vdec;
-        unsigned char *YPtr = buffer.YData + y * buffer.YStride;
-        unsigned char *CbPtr = buffer.CbData + ydec * buffer.CbStride;
-        unsigned char *CrPtr = buffer.CrData + ydec * buffer.CrStride;
+        unsigned char *YPtr = (unsigned char *)buffer.dataY.bytes + y * buffer.strideY;
+        unsigned char *CbPtr = (unsigned char *)buffer.dataCb.bytes + ydec * buffer.strideCb;
+        unsigned char *CrPtr = (unsigned char *)buffer.dataCr.bytes + ydec * buffer.strideCr;
         for (unsigned int x = 0; x < width; x++) {
             int xdec = x >> hdec;
             int colorY = YPtr[x];
@@ -260,20 +262,23 @@ static int clamp(int i) {
 
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
 {
-    NSLog(@"receive input: %lu bytes", (unsigned long)data.length);
-    [decoder receiveInput:data];
-    
-    if (!decoder.dataReady) {
-        // We need to process enough of the file that we can
-        // start a timer based on the frame rate...
-        while (!decoder.dataReady && [decoder process]) {
-            // whee!
+    dispatch_async(decodeQueue, ^() {
+        NSLog(@"receive input: %lu bytes", (unsigned long)data.length);
+        [decoder receiveInput:data];
+        if (!decoder.dataReady) {
+            // We need to process enough of the file that we can
+            // start a timer based on the frame rate...
+            while (!decoder.dataReady && [decoder process]) {
+                // whee!
+            }
+            if (decoder.dataReady) {
+                [self initPlaybackState];
+                dispatch_async(dispatch_get_main_queue(), ^() {
+                    [self startTimer];
+                });
+            }
         }
-        if (decoder.dataReady) {
-            [self initPlaybackState];
-            [self startTimer];
-        }
-    }
+    });
 }
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection

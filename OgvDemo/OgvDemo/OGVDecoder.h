@@ -8,20 +8,8 @@
 
 #import <Foundation/Foundation.h>
 
-typedef struct {
-    unsigned char *YData;
-    unsigned char *CbData;
-    unsigned char *CrData;
-    
-    unsigned int YStride;
-    unsigned int CbStride;
-    unsigned int CrStride;
-} OGVFrameBuffer;
-
-typedef struct {
-    float **pcm;
-    unsigned int sampleCount;
-} OGVAudioBuffer;
+#import "OGVFrameBuffer.h"
+#import "OGVAudioBuffer.h"
 
 @interface OGVDecoder : NSObject
 
@@ -42,11 +30,14 @@ typedef struct {
 @property int audioChannels;
 @property int audioRate;
 
-@property(strong) void (^onframe)(OGVFrameBuffer);
-@property(strong) void (^onaudio)(OGVAudioBuffer);
+@property BOOL audioReady;
+@property BOOL frameReady;
 
 - (id)init;
 - (void)receiveInput:(NSData *)data;
 - (BOOL)process;
+- (OGVFrameBuffer *)frameBuffer;
+- (OGVAudioBuffer *)audioBuffer;
+
 
 @end

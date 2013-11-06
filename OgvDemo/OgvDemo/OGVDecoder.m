@@ -32,6 +32,7 @@
     int          videobuf_ready;
     ogg_int64_t  videobuf_granulepos;
     double       videobuf_time;
+    th_ycbcr_buffer ycbcr;
     
     int          audiobuf_ready;
     ogg_int64_t  audiobuf_granulepos; /* time position of last sample */
@@ -46,6 +47,8 @@
     vorbis_dsp_state vd;
     vorbis_block     vb;
     vorbis_comment   vc;
+    OGVAudioBuffer *_audioBuffer;
+
     int          crop;
 
     ogg_packet oggPacket;
@@ -224,20 +227,10 @@
         
 		if(videobuf_ready){
 			/* dumpvideo frame, and get new one */
-            th_ycbcr_buffer ycbcr;
             th_decode_ycbcr_out(theoraDecoderContext,ycbcr);
             
-            if (self.onframe) {
-                OGVFrameBuffer buffer;
-                buffer.YData = ycbcr[0].data;
-                buffer.CbData = ycbcr[1].data;
-                buffer.CrData = ycbcr[2].data;
-                buffer.YStride = ycbcr[0].stride;
-                buffer.CbStride = ycbcr[1].stride;
-                buffer.CrStride = ycbcr[2].stride;
-                self.onframe(buffer);
-            }
 			videobuf_ready=0;
+            self.frameReady = YES;
 		}
 	}
 	
@@ -247,15 +240,58 @@
 				vorbis_synthesis_blockin(&vd,&vb);
                 
 				// fixme -- timing etc!
-                OGVAudioBuffer buffer;
-				buffer.sampleCount = vorbis_synthesis_pcmout(&vd, &buffer.pcm);
-                if (self.onaudio) {
-                    self.onaudio(buffer);
+				float **pcm;
+				int sampleCount = vorbis_synthesis_pcmout(&vd, &pcm);
+                if (sampleCount > 0) {
+                    _audioBuffer = [[OGVAudioBuffer alloc] initWithPCM:pcm channels:self.audioChannels samples:sampleCount];
+                    vorbis_synthesis_read(&vd, sampleCount);
+                    self.audioReady = YES;
                 }
-				vorbis_synthesis_read(&vd, buffer.sampleCount);
 			}
 		}
 	}
+}
+
+- (OGVFrameBuffer *)frameBuffer
+{
+    if (self.frameReady) {
+        OGVFrameBuffer *buffer = [[OGVFrameBuffer alloc] init];
+
+        buffer.strideY = ycbcr[0].stride;
+        buffer.strideCb = ycbcr[1].stride;
+        buffer.strideCr = ycbcr[2].stride;
+
+        size_t lengthY = buffer.strideY * self.frameHeight;
+        size_t lengthCb = buffer.strideCb * (self.frameHeight >> self.vDecimation);
+        size_t lengthCr = buffer.strideCr * (self.frameHeight >> self.vDecimation);
+
+        buffer.dataY = [NSData dataWithBytes:ycbcr[0].data length:lengthY];
+        buffer.dataCb = [NSData dataWithBytes:ycbcr[1].data length:lengthCb];
+        buffer.dataCr = [NSData dataWithBytes:ycbcr[2].data length:lengthCr];
+        
+        self.frameReady = NO;
+        return buffer;
+    } else {
+        @throw [NSException
+                exceptionWithName:@"OGVDecoderFrameNotReadyException"
+                reason:@"Tried to read frame when none available"
+                userInfo:nil];
+    }
+}
+
+- (OGVAudioBuffer *)audioBuffer
+{
+    if (self.audioReady) {
+        OGVAudioBuffer *buffer = _audioBuffer;
+        _audioBuffer = nil;
+        self.audioReady = NO;
+        return buffer;
+    } else {
+        @throw [NSException
+                exceptionWithName:@"OGVDecoderAudioNotReadyException"
+                reason:@"Tried to read audio buffer when none available"
+                userInfo:nil];
+    }
 }
 
 - (void)receiveInput:(NSData *)data
