@@ -257,6 +257,15 @@
     if (self.frameReady) {
         OGVFrameBuffer *buffer = [[OGVFrameBuffer alloc] init];
 
+        buffer.frameWidth = self.frameWidth;
+        buffer.frameHeight = self.frameHeight;
+        buffer.pictureWidth = self.pictureWidth;
+        buffer.pictureHeight = self.pictureHeight;
+        buffer.pictureOffsetX = self.pictureOffsetX;
+        buffer.pictureOffsetY = self.pictureOffsetY;
+        buffer.hDecimation = self.hDecimation;
+        buffer.vDecimation = self.vDecimation;
+
         buffer.strideY = ycbcr[0].stride;
         buffer.strideCb = ycbcr[1].stride;
         buffer.strideCr = ycbcr[2].stride;

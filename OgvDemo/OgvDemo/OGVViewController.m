@@ -154,27 +154,7 @@
     dispatch_async(drawingQueue, ^() {
         NSDate *start = [NSDate date];
         
-        NSData *data = [self convertYCbCrToRGBA:buffer];
-        CGDataProviderRef dataProviderRef = CGDataProviderCreateWithCFData((__bridge CFDataRef)data);
-        CGColorSpaceRef colorSpaceRef = CGColorSpaceCreateDeviceRGB();
-        CGImageRef imageRef = CGImageCreate(decoder.frameWidth,
-                                            decoder.frameHeight,
-                                            8 /* bitsPerColorComponent */,
-                                            32 /* bitsPerPixel */,
-                                            4 * decoder.frameWidth /* bytesPerRow */,
-                                            colorSpaceRef,
-                                            kCGBitmapByteOrder32Big | kCGImageAlphaNone,
-                                            dataProviderRef,
-                                            NULL,
-                                            YES /* shouldInterpolate */,
-                                            kCGRenderingIntentDefault);
-
-        UIImage *image = [UIImage imageWithCGImage:imageRef];
-        [self drawImage:image];
-        
-        CGDataProviderRelease(dataProviderRef);
-        CGColorSpaceRelease(colorSpaceRef);
-        CGImageRelease(imageRef);
+        [self.frameView drawFrame:buffer];
         
         NSTimeInterval delta = [[NSDate date] timeIntervalSinceDate:start];
         drawingTime += delta;
@@ -202,56 +182,6 @@
         NSLog(@"%@", statusLine);
     }
 }
-
-- (void)drawImage:(UIImage *)image
-{
-    self.imageView.image = image;
-}
-
-static inline int clamp(int i) {
-    if (i < 0) {
-        return 0;
-    } else if (i > 0xff00) {
-        return 0xff00;
-    } else {
-        return i;
-    }
-}
-
-- (NSData *)convertYCbCrToRGBA:(OGVFrameBuffer *)buffer
-{
-    int width = decoder.frameWidth;
-    int height = decoder.frameHeight;
-    int length = width * height * 4;
-    int hdec = decoder.hDecimation;
-    int vdec = decoder.vDecimation;
-    unsigned char *bytes = malloc(length);
-    unsigned char *outPtr = bytes;
-    
-    for (unsigned int y = 0; y < height; y++) {
-        int ydec = y >> vdec;
-        unsigned char *YPtr = (unsigned char *)buffer.dataY.bytes + y * buffer.strideY;
-        unsigned char *CbPtr = (unsigned char *)buffer.dataCb.bytes + ydec * buffer.strideCb;
-        unsigned char *CrPtr = (unsigned char *)buffer.dataCr.bytes + ydec * buffer.strideCr;
-        for (unsigned int x = 0; x < width; x++) {
-            int xdec = x >> hdec;
-            int colorY = YPtr[x];
-            int colorCb = CbPtr[xdec];
-            int colorCr = CrPtr[xdec];
-
-            // Quickie YUV conversion
-            // https://en.wikipedia.org/wiki/YCbCr#ITU-R_BT.2020_conversion
-            unsigned int multY = (298 * colorY);
-            *(outPtr++) = clamp((multY + (409 * colorCr) - 223*256)) >> 8;
-            *(outPtr++) = clamp((multY - (100 * colorCb) - (208 * colorCr) + 136*256)) >> 8;
-            *(outPtr++) = clamp((multY + (516 * colorCb) - 277*256)) >> 8;
-            *(outPtr++) = 0;
-        }
-    }
-    
-    return [NSData dataWithBytesNoCopy:bytes length:length];
-}
-
 
 #pragma mark NSURLConnectionDataDelegate methods
 

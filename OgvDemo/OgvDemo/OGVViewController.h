@@ -7,10 +7,11 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "OGVFrameView.h"
 
 @interface OGVViewController : UIViewController <NSURLConnectionDataDelegate>
 
-@property (weak, nonatomic) IBOutlet UIImageView *imageView;
+@property (weak, nonatomic) IBOutlet OGVFrameView *frameView;
 @property (weak, nonatomic) IBOutlet UILabel *statusLabel;
 
 @end

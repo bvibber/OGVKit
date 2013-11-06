@@ -10,6 +10,15 @@
 
 @interface OGVFrameBuffer : NSObject
 
+@property int frameWidth;
+@property int frameHeight;
+@property int pictureWidth;
+@property int pictureHeight;
+@property int pictureOffsetX;
+@property int pictureOffsetY;
+@property int hDecimation;
+@property int vDecimation;
+
 @property NSData *dataY;
 @property NSData *dataCb;
 @property NSData *dataCr;
