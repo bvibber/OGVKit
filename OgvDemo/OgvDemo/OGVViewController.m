@@ -6,6 +6,7 @@
 //  Copyright (c) 2013 Brion Vibber. All rights reserved.
 //
 
+#import "OGVAppDelegate.h"
 #import "OGVViewController.h"
 #import "OGVDecoder.h"
 
@@ -123,7 +124,7 @@
 
 - (void)loadVideoSample
 {
-    NSURL *url = [NSURL URLWithString:@"https://upload.wikimedia.org/wikipedia/commons/3/3f/Jarry_-_M%C3%A9tro_de_Montr%C3%A9al_%28640%C3%97360%29.ogv"];
+    NSURL *url = [((OGVAppDelegate *)[UIApplication sharedApplication].delegate) launchURL];
     NSURLRequest *req = [NSURLRequest requestWithURL:url];
     connection = [NSURLConnection connectionWithRequest:req delegate:self];
 }

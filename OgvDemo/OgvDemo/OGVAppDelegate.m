@@ -8,11 +8,13 @@
 
 #import "OGVAppDelegate.h"
 
-@implementation OGVAppDelegate
+@implementation OGVAppDelegate {
+    NSURL *launchUrl;
+}
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    // Override point for customization after application launch.
+    launchUrl = launchOptions[UIApplicationLaunchOptionsURLKey];
     return YES;
 }
 							
@@ -41,6 +43,20 @@
 - (void)applicationWillTerminate:(UIApplication *)application
 {
     // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
+}
+
+- (NSURL *)launchURL
+{
+    if (launchUrl) {
+        return launchUrl;
+    } else {
+        return [self defaultLaunchURL];
+    }
+}
+
+- (NSURL *)defaultLaunchURL
+{
+    return [NSURL URLWithString:@"https://upload.wikimedia.org/wikipedia/commons/3/3f/Jarry_-_M%C3%A9tro_de_Montr%C3%A9al_%28640%C3%97360%29.ogv"];
 }
 
 @end
