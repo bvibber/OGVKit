@@ -12,6 +12,11 @@
 		D432751F1825C66500A43CE7 /* OGVDecoder.m in Sources */ = {isa = PBXBuildFile; fileRef = D432751E1825C66500A43CE7 /* OGVDecoder.m */; };
 		D43275201825C66500A43CE7 /* OGVDecoder.m in Sources */ = {isa = PBXBuildFile; fileRef = D432751E1825C66500A43CE7 /* OGVDecoder.m */; };
 		D432752A1825DD9800A43CE7 /* OGVDecoderTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D43275291825DD9800A43CE7 /* OGVDecoderTests.m */; };
+		D4A25B79182E5D81009902D2 /* theorafish-64.png in Resources */ = {isa = PBXBuildFile; fileRef = D4A25B74182E5D81009902D2 /* theorafish-64.png */; };
+		D4A25B7A182E5D81009902D2 /* theorafish-76.png in Resources */ = {isa = PBXBuildFile; fileRef = D4A25B75182E5D81009902D2 /* theorafish-76.png */; };
+		D4A25B7B182E5D81009902D2 /* theorafish-120.png in Resources */ = {isa = PBXBuildFile; fileRef = D4A25B76182E5D81009902D2 /* theorafish-120.png */; };
+		D4A25B7C182E5D81009902D2 /* theorafish-152.png in Resources */ = {isa = PBXBuildFile; fileRef = D4A25B77182E5D81009902D2 /* theorafish-152.png */; };
+		D4A25B7D182E5D81009902D2 /* theorafish-320.png in Resources */ = {isa = PBXBuildFile; fileRef = D4A25B78182E5D81009902D2 /* theorafish-320.png */; };
 		D4A83418182A6EB80009A945 /* OGVFrameView.m in Sources */ = {isa = PBXBuildFile; fileRef = D4A83417182A6EB80009A945 /* OGVFrameView.m */; };
 		D4DEC5A91829C104009234F9 /* OGVFrameBuffer.m in Sources */ = {isa = PBXBuildFile; fileRef = D4DEC5A81829C104009234F9 /* OGVFrameBuffer.m */; };
 		D4DEC5AA1829C104009234F9 /* OGVFrameBuffer.m in Sources */ = {isa = PBXBuildFile; fileRef = D4DEC5A81829C104009234F9 /* OGVFrameBuffer.m */; };
@@ -56,6 +61,11 @@
 		D432751D1825C66400A43CE7 /* OGVDecoder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVDecoder.h; sourceTree = "<group>"; };
 		D432751E1825C66500A43CE7 /* OGVDecoder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVDecoder.m; sourceTree = "<group>"; };
 		D43275291825DD9800A43CE7 /* OGVDecoderTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVDecoderTests.m; sourceTree = "<group>"; };
+		D4A25B74182E5D81009902D2 /* theorafish-64.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "theorafish-64.png"; path = "logo/theorafish-64.png"; sourceTree = SOURCE_ROOT; };
+		D4A25B75182E5D81009902D2 /* theorafish-76.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "theorafish-76.png"; path = "logo/theorafish-76.png"; sourceTree = SOURCE_ROOT; };
+		D4A25B76182E5D81009902D2 /* theorafish-120.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "theorafish-120.png"; path = "logo/theorafish-120.png"; sourceTree = SOURCE_ROOT; };
+		D4A25B77182E5D81009902D2 /* theorafish-152.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "theorafish-152.png"; path = "logo/theorafish-152.png"; sourceTree = SOURCE_ROOT; };
+		D4A25B78182E5D81009902D2 /* theorafish-320.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "theorafish-320.png"; path = "logo/theorafish-320.png"; sourceTree = SOURCE_ROOT; };
 		D4A83416182A6EB80009A945 /* OGVFrameView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVFrameView.h; sourceTree = "<group>"; };
 		D4A83417182A6EB80009A945 /* OGVFrameView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVFrameView.m; sourceTree = "<group>"; };
 		D4DEC5A71829C104009234F9 /* OGVFrameBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVFrameBuffer.h; sourceTree = "<group>"; };
@@ -153,6 +163,11 @@
 		D4EB24711825A81E008B9160 /* OgvDemo */ = {
 			isa = PBXGroup;
 			children = (
+				D4A25B74182E5D81009902D2 /* theorafish-64.png */,
+				D4A25B75182E5D81009902D2 /* theorafish-76.png */,
+				D4A25B76182E5D81009902D2 /* theorafish-120.png */,
+				D4A25B77182E5D81009902D2 /* theorafish-152.png */,
+				D4A25B78182E5D81009902D2 /* theorafish-320.png */,
 				D41B41331826926D009D8652 /* black.png */,
 				D4EB247A1825A81E008B9160 /* OGVAppDelegate.h */,
 				D4EB247B1825A81E008B9160 /* OGVAppDelegate.m */,
@@ -284,9 +299,14 @@
 			files = (
 				D4EB24821825A81E008B9160 /* Main_iPad.storyboard in Resources */,
 				D4EB24871825A81E008B9160 /* Images.xcassets in Resources */,
+				D4A25B7B182E5D81009902D2 /* theorafish-120.png in Resources */,
+				D4A25B7A182E5D81009902D2 /* theorafish-76.png in Resources */,
+				D4A25B7D182E5D81009902D2 /* theorafish-320.png in Resources */,
+				D4A25B79182E5D81009902D2 /* theorafish-64.png in Resources */,
 				D4EB247F1825A81E008B9160 /* Main_iPhone.storyboard in Resources */,
 				D4EB24761825A81E008B9160 /* InfoPlist.strings in Resources */,
 				D41B41341826926D009D8652 /* black.png in Resources */,
+				D4A25B7C182E5D81009902D2 /* theorafish-152.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
