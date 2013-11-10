@@ -18,6 +18,8 @@
 		D4A25B7C182E5D81009902D2 /* theorafish-152.png in Resources */ = {isa = PBXBuildFile; fileRef = D4A25B77182E5D81009902D2 /* theorafish-152.png */; };
 		D4A25B7D182E5D81009902D2 /* theorafish-320.png in Resources */ = {isa = PBXBuildFile; fileRef = D4A25B78182E5D81009902D2 /* theorafish-320.png */; };
 		D4A83418182A6EB80009A945 /* OGVFrameView.m in Sources */ = {isa = PBXBuildFile; fileRef = D4A83417182A6EB80009A945 /* OGVFrameView.m */; };
+		D4B2501A183012F8007E8EA6 /* OGVNavigationController.m in Sources */ = {isa = PBXBuildFile; fileRef = D4B25019183012F8007E8EA6 /* OGVNavigationController.m */; };
+		D4B2501D1830140D007E8EA6 /* OGVTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D4B2501C1830140D007E8EA6 /* OGVTableViewController.m */; };
 		D4DEC5A91829C104009234F9 /* OGVFrameBuffer.m in Sources */ = {isa = PBXBuildFile; fileRef = D4DEC5A81829C104009234F9 /* OGVFrameBuffer.m */; };
 		D4DEC5AA1829C104009234F9 /* OGVFrameBuffer.m in Sources */ = {isa = PBXBuildFile; fileRef = D4DEC5A81829C104009234F9 /* OGVFrameBuffer.m */; };
 		D4DEC5AD1829C294009234F9 /* OGVAudioBuffer.m in Sources */ = {isa = PBXBuildFile; fileRef = D4DEC5AC1829C294009234F9 /* OGVAudioBuffer.m */; };
@@ -67,6 +69,10 @@
 		D4A25B78182E5D81009902D2 /* theorafish-320.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "theorafish-320.png"; path = "logo/theorafish-320.png"; sourceTree = SOURCE_ROOT; };
 		D4A83416182A6EB80009A945 /* OGVFrameView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVFrameView.h; sourceTree = "<group>"; };
 		D4A83417182A6EB80009A945 /* OGVFrameView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVFrameView.m; sourceTree = "<group>"; };
+		D4B25018183012F8007E8EA6 /* OGVNavigationController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVNavigationController.h; sourceTree = "<group>"; };
+		D4B25019183012F8007E8EA6 /* OGVNavigationController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVNavigationController.m; sourceTree = "<group>"; };
+		D4B2501B1830140D007E8EA6 /* OGVTableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVTableViewController.h; sourceTree = "<group>"; };
+		D4B2501C1830140D007E8EA6 /* OGVTableViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVTableViewController.m; sourceTree = "<group>"; };
 		D4DEC5A71829C104009234F9 /* OGVFrameBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVFrameBuffer.h; sourceTree = "<group>"; };
 		D4DEC5A81829C104009234F9 /* OGVFrameBuffer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVFrameBuffer.m; sourceTree = "<group>"; };
 		D4DEC5AB1829C294009234F9 /* OGVAudioBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVAudioBuffer.h; sourceTree = "<group>"; };
@@ -182,6 +188,10 @@
 				D4DEC5AC1829C294009234F9 /* OGVAudioBuffer.m */,
 				D4A83416182A6EB80009A945 /* OGVFrameView.h */,
 				D4A83417182A6EB80009A945 /* OGVFrameView.m */,
+				D4B25018183012F8007E8EA6 /* OGVNavigationController.h */,
+				D4B25019183012F8007E8EA6 /* OGVNavigationController.m */,
+				D4B2501B1830140D007E8EA6 /* OGVTableViewController.h */,
+				D4B2501C1830140D007E8EA6 /* OGVTableViewController.m */,
 			);
 			path = OgvDemo;
 			sourceTree = "<group>";
@@ -322,10 +332,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D4B2501D1830140D007E8EA6 /* OGVTableViewController.m in Sources */,
 				D4EB24781825A81E008B9160 /* main.m in Sources */,
 				D432751F1825C66500A43CE7 /* OGVDecoder.m in Sources */,
 				D4EB247C1825A81E008B9160 /* OGVAppDelegate.m in Sources */,
 				D4DEC5AD1829C294009234F9 /* OGVAudioBuffer.m in Sources */,
+				D4B2501A183012F8007E8EA6 /* OGVNavigationController.m in Sources */,
 				D4A83418182A6EB80009A945 /* OGVFrameView.m in Sources */,
 				D4DEC5A91829C104009234F9 /* OGVFrameBuffer.m in Sources */,
 				D4EB24851825A81E008B9160 /* OGVViewController.m in Sources */,

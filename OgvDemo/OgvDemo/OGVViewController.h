@@ -14,4 +14,6 @@
 @property (weak, nonatomic) IBOutlet OGVFrameView *frameView;
 @property (weak, nonatomic) IBOutlet UILabel *statusLabel;
 
+@property NSURL *mediaSourceURL;
+
 @end

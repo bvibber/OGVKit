@@ -8,7 +8,7 @@
         <!--View Controller-->
         <scene sceneID="ufC-wZ-h7g">
             <objects>
-                <viewController id="vXZ-lx-hvc" customClass="OGVViewController" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="OGVPlayerViewController" id="vXZ-lx-hvc" customClass="OGVViewController" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="qqZ-It-rai"/>
                         <viewControllerLayoutGuide type="bottom" id="gFv-uk-OtF"/>
@@ -57,7 +57,7 @@
         <!--Table View Controller - OgvDemo-->
         <scene sceneID="8YZ-xR-b7B">
             <objects>
-                <tableViewController id="lgn-kl-kcH" sceneMemberID="viewController">
+                <tableViewController id="lgn-kl-kcH" customClass="OGVTableViewController" sceneMemberID="viewController">
                     <tableView key="view" opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="static" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="u2r-VE-StD">
                         <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -84,13 +84,14 @@
                                         <accessibility key="accessibilityConfiguration" label="">
                                             <accessibilityTraits key="traits" none="YES"/>
                                         </accessibility>
-                                        <connections>
-                                            <segue destination="vXZ-lx-hvc" kind="push" identifier="OgvPlayerSegue" id="Krq-M0-aP7"/>
-                                        </connections>
                                     </tableViewCell>
                                 </cells>
                             </tableViewSection>
                         </sections>
+                        <connections>
+                            <outlet property="dataSource" destination="lgn-kl-kcH" id="955-YJ-4y1"/>
+                            <outlet property="delegate" destination="lgn-kl-kcH" id="hvn-mV-T2X"/>
+                        </connections>
                     </tableView>
                     <navigationItem key="navigationItem" title="OgvDemo" id="XaU-sp-pt6"/>
                 </tableViewController>
@@ -101,7 +102,7 @@
         <!--Navigation Controller-->
         <scene sceneID="Grr-ac-YSW">
             <objects>
-                <navigationController definesPresentationContext="YES" id="c2O-Fs-dZm" sceneMemberID="viewController">
+                <navigationController definesPresentationContext="YES" id="c2O-Fs-dZm" customClass="OGVNavigationController" sceneMemberID="viewController">
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="n9C-Gn-ckc">
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>

@@ -8,13 +8,10 @@
 
 #import "OGVAppDelegate.h"
 
-@implementation OGVAppDelegate {
-    NSURL *launchUrl;
-}
+@implementation OGVAppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    launchUrl = launchOptions[UIApplicationLaunchOptionsURLKey];
     return YES;
 }
 							
@@ -45,18 +42,11 @@
     // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
 }
 
-- (NSURL *)launchURL
+- (BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation
 {
-    if (launchUrl) {
-        return launchUrl;
-    } else {
-        return [self defaultLaunchURL];
-    }
-}
-
-- (NSURL *)defaultLaunchURL
-{
-    return [NSURL URLWithString:@"https://upload.wikimedia.org/wikipedia/commons/3/3f/Jarry_-_M%C3%A9tro_de_Montr%C3%A9al_%28640%C3%97360%29.ogv"];
+    NSLog(@"Requested opening URL in app: %@", url);
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"OGVPlayerOpenURL" object:[UIApplication sharedApplication] userInfo:@{@"URL": url}];
+    return YES;
 }
 
 @end

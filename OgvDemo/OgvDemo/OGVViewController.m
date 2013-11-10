@@ -134,8 +134,8 @@
 
 - (void)loadVideoSample
 {
-    NSURL *url = [((OGVAppDelegate *)[UIApplication sharedApplication].delegate) launchURL];
-    NSURLRequest *req = [NSURLRequest requestWithURL:url];
+    assert(self.mediaSourceURL != nil);
+    NSURLRequest *req = [NSURLRequest requestWithURL:self.mediaSourceURL];
     connection = [NSURLConnection connectionWithRequest:req delegate:self];
 }
 
