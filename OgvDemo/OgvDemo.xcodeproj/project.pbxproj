@@ -29,7 +29,6 @@
 		D4EB24781825A81E008B9160 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = D4EB24771825A81E008B9160 /* main.m */; };
 		D4EB247C1825A81E008B9160 /* OGVAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = D4EB247B1825A81E008B9160 /* OGVAppDelegate.m */; };
 		D4EB247F1825A81E008B9160 /* Main_iPhone.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D4EB247D1825A81E008B9160 /* Main_iPhone.storyboard */; };
-		D4EB24821825A81E008B9160 /* Main_iPad.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D4EB24801825A81E008B9160 /* Main_iPad.storyboard */; };
 		D4EB24851825A81E008B9160 /* OGVViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D4EB24841825A81E008B9160 /* OGVViewController.m */; };
 		D4EB24871825A81E008B9160 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D4EB24861825A81E008B9160 /* Images.xcassets */; };
 		D4EB248E1825A81E008B9160 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4EB248D1825A81E008B9160 /* XCTest.framework */; };
@@ -83,7 +82,6 @@
 		D4EB247A1825A81E008B9160 /* OGVAppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OGVAppDelegate.h; sourceTree = "<group>"; };
 		D4EB247B1825A81E008B9160 /* OGVAppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = OGVAppDelegate.m; sourceTree = "<group>"; };
 		D4EB247E1825A81E008B9160 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main_iPhone.storyboard; sourceTree = "<group>"; };
-		D4EB24811825A81E008B9160 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main_iPad.storyboard; sourceTree = "<group>"; };
 		D4EB24831825A81E008B9160 /* OGVViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OGVViewController.h; sourceTree = "<group>"; };
 		D4EB24841825A81E008B9160 /* OGVViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = OGVViewController.m; sourceTree = "<group>"; };
 		D4EB24861825A81E008B9160 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
@@ -172,7 +170,6 @@
 				D4EB247A1825A81E008B9160 /* OGVAppDelegate.h */,
 				D4EB247B1825A81E008B9160 /* OGVAppDelegate.m */,
 				D4EB247D1825A81E008B9160 /* Main_iPhone.storyboard */,
-				D4EB24801825A81E008B9160 /* Main_iPad.storyboard */,
 				D4EB24831825A81E008B9160 /* OGVViewController.h */,
 				D4EB24841825A81E008B9160 /* OGVViewController.m */,
 				D4EB24861825A81E008B9160 /* Images.xcassets */,
@@ -297,7 +294,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D4EB24821825A81E008B9160 /* Main_iPad.storyboard in Resources */,
 				D4EB24871825A81E008B9160 /* Images.xcassets in Resources */,
 				D4A25B7B182E5D81009902D2 /* theorafish-120.png in Resources */,
 				D4A25B7A182E5D81009902D2 /* theorafish-76.png in Resources */,
@@ -373,14 +369,6 @@
 				D4EB247E1825A81E008B9160 /* Base */,
 			);
 			name = Main_iPhone.storyboard;
-			sourceTree = "<group>";
-		};
-		D4EB24801825A81E008B9160 /* Main_iPad.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				D4EB24811825A81E008B9160 /* Base */,
-			);
-			name = Main_iPad.storyboard;
 			sourceTree = "<group>";
 		};
 		D4EB24961825A81E008B9160 /* InfoPlist.strings */ = {

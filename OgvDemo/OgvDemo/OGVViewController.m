@@ -19,6 +19,7 @@
     NSURLConnection *connection;
     BOOL doneDownloading;
     BOOL waitingForData;
+    BOOL playing;
     
     dispatch_queue_t decodeQueue;
     dispatch_queue_t drawingQueue;
@@ -40,7 +41,6 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    [self startDownload];
 }
 
 - (void)didReceiveMemoryWarning
@@ -65,12 +65,19 @@
 - (void)viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
-    // todo: continue paused video?
+    if (!playing) {
+        playing = YES;
+        [self startDownload];
+    }
 }
 
 - (void)viewWillDisappear:(BOOL)animated
 {
     // todo: pause video?
+    if (playing) {
+        [connection cancel];
+        playing = NO;
+    }
     [super viewDidDisappear:animated];
 }
 
@@ -81,6 +88,9 @@
 
 - (void)processNextFrame
 {
+    if (!playing) {
+        return;
+    }
     NSDate *start = [NSDate date];
     BOOL more;
     while (!decoder.frameReady) {
