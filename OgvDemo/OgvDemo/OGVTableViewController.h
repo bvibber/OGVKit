@@ -9,5 +9,7 @@
 #import <UIKit/UIKit.h>
 
 @interface OGVTableViewController : UITableViewController
+@property (weak, nonatomic) IBOutlet UISearchBar *searchBar;
+@property (strong, nonatomic) IBOutlet UITableView *tableView;
 
 @end

@@ -8,12 +8,15 @@
 
 #import "OGVTableViewController.h"
 #import "OGVViewController.h"
+#import "OGVCommonsMediaFile.h"
 
 @interface OGVTableViewController ()
 
 @end
 
-@implementation OGVTableViewController
+@implementation OGVTableViewController {
+    NSArray *items;
+}
 
 - (id)initWithStyle:(UITableViewStyle)style
 {
@@ -38,6 +41,8 @@
         player.mediaSourceURL = note.userInfo[@"URL"];
         [self.navigationController pushViewController:player animated:YES];
     }];
+    
+    [self loadList];
 }
 
 - (void)didReceiveMemoryWarning
@@ -46,21 +51,33 @@
     // Dispose of any resources that can be recreated.
 }
 
+- (void)loadList
+{
+    NSString *path = [[NSBundle mainBundle] pathForResource:@"motd" ofType:@"json"];
+    NSData *data = [NSData dataWithContentsOfFile:path];
+    NSArray *motdList = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+    items = [self reverseArray:motdList];
+}
+
+- (NSArray *)reverseArray:(NSArray *)arr
+{
+    NSMutableArray *out = [[NSMutableArray alloc] initWithCapacity:[arr count]];
+    for (id obj in [arr reverseObjectEnumerator]) {
+        [out addObject:obj];
+    }
+    return [NSArray arrayWithArray:out];
+}
+
 #pragma mark - Table view data source
 
-/*
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
-#warning Potentially incomplete method implementation.
-    // Return the number of sections.
-    return 0;
+    return 1;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-#warning Incomplete method implementation.
-    // Return the number of rows in the section.
-    return 0;
+    return items.count;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -69,10 +86,12 @@
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
     
     // Configure the cell...
+    NSDictionary *item = items[indexPath.item];
+    cell.textLabel.text = item[@"filename"];
+    cell.detailTextLabel.text = item[@"date"];
     
     return cell;
 }
- */
 
 /*
 // Override to support conditional editing of the table view.
@@ -128,8 +147,13 @@
 #pragma mark - Table view delegate
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    NSURL *url = [NSURL URLWithString:@"https://upload.wikimedia.org/wikipedia/commons/3/3f/Jarry_-_M%C3%A9tro_de_Montr%C3%A9al_%28640%C3%97360%29.ogv"];
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"OGVPlayerOpenURL" object:[UIApplication sharedApplication] userInfo:@{@"URL": url}];
+    NSDictionary *item = items[indexPath.item];
+    NSString *filename = item[@"filename"];
+    OGVCommonsMediaFile *mediaFile = [[OGVCommonsMediaFile alloc] initWithFilename:filename];
+    [mediaFile fetch:^{
+        NSURL *url = mediaFile.sourceURL;
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"OGVPlayerOpenURL" object:[UIApplication sharedApplication] userInfo:@{@"URL": url}];
+    }];
 }
 
 @end

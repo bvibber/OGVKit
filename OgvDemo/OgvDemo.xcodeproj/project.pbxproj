@@ -12,6 +12,9 @@
 		D432751F1825C66500A43CE7 /* OGVDecoder.m in Sources */ = {isa = PBXBuildFile; fileRef = D432751E1825C66500A43CE7 /* OGVDecoder.m */; };
 		D43275201825C66500A43CE7 /* OGVDecoder.m in Sources */ = {isa = PBXBuildFile; fileRef = D432751E1825C66500A43CE7 /* OGVDecoder.m */; };
 		D432752A1825DD9800A43CE7 /* OGVDecoderTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D43275291825DD9800A43CE7 /* OGVDecoderTests.m */; };
+		D4874831183074060073FC36 /* motd.json in Resources */ = {isa = PBXBuildFile; fileRef = D4874830183074060073FC36 /* motd.json */; };
+		D487483418307AED0073FC36 /* OGVCommonsMediaFile.m in Sources */ = {isa = PBXBuildFile; fileRef = D487483318307AED0073FC36 /* OGVCommonsMediaFile.m */; };
+		D487483518307AED0073FC36 /* OGVCommonsMediaFile.m in Sources */ = {isa = PBXBuildFile; fileRef = D487483318307AED0073FC36 /* OGVCommonsMediaFile.m */; };
 		D4A25B79182E5D81009902D2 /* theorafish-64.png in Resources */ = {isa = PBXBuildFile; fileRef = D4A25B74182E5D81009902D2 /* theorafish-64.png */; };
 		D4A25B7A182E5D81009902D2 /* theorafish-76.png in Resources */ = {isa = PBXBuildFile; fileRef = D4A25B75182E5D81009902D2 /* theorafish-76.png */; };
 		D4A25B7B182E5D81009902D2 /* theorafish-120.png in Resources */ = {isa = PBXBuildFile; fileRef = D4A25B76182E5D81009902D2 /* theorafish-120.png */; };
@@ -62,6 +65,9 @@
 		D432751D1825C66400A43CE7 /* OGVDecoder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVDecoder.h; sourceTree = "<group>"; };
 		D432751E1825C66500A43CE7 /* OGVDecoder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVDecoder.m; sourceTree = "<group>"; };
 		D43275291825DD9800A43CE7 /* OGVDecoderTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVDecoderTests.m; sourceTree = "<group>"; };
+		D4874830183074060073FC36 /* motd.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = motd.json; sourceTree = "<group>"; };
+		D487483218307AED0073FC36 /* OGVCommonsMediaFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVCommonsMediaFile.h; sourceTree = "<group>"; };
+		D487483318307AED0073FC36 /* OGVCommonsMediaFile.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVCommonsMediaFile.m; sourceTree = "<group>"; };
 		D4A25B74182E5D81009902D2 /* theorafish-64.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "theorafish-64.png"; path = "logo/theorafish-64.png"; sourceTree = SOURCE_ROOT; };
 		D4A25B75182E5D81009902D2 /* theorafish-76.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "theorafish-76.png"; path = "logo/theorafish-76.png"; sourceTree = SOURCE_ROOT; };
 		D4A25B76182E5D81009902D2 /* theorafish-120.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "theorafish-120.png"; path = "logo/theorafish-120.png"; sourceTree = SOURCE_ROOT; };
@@ -192,6 +198,9 @@
 				D4B25019183012F8007E8EA6 /* OGVNavigationController.m */,
 				D4B2501B1830140D007E8EA6 /* OGVTableViewController.h */,
 				D4B2501C1830140D007E8EA6 /* OGVTableViewController.m */,
+				D4874830183074060073FC36 /* motd.json */,
+				D487483218307AED0073FC36 /* OGVCommonsMediaFile.h */,
+				D487483318307AED0073FC36 /* OGVCommonsMediaFile.m */,
 			);
 			path = OgvDemo;
 			sourceTree = "<group>";
@@ -313,6 +322,7 @@
 				D4EB24761825A81E008B9160 /* InfoPlist.strings in Resources */,
 				D41B41341826926D009D8652 /* black.png in Resources */,
 				D4A25B7C182E5D81009902D2 /* theorafish-152.png in Resources */,
+				D4874831183074060073FC36 /* motd.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -332,6 +342,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D487483418307AED0073FC36 /* OGVCommonsMediaFile.m in Sources */,
 				D4B2501D1830140D007E8EA6 /* OGVTableViewController.m in Sources */,
 				D4EB24781825A81E008B9160 /* main.m in Sources */,
 				D432751F1825C66500A43CE7 /* OGVDecoder.m in Sources */,
@@ -352,6 +363,7 @@
 				D4DEC5AE1829C294009234F9 /* OGVAudioBuffer.m in Sources */,
 				D432752A1825DD9800A43CE7 /* OGVDecoderTests.m in Sources */,
 				D4EB249A1825A81E008B9160 /* OGVLibraryTests.m in Sources */,
+				D487483518307AED0073FC36 /* OGVCommonsMediaFile.m in Sources */,
 				D43275201825C66500A43CE7 /* OGVDecoder.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
