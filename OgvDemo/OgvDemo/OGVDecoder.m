@@ -341,10 +341,18 @@
     if(theora_p){
         ogg_stream_clear(&theoraStreamState);
         th_decode_free(theoraDecoderContext);
-        th_comment_clear(&theoraComment);
-        th_info_clear(&theoraInfo);
     }
-    // fixme free the vorbis state too
+    th_comment_clear(&theoraComment);
+    th_info_clear(&theoraInfo);
+
+    if (vorbis_p) {
+        ogg_stream_clear(&vo);
+        vorbis_dsp_clear(&vd);
+        vorbis_block_clear(&vb);
+    }
+    vorbis_comment_clear(&vc);
+    vorbis_info_clear(&vi);
+
     ogg_sync_clear(&oggSyncState);
 }
 
