@@ -23,7 +23,7 @@
 - (void)fetch:(void (^)())completionBlock
 {
     NSString *baseUrlStr = @"https://commons.wikimedia.org/w/api.php";
-    NSString *urlStr = [NSString stringWithFormat:@"%@?action=query&prop=imageinfo%%7Ctranscodestatus&titles=File%%3A%@&iiprop=url%%7Csize%%7Cmediatype%%7Cmetadata&iiurlwidth=1280&iiurlheight=720&format=json",
+    NSString *urlStr = [NSString stringWithFormat:@"%@?action=query&prop=videoinfo&titles=File%%3A%@&viprop=url%%7Csize%%7Cmediatype%%7Cmetadata%%7Cderivatives&viurlwidth=1280&viurlheight=720&format=json",
                         baseUrlStr,
                         [self.filename stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
     
@@ -37,15 +37,11 @@
             
             // query.pages.12345.imageinfo[0]
             NSDictionary *pages = dict[@"query"][@"pages"];
-            NSDictionary *imageinfo;
+            NSDictionary *videoinfo;
             for (NSDictionary *page in [pages objectEnumerator]) {
-                imageinfo = page[@"imageinfo"][0];
+                videoinfo = page[@"videoinfo"][0];
             }
-            NSLog(@"imageinfo: %@", imageinfo);
-            
-            _mediaType = imageinfo[@"mediatype"];
-            _sourceURL = [NSURL URLWithString:imageinfo[@"url"]]; // todo: get the transcode!
-            _thumbnailURL = [NSURL URLWithString:imageinfo[@"thumburl"]];
+            [self extractVideoInfo:videoinfo];
             
             _dataReady = YES;
         } else {
@@ -53,6 +49,35 @@
         }
         completionBlock();
     }];
+}
+
+- (void)extractVideoInfo:(NSDictionary *)videoinfo
+{
+    NSLog(@"videoinfo: %@", videoinfo);
+
+    _mediaType = videoinfo[@"mediatype"];
+    _thumbnailURL = [NSURL URLWithString:videoinfo[@"thumburl"]];
+
+    int targetHeight = 9999999;
+
+    NSArray *derivatives = videoinfo[@"derivatives"];
+    for (NSDictionary *item in derivatives) {
+        // Warning: width, height, and bandwidth may be either NSNumber or NSString
+        // happily, 'intValue' works on both
+        int height = [item[@"height"] intValue];
+        NSString *urlStr = item[@"src"];
+        NSString *type = item[@"type"];
+        NSLog(@"%d %@ %@", height, urlStr, type);
+        if ([type isEqualToString:@"video/ogg; codecs=\"theora, vorbis\""] ||
+            [type isEqualToString:@"video/ogg; codecs=\"theora\""] ||
+            [type isEqualToString:@"audio/ogg; codecs=\"vorbis\""]) {
+            if (height < targetHeight) {
+                targetHeight = height;
+                _sourceURL = [NSURL URLWithString:urlStr];
+            }
+        }
+    }
+    
 }
 
 @end
