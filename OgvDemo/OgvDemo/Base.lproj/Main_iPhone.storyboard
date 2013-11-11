@@ -67,7 +67,7 @@
                             <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                             <textInputTraits key="textInputTraits"/>
                             <connections>
-                                <outlet property="delegate" destination="lgn-kl-kcH" id="U07-G8-fcv"/>
+                                <outlet property="delegate" destination="lgn-kl-kcH" id="Anu-h2-hPU"/>
                             </connections>
                         </searchBar>
                         <prototypes>
@@ -108,20 +108,10 @@
                     <navigationItem key="navigationItem" title="OgvDemo" id="XaU-sp-pt6"/>
                     <connections>
                         <outlet property="searchBar" destination="dY9-Vc-Rsh" id="dBv-yi-cuh"/>
-                        <outlet property="searchDisplayController" destination="dXd-O1-3bR" id="P6D-ti-RS5"/>
                         <outlet property="tableView" destination="u2r-VE-StD" id="xQA-2Z-wuc"/>
                     </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Wt7-Ci-9hl" userLabel="First Responder" sceneMemberID="firstResponder"/>
-                <searchDisplayController id="dXd-O1-3bR">
-                    <connections>
-                        <outlet property="delegate" destination="lgn-kl-kcH" id="kdL-sF-gDB"/>
-                        <outlet property="searchBar" destination="dY9-Vc-Rsh" id="dH3-AP-JhZ"/>
-                        <outlet property="searchContentsController" destination="lgn-kl-kcH" id="xju-fa-MsE"/>
-                        <outlet property="searchResultsDataSource" destination="lgn-kl-kcH" id="7u0-oX-YPj"/>
-                        <outlet property="searchResultsDelegate" destination="lgn-kl-kcH" id="A1w-eH-9oH"/>
-                    </connections>
-                </searchDisplayController>
             </objects>
             <point key="canvasLocation" x="546" y="453"/>
         </scene>

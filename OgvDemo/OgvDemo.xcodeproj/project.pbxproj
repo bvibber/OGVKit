@@ -12,6 +12,7 @@
 		D432751F1825C66500A43CE7 /* OGVDecoder.m in Sources */ = {isa = PBXBuildFile; fileRef = D432751E1825C66500A43CE7 /* OGVDecoder.m */; };
 		D43275201825C66500A43CE7 /* OGVDecoder.m in Sources */ = {isa = PBXBuildFile; fileRef = D432751E1825C66500A43CE7 /* OGVDecoder.m */; };
 		D432752A1825DD9800A43CE7 /* OGVDecoderTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D43275291825DD9800A43CE7 /* OGVDecoderTests.m */; };
+		D4497D131831777C00B455DF /* OGVCommonsMediaList.m in Sources */ = {isa = PBXBuildFile; fileRef = D4497D121831777C00B455DF /* OGVCommonsMediaList.m */; };
 		D4874831183074060073FC36 /* motd.json in Resources */ = {isa = PBXBuildFile; fileRef = D4874830183074060073FC36 /* motd.json */; };
 		D487483418307AED0073FC36 /* OGVCommonsMediaFile.m in Sources */ = {isa = PBXBuildFile; fileRef = D487483318307AED0073FC36 /* OGVCommonsMediaFile.m */; };
 		D487483518307AED0073FC36 /* OGVCommonsMediaFile.m in Sources */ = {isa = PBXBuildFile; fileRef = D487483318307AED0073FC36 /* OGVCommonsMediaFile.m */; };
@@ -65,6 +66,8 @@
 		D432751D1825C66400A43CE7 /* OGVDecoder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVDecoder.h; sourceTree = "<group>"; };
 		D432751E1825C66500A43CE7 /* OGVDecoder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVDecoder.m; sourceTree = "<group>"; };
 		D43275291825DD9800A43CE7 /* OGVDecoderTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVDecoderTests.m; sourceTree = "<group>"; };
+		D4497D111831777C00B455DF /* OGVCommonsMediaList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVCommonsMediaList.h; sourceTree = "<group>"; };
+		D4497D121831777C00B455DF /* OGVCommonsMediaList.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVCommonsMediaList.m; sourceTree = "<group>"; };
 		D4874830183074060073FC36 /* motd.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = motd.json; sourceTree = "<group>"; };
 		D487483218307AED0073FC36 /* OGVCommonsMediaFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVCommonsMediaFile.h; sourceTree = "<group>"; };
 		D487483318307AED0073FC36 /* OGVCommonsMediaFile.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVCommonsMediaFile.m; sourceTree = "<group>"; };
@@ -137,6 +140,63 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		D4497D0D1831739400B455DF /* Decoder */ = {
+			isa = PBXGroup;
+			children = (
+				D432751D1825C66400A43CE7 /* OGVDecoder.h */,
+				D432751E1825C66500A43CE7 /* OGVDecoder.m */,
+				D4DEC5A71829C104009234F9 /* OGVFrameBuffer.h */,
+				D4DEC5A81829C104009234F9 /* OGVFrameBuffer.m */,
+				D4DEC5AB1829C294009234F9 /* OGVAudioBuffer.h */,
+				D4DEC5AC1829C294009234F9 /* OGVAudioBuffer.m */,
+			);
+			name = Decoder;
+			sourceTree = "<group>";
+		};
+		D4497D0E183173B200B455DF /* Player */ = {
+			isa = PBXGroup;
+			children = (
+				D4EB24831825A81E008B9160 /* OGVViewController.h */,
+				D4EB24841825A81E008B9160 /* OGVViewController.m */,
+				D4A83416182A6EB80009A945 /* OGVFrameView.h */,
+				D4A83417182A6EB80009A945 /* OGVFrameView.m */,
+			);
+			name = Player;
+			sourceTree = "<group>";
+		};
+		D4497D0F183173DB00B455DF /* Framing app */ = {
+			isa = PBXGroup;
+			children = (
+				D4EB247D1825A81E008B9160 /* Main_iPhone.storyboard */,
+				D4EB247A1825A81E008B9160 /* OGVAppDelegate.h */,
+				D4EB247B1825A81E008B9160 /* OGVAppDelegate.m */,
+				D4B25018183012F8007E8EA6 /* OGVNavigationController.h */,
+				D4B25019183012F8007E8EA6 /* OGVNavigationController.m */,
+				D4B2501B1830140D007E8EA6 /* OGVTableViewController.h */,
+				D4B2501C1830140D007E8EA6 /* OGVTableViewController.m */,
+				D4874830183074060073FC36 /* motd.json */,
+				D487483218307AED0073FC36 /* OGVCommonsMediaFile.h */,
+				D487483318307AED0073FC36 /* OGVCommonsMediaFile.m */,
+				D4497D111831777C00B455DF /* OGVCommonsMediaList.h */,
+				D4497D121831777C00B455DF /* OGVCommonsMediaList.m */,
+			);
+			name = "Framing app";
+			sourceTree = "<group>";
+		};
+		D4497D101831740400B455DF /* Icons */ = {
+			isa = PBXGroup;
+			children = (
+				D4EB24861825A81E008B9160 /* Images.xcassets */,
+				D4A25B74182E5D81009902D2 /* theorafish-64.png */,
+				D4A25B75182E5D81009902D2 /* theorafish-76.png */,
+				D4A25B76182E5D81009902D2 /* theorafish-120.png */,
+				D4A25B77182E5D81009902D2 /* theorafish-152.png */,
+				D4A25B78182E5D81009902D2 /* theorafish-320.png */,
+				D41B41331826926D009D8652 /* black.png */,
+			);
+			name = Icons;
+			sourceTree = "<group>";
+		};
 		D4EB245F1825A81E008B9160 = {
 			isa = PBXGroup;
 			children = (
@@ -173,34 +233,11 @@
 		D4EB24711825A81E008B9160 /* OgvDemo */ = {
 			isa = PBXGroup;
 			children = (
-				D4A25B74182E5D81009902D2 /* theorafish-64.png */,
-				D4A25B75182E5D81009902D2 /* theorafish-76.png */,
-				D4A25B76182E5D81009902D2 /* theorafish-120.png */,
-				D4A25B77182E5D81009902D2 /* theorafish-152.png */,
-				D4A25B78182E5D81009902D2 /* theorafish-320.png */,
-				D41B41331826926D009D8652 /* black.png */,
-				D4EB247A1825A81E008B9160 /* OGVAppDelegate.h */,
-				D4EB247B1825A81E008B9160 /* OGVAppDelegate.m */,
-				D4EB247D1825A81E008B9160 /* Main_iPhone.storyboard */,
-				D4EB24831825A81E008B9160 /* OGVViewController.h */,
-				D4EB24841825A81E008B9160 /* OGVViewController.m */,
-				D4EB24861825A81E008B9160 /* Images.xcassets */,
+				D4497D0F183173DB00B455DF /* Framing app */,
+				D4497D0D1831739400B455DF /* Decoder */,
+				D4497D0E183173B200B455DF /* Player */,
+				D4497D101831740400B455DF /* Icons */,
 				D4EB24721825A81E008B9160 /* Supporting Files */,
-				D432751D1825C66400A43CE7 /* OGVDecoder.h */,
-				D432751E1825C66500A43CE7 /* OGVDecoder.m */,
-				D4DEC5A71829C104009234F9 /* OGVFrameBuffer.h */,
-				D4DEC5A81829C104009234F9 /* OGVFrameBuffer.m */,
-				D4DEC5AB1829C294009234F9 /* OGVAudioBuffer.h */,
-				D4DEC5AC1829C294009234F9 /* OGVAudioBuffer.m */,
-				D4A83416182A6EB80009A945 /* OGVFrameView.h */,
-				D4A83417182A6EB80009A945 /* OGVFrameView.m */,
-				D4B25018183012F8007E8EA6 /* OGVNavigationController.h */,
-				D4B25019183012F8007E8EA6 /* OGVNavigationController.m */,
-				D4B2501B1830140D007E8EA6 /* OGVTableViewController.h */,
-				D4B2501C1830140D007E8EA6 /* OGVTableViewController.m */,
-				D4874830183074060073FC36 /* motd.json */,
-				D487483218307AED0073FC36 /* OGVCommonsMediaFile.h */,
-				D487483318307AED0073FC36 /* OGVCommonsMediaFile.m */,
 			);
 			path = OgvDemo;
 			sourceTree = "<group>";
@@ -350,6 +387,7 @@
 				D4DEC5AD1829C294009234F9 /* OGVAudioBuffer.m in Sources */,
 				D4B2501A183012F8007E8EA6 /* OGVNavigationController.m in Sources */,
 				D4A83418182A6EB80009A945 /* OGVFrameView.m in Sources */,
+				D4497D131831777C00B455DF /* OGVCommonsMediaList.m in Sources */,
 				D4DEC5A91829C104009234F9 /* OGVFrameBuffer.m in Sources */,
 				D4EB24851825A81E008B9160 /* OGVViewController.m in Sources */,
 			);

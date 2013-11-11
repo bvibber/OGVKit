@@ -9,6 +9,7 @@
 #import "OGVTableViewController.h"
 #import "OGVViewController.h"
 #import "OGVCommonsMediaFile.h"
+#import "OGVCommonsMediaList.h"
 
 @interface OGVTableViewController ()
 
@@ -53,19 +54,12 @@
 
 - (void)loadList
 {
-    NSString *path = [[NSBundle mainBundle] pathForResource:@"motd" ofType:@"json"];
-    NSData *data = [NSData dataWithContentsOfFile:path];
-    NSArray *motdList = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
-    items = [self reverseArray:motdList];
-}
-
-- (NSArray *)reverseArray:(NSArray *)arr
-{
-    NSMutableArray *out = [[NSMutableArray alloc] initWithCapacity:[arr count]];
-    for (id obj in [arr reverseObjectEnumerator]) {
-        [out addObject:obj];
+    NSString *filter = self.searchBar.text;
+    if ([filter length] > 0) {
+        items = [OGVCommonsMediaList listWithFilter:filter];
+    } else {
+        items = [OGVCommonsMediaList list];
     }
-    return [NSArray arrayWithArray:out];
 }
 
 #pragma mark - Table view data source
@@ -154,6 +148,20 @@
         NSURL *url = mediaFile.sourceURL;
         [[NSNotificationCenter defaultCenter] postNotificationName:@"OGVPlayerOpenURL" object:[UIApplication sharedApplication] userInfo:@{@"URL": url}];
     }];
+}
+
+#pragma mark - Search bar delegate
+
+- (void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText
+{
+    [self loadList];
+    [self.tableView reloadData];
+}
+
+- (void)searchBarSearchButtonClicked:(UISearchBar *)searchBar
+{
+    // Hide the keyboard
+    [searchBar resignFirstResponder];
 }
 
 @end
