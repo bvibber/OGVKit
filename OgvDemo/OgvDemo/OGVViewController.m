@@ -6,7 +6,6 @@
 //  Copyright (c) 2013 Brion Vibber. All rights reserved.
 //
 
-#import "OGVAppDelegate.h"
 #import "OGVViewController.h"
 #import "OGVDecoder.h"
 
@@ -73,7 +72,6 @@
 
 - (void)viewWillDisappear:(BOOL)animated
 {
-    // todo: pause video?
     if (playing) {
         [connection cancel];
         playing = NO;
@@ -160,7 +158,6 @@
 
 #pragma mark Drawing methods
 
-// Incredibly inefficient \o/
 - (void)drawBuffer:(OGVFrameBuffer *)buffer
 {
     dispatch_async(drawingQueue, ^() {

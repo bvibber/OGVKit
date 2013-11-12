@@ -45,6 +45,7 @@ static inline int clamp(int i) {
     }
 }
 
+// Incredibly inefficient \o/
 - (NSData *)convertYCbCrToRGBA:(OGVFrameBuffer *)buffer
 {
     int width = buffer.frameWidth;
