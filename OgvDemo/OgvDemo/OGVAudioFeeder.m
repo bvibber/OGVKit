@@ -15,6 +15,7 @@
     AudioQueueRef queue;
     AudioQueueBufferRef queueBuffer;
     BOOL audioStarted;
+    BOOL audioQueued;
 }
 
 static void audioCallbackProxy(void                 *inUserData,
@@ -33,6 +34,7 @@ static void audioCallbackProxy(void                 *inUserData,
         [self enqueueBuffer:audioBuffer queueBuffer:buffer];
     } else {
         NSLog(@"Starved for audio!");
+        audioQueued = NO;
     }
 }
 
@@ -63,11 +65,13 @@ static void audioCallbackProxy(void                 *inUserData,
             @throw [NSException exceptionWithName:@"OGVAudioFeederException" reason:err userInfo:nil];
         }
 
-        status = AudioQueueAllocateBuffer(queue, 16384 /*?*/, &queueBuffer);
+        status = AudioQueueAllocateBuffer(queue, 65536 /*?*/, &queueBuffer);
         if (status) {
             NSString *err = [NSString stringWithFormat:@"Error %d from AudioQueueAllocateBuffer", status];
             @throw [NSException exceptionWithName:@"OGVAudioFeederException" reason:err userInfo:nil];
         }
+
+        [self startAudio];
     }
     return self;
 }
@@ -94,8 +98,10 @@ static void audioCallbackProxy(void                 *inUserData,
         if ([self buffersAvailable]) {
             OGVAudioBuffer *buffer = buffers[0];
             [buffers removeObjectAtIndex:0];
+            NSLog(@"popping -- got one");
             return buffer;
         } else {
+            NSLog(@"popping -- nothing");
             return nil;
         }
     }
@@ -104,11 +110,12 @@ static void audioCallbackProxy(void                 *inUserData,
 - (void)pushBuffer:(OGVAudioBuffer *)buffer
 {
     @synchronized (buffers) {
-        if (audioStarted) {
+        if (audioQueued) {
+            NSLog(@"pushing buffer");
             [buffers addObject:buffer];
         } else {
+            NSLog(@"queueing buffer");
             [self enqueueBuffer:buffer queueBuffer:queueBuffer];
-            [self startAudio];
         }
     }
 }
@@ -151,6 +158,8 @@ static void audioCallbackProxy(void                 *inUserData,
         NSString *err = [NSString stringWithFormat:@"Error %d from AudioQueueEnqueueBuffer", status];
         @throw [NSException exceptionWithName:@"OGVAudioFeederException" reason:err userInfo:nil];
     }
+
+    audioQueued = YES;
 }
 
 @end
