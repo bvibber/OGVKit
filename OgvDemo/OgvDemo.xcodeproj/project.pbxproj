@@ -13,6 +13,7 @@
 		D43275201825C66500A43CE7 /* OGVDecoder.m in Sources */ = {isa = PBXBuildFile; fileRef = D432751E1825C66500A43CE7 /* OGVDecoder.m */; };
 		D432752A1825DD9800A43CE7 /* OGVDecoderTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D43275291825DD9800A43CE7 /* OGVDecoderTests.m */; };
 		D433289518318B29005A4CA5 /* OGVAudioFeeder.m in Sources */ = {isa = PBXBuildFile; fileRef = D433289418318B29005A4CA5 /* OGVAudioFeeder.m */; };
+		D43D14C118326F0300E98402 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D43D14C018326F0300E98402 /* AudioToolbox.framework */; };
 		D4497D131831777C00B455DF /* OGVCommonsMediaList.m in Sources */ = {isa = PBXBuildFile; fileRef = D4497D121831777C00B455DF /* OGVCommonsMediaList.m */; };
 		D4874831183074060073FC36 /* motd.json in Resources */ = {isa = PBXBuildFile; fileRef = D4874830183074060073FC36 /* motd.json */; };
 		D487483418307AED0073FC36 /* OGVCommonsMediaFile.m in Sources */ = {isa = PBXBuildFile; fileRef = D487483318307AED0073FC36 /* OGVCommonsMediaFile.m */; };
@@ -70,6 +71,7 @@
 		D433289318318B29005A4CA5 /* OGVAudioFeeder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVAudioFeeder.h; sourceTree = "<group>"; };
 		D433289418318B29005A4CA5 /* OGVAudioFeeder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVAudioFeeder.m; sourceTree = "<group>"; };
 		D433289618319E0E005A4CA5 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
+		D43D14C018326F0300E98402 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		D4497D111831777C00B455DF /* OGVCommonsMediaList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVCommonsMediaList.h; sourceTree = "<group>"; };
 		D4497D121831777C00B455DF /* OGVCommonsMediaList.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVCommonsMediaList.m; sourceTree = "<group>"; };
 		D4874830183074060073FC36 /* motd.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = motd.json; sourceTree = "<group>"; };
@@ -122,6 +124,7 @@
 				D4EB24A61825A872008B9160 /* ogg.framework in Frameworks */,
 				D4EB24A71825A872008B9160 /* theora.framework in Frameworks */,
 				D4EB24A81825A872008B9160 /* vorbis.framework in Frameworks */,
+				D43D14C118326F0300E98402 /* AudioToolbox.framework in Frameworks */,
 				D4EB246E1825A81E008B9160 /* CoreGraphics.framework in Frameworks */,
 				D4EB24701825A81E008B9160 /* UIKit.framework in Frameworks */,
 				D4EB246C1825A81E008B9160 /* Foundation.framework in Frameworks */,
@@ -225,6 +228,7 @@
 		D4EB246A1825A81E008B9160 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				D43D14C018326F0300E98402 /* AudioToolbox.framework */,
 				D433289618319E0E005A4CA5 /* CoreAudio.framework */,
 				D4EB24A31825A872008B9160 /* ogg.framework */,
 				D4EB24A41825A872008B9160 /* theora.framework */,

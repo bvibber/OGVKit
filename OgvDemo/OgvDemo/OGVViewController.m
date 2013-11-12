@@ -8,6 +8,7 @@
 
 #import "OGVViewController.h"
 #import "OGVDecoder.h"
+#import "OGVAudioFeeder.h"
 
 @interface OGVViewController ()
 
@@ -15,6 +16,7 @@
 
 @implementation OGVViewController {
     OGVDecoder *decoder;
+    OGVAudioFeeder *audioFeeder;
     NSURLConnection *connection;
     BOOL doneDownloading;
     BOOL waitingForData;
@@ -93,6 +95,10 @@
     BOOL more;
     while (!decoder.frameReady) {
         more = [decoder process];
+        if (decoder.audioReady) {
+            OGVAudioBuffer *audioBuffer = [decoder audioBuffer];
+            [audioFeeder pushBuffer:audioBuffer];
+        }
         if (!more) {
             break;
         }
@@ -154,6 +160,10 @@
 
     drawingTime = 0;
     averageDrawingRate = 0;
+    
+    if (decoder.hasAudio) {
+        audioFeeder = [[OGVAudioFeeder alloc] initWithChannels:decoder.audioChannels sampleRate:decoder.audioRate];
+    }
 }
 
 #pragma mark Drawing methods

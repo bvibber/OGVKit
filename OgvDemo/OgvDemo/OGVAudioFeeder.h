@@ -11,4 +11,7 @@
 
 @interface OGVAudioFeeder : NSObject
 
+- (id)initWithChannels:(int)channels sampleRate:(int)rate;
+- (void)pushBuffer:(OGVAudioBuffer *)buffer;
+
 @end
