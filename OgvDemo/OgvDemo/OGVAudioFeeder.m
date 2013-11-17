@@ -123,13 +123,13 @@ static void audioCallbackProxy(void                 *inUserData,
         if (currentBuffer >= nbuffers) {
             NSLog(@"pushing buffer");
             [buffers addObject:buffer];
+            if (!audioStarted && [buffers count] > 32) {
+                [self startAudio];
+            }
         } else {
             NSLog(@"queueing buffer %d", currentBuffer);
             [self enqueueBuffer:buffer queueBuffer:queueBuffers[currentBuffer]];
             currentBuffer++;
-            if (currentBuffer >= nbuffers) {
-                [self startAudio];
-            }
         }
     }
 }
