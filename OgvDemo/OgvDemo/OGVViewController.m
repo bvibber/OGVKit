@@ -113,7 +113,7 @@
         } else {
             // Don't decode the next frame until we're ready for it...
             NSTimeInterval delta2 = [[NSDate date] timeIntervalSinceDate:start]; // in case frame dequeue took some time?
-            double delayInSeconds = (1.0 / decoder.frameRate) - delta2;
+            double delayInSeconds = (1.0 / decoder.frameRate) * 0.9f - delta2;
             if (delayInSeconds < 0.0) {
                 // d'oh
                 NSLog(@"slow frame decode!");
@@ -207,7 +207,7 @@
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
 {
     dispatch_async(decodeQueue, ^() {
-        NSLog(@"receive input: %lu bytes", (unsigned long)data.length);
+        //NSLog(@"receive input: %lu bytes", (unsigned long)data.length);
         [decoder receiveInput:data];
         if (!decoder.dataReady) {
             // We need to process enough of the file that we can
