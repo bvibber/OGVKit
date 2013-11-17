@@ -14,7 +14,9 @@
     OGVAudioBuffer *lastBuffer;
     AudioStreamBasicDescription format;
     AudioQueueRef queue;
-    AudioQueueBufferRef queueBuffer;
+    int nbuffers;
+    int currentBuffer;
+    AudioQueueBufferRef queueBuffers[3];
     BOOL audioStarted;
     BOOL audioQueued;
 }
@@ -68,10 +70,13 @@ static void audioCallbackProxy(void                 *inUserData,
             @throw [NSException exceptionWithName:@"OGVAudioFeederException" reason:err userInfo:nil];
         }
 
-        status = AudioQueueAllocateBufferWithPacketDescriptions(queue, 65536 /*?*/, 1, &queueBuffer);
-        if (status) {
-            NSString *err = [NSString stringWithFormat:@"Error %d from AudioQueueAllocateBufferWithPacketDescriptions", (int)status];
-            @throw [NSException exceptionWithName:@"OGVAudioFeederException" reason:err userInfo:nil];
+        nbuffers = 3; // magic number
+        for (int i = 0; i < nbuffers; i++) {
+            status = AudioQueueAllocateBufferWithPacketDescriptions(queue, 65536 /*?*/, 1, &queueBuffers[i]);
+            if (status) {
+                NSString *err = [NSString stringWithFormat:@"Error %d from AudioQueueAllocateBufferWithPacketDescriptions", (int)status];
+                @throw [NSException exceptionWithName:@"OGVAudioFeederException" reason:err userInfo:nil];
+            }
         }
 
         //[self startAudio];
@@ -84,7 +89,9 @@ static void audioCallbackProxy(void                 *inUserData,
     if (audioStarted) {
         AudioQueueStop(queue, true);
     }
-    AudioQueueFreeBuffer(queue, queueBuffer);
+    for (int i = 0; i < nbuffers; i++) {
+        AudioQueueFreeBuffer(queue, queueBuffers[i]);
+    }
     AudioQueueDispose(queue, true);
 }
 
@@ -113,15 +120,16 @@ static void audioCallbackProxy(void                 *inUserData,
 - (void)pushBuffer:(OGVAudioBuffer *)buffer
 {
     @synchronized (buffers) {
-        if (audioQueued) {
+        if (currentBuffer >= nbuffers) {
             NSLog(@"pushing buffer");
             [buffers addObject:buffer];
         } else {
-            NSLog(@"queueing buffer");
-            [self enqueueBuffer:buffer queueBuffer:queueBuffer];
-        }
-        if (!audioStarted) {
-            [self startAudio];
+            NSLog(@"queueing buffer %d", currentBuffer);
+            [self enqueueBuffer:buffer queueBuffer:queueBuffers[currentBuffer]];
+            currentBuffer++;
+            if (currentBuffer >= nbuffers) {
+                [self startAudio];
+            }
         }
     }
 }
