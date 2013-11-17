@@ -15,7 +15,6 @@
     AudioStreamBasicDescription format;
     AudioQueueRef queue;
     AudioQueueBufferRef queueBuffer;
-    AudioStreamPacketDescription packetDescs;
     BOOL audioStarted;
     BOOL audioQueued;
 }
@@ -24,7 +23,6 @@ static void audioCallbackProxy(void                 *inUserData,
                           AudioQueueRef        inAQ,
                           AudioQueueBufferRef  inBuffer)
 {
-    NSLog(@"audio callback!");
     OGVAudioFeeder *feeder = (__bridge OGVAudioFeeder *)inUserData;
     [feeder onAudioCallback:inBuffer];
 }
@@ -34,9 +32,11 @@ static void audioCallbackProxy(void                 *inUserData,
     OGVAudioBuffer *audioBuffer = [self popBuffer];
     if (audioBuffer) {
         [self enqueueBuffer:audioBuffer queueBuffer:buffer];
+        audioQueued = YES;
     } else {
-        NSLog(@"Starved for audio!");
-        audioQueued = NO;
+        NSLog(@"Starved for audio! Requeuing same buffer!");
+        [self enqueueBuffer:lastBuffer queueBuffer:buffer];
+        audioQueued = YES;
     }
 }
 
@@ -68,9 +68,9 @@ static void audioCallbackProxy(void                 *inUserData,
             @throw [NSException exceptionWithName:@"OGVAudioFeederException" reason:err userInfo:nil];
         }
 
-        status = AudioQueueAllocateBuffer(queue, 65536 /*?*/, &queueBuffer);
+        status = AudioQueueAllocateBufferWithPacketDescriptions(queue, 65536 /*?*/, 1, &queueBuffer);
         if (status) {
-            NSString *err = [NSString stringWithFormat:@"Error %d from AudioQueueAllocateBuffer", (int)status];
+            NSString *err = [NSString stringWithFormat:@"Error %d from AudioQueueAllocateBufferWithPacketDescriptions", (int)status];
             @throw [NSException exceptionWithName:@"OGVAudioFeederException" reason:err userInfo:nil];
         }
 
@@ -130,6 +130,12 @@ static void audioCallbackProxy(void                 *inUserData,
 {
     OSStatus status;
     
+    status = AudioQueuePrime(queue, 0, NULL);
+    if (status) {
+        NSString *err = [NSString stringWithFormat:@"Error %d from AudioQueuePrime", (int)status];
+        @throw [NSException exceptionWithName:@"OGVAudioFeederException" reason:err userInfo:nil];
+    }
+
     status = AudioQueueSetParameter(queue, kAudioQueueParam_Volume, 1.0f);
     if (status) {
         NSString *err = [NSString stringWithFormat:@"Error %d from AudioQueueSetParameter", (int)status];
@@ -160,12 +166,13 @@ static void audioCallbackProxy(void                 *inUserData,
         memcpy(dst + (channel * bytesPerChannel), channelData.bytes, bytesPerChannel);
     }
     
-    packetDescs.mStartOffset = 0;
-    packetDescs.mDataByteSize = bytesPerChannel * channels;
-    packetDescs.mVariableFramesInPacket = audioBuffer.samples;
-    NSLog(@"Packet data size %d, frames %d", packetDescs.mDataByteSize, packetDescs.mVariableFramesInPacket);
+    buffer->mPacketDescriptionCount = 1;
+    buffer->mPacketDescriptions[0].mStartOffset = 0;
+    buffer->mPacketDescriptions[0].mDataByteSize = bytesPerChannel * channels;
+    buffer->mPacketDescriptions[0].mVariableFramesInPacket = audioBuffer.samples;
+    NSLog(@"Packet data size %d, frames %d", buffer->mPacketDescriptions[0].mDataByteSize, buffer->mPacketDescriptions[0].mVariableFramesInPacket);
     
-    status = AudioQueueEnqueueBuffer(queue, buffer, 1, &packetDescs);
+    status = AudioQueueEnqueueBuffer(queue, buffer, 0, NULL);
     if (status) {
         NSString *err = [NSString stringWithFormat:@"Error %d from AudioQueueEnqueueBuffer", (int)status];
         @throw [NSException exceptionWithName:@"OGVAudioFeederException" reason:err userInfo:nil];
