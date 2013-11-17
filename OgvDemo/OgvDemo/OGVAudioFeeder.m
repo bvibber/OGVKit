@@ -133,11 +133,13 @@ static void audioCallbackProxy(void                 *inUserData,
 {
     OSStatus status;
     
+    /*
     status = AudioQueuePrime(queue, 0, NULL);
     if (status) {
         NSString *err = [NSString stringWithFormat:@"Error %d from AudioQueuePrime", (int)status];
         @throw [NSException exceptionWithName:@"OGVAudioFeederException" reason:err userInfo:nil];
     }
+     */
 
     status = AudioQueueSetParameter(queue, kAudioQueueParam_Volume, 1.0f);
     if (status) {
@@ -191,6 +193,8 @@ static void audioCallbackProxy(void                 *inUserData,
     NSLog(@"Packet data size %d, frames %d", (int)buffer->mPacketDescriptions[0].mDataByteSize, (int)buffer->mPacketDescriptions[0].mVariableFramesInPacket);
     
     status = AudioQueueEnqueueBuffer(queue, buffer, 0, NULL);
+    // or do I have to do this? doesn't work either...
+    //status = AudioQueueEnqueueBuffer(queue, buffer, 1, buffer->mPacketDescriptions);
     if (status) {
         NSString *err = [NSString stringWithFormat:@"Error %d from AudioQueueEnqueueBuffer", (int)status];
         @throw [NSException exceptionWithName:@"OGVAudioFeederException" reason:err userInfo:nil];
