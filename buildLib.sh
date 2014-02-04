@@ -62,9 +62,9 @@ mkdir -p $OUTDIR
 cd $TARGET
 
 # generate configuration script
-echo ./autogen.sh --host=$HOST --prefix="$OUTDIR" $CONFIGOPT
+echo ./autogen.sh --host=$HOST --prefix=\"$OUTDIR\" $CONFIGOPT
 ./autogen.sh --host=$HOST --prefix="$OUTDIR" $CONFIGOPT
-echo ./configure --host=$HOST --prefix="$OUTDIR" $CONFIGOPT
+echo ./configure --host=$HOST --prefix=\"$OUTDIR\" $CONFIGOPT
 ./configure --host=$HOST --prefix="$OUTDIR" $CONFIGOPT || exit 1
 
 # compile $TARGET
