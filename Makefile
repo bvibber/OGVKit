@@ -2,7 +2,7 @@
 
 ARCHES=i386 x86_64 armv7 armv7s arm64
 
-all : build/ogg.framework/ogg build/vorbis.framework/vorbis build/theora.framework/theora
+all : ogg.framework vorbis.framework theora.framework
 
 clean:
 	rm -rf build
@@ -16,7 +16,7 @@ clean:
 
 # libogg
 
-build/ogg.framework/ogg : buildLib.sh buildFramework.sh
+ogg.framework : buildLib.sh buildFramework.sh
 	./buildFramework.sh \
 	  libogg \
 	  ogg \
@@ -26,7 +26,7 @@ build/ogg.framework/ogg : buildLib.sh buildFramework.sh
 
 # libvorbis
 
-build/vorbis.framework/vorbis : buildLib.sh buildFramework.sh build/ogg.framework/ogg
+vorbis.framework : buildLib.sh buildFramework.sh ogg.framework
 	./buildFramework.sh \
 	  libvorbis \
 	  vorbis \
@@ -36,7 +36,7 @@ build/vorbis.framework/vorbis : buildLib.sh buildFramework.sh build/ogg.framewor
 
 # libtheora
 # note asm is disabled due to lack of arm64 -- fix me!
-build/theora.framework/theora : buildLib.sh buildFramework.sh build/ogg.framework/ogg
+theora.framework : buildLib.sh buildFramework.sh ogg.framework
 	./buildFramework.sh \
 	  libtheora \
 	  theora \
