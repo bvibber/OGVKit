@@ -8,6 +8,18 @@ echo "Building $LIB..."
 for ARCH in $ARCHES; do
 	echo "Building $LIB for $ARCH"
 	./buildLib.sh $LIB $ARCH "$FLAGS" "$CONFIGOPT" || exit 1
+	
+	pushd build/$LIB/$ARCH/lib > /dev/null
+	if [[ `ls -1 *.a | wc -l` -gt 1 ]]; then
+		echo "Combining libraries into $LIB.a for $ARCH: `echo *.a`"
+		for LIB_FILE in *.a; do
+			ar -x $LIB_FILE || exit 1
+			rm -f $LIB_FILE
+		done
+		ar -rs $LIB.a *.o || exit 1
+		rm -f *.o
+	fi
+	popd
 done
 
 echo "Copying stub files from i386 for $LIB"
