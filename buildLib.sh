@@ -36,7 +36,7 @@ case $ARCH in
     ;;
 esac
 
-SDK_VERSION=7.0
+SDK_VERSION=7.1
 SDK_MINVER=6.0
 
 XCODE_ROOT=`xcode-select -print-path`
@@ -44,9 +44,8 @@ PLATFORM_PATH="$XCODE_ROOT/Platforms/$PLATFORM.platform/Developer"
 SDK_PATH="$PLATFORM_PATH/SDKs/$PLATFORM$SDK_VERSION.sdk"
 FLAGS="$FLAGS -isysroot $SDK_PATH -arch $ARCH -miphoneos-version-min=$SDK_MINVER"
 
-# note: this "gcc" is actually clang
-CC=`xcrun -find -sdk $platform gcc`
-CXX=`xcrun -find -sdk $platform g++`
+CC=`xcrun -find -sdk $platform clang`
+CXX=`xcrun -find -sdk $platform clang++`
 CFLAGS="$FLAGS"
 CXXFLAGS="$FLAGS"
 LDFLAGS="$FLAGS"
