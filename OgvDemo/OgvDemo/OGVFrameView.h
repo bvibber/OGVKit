@@ -7,7 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "OGVFrameBuffer.h"
+#import <OgvKit/OgvKit.h>
 
 @interface OGVFrameView : UIImageView
 

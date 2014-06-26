@@ -9,9 +9,8 @@
 /* Begin PBXBuildFile section */
 		D41B41341826926D009D8652 /* black.png in Resources */ = {isa = PBXBuildFile; fileRef = D41B41331826926D009D8652 /* black.png */; };
 		D42F48381825F79700F7ED1F /* samples in Resources */ = {isa = PBXBuildFile; fileRef = D42F48361825F79700F7ED1F /* samples */; };
-		D432751F1825C66500A43CE7 /* OGVDecoder.m in Sources */ = {isa = PBXBuildFile; fileRef = D432751E1825C66500A43CE7 /* OGVDecoder.m */; };
-		D43275201825C66500A43CE7 /* OGVDecoder.m in Sources */ = {isa = PBXBuildFile; fileRef = D432751E1825C66500A43CE7 /* OGVDecoder.m */; };
 		D432752A1825DD9800A43CE7 /* OGVDecoderTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D43275291825DD9800A43CE7 /* OGVDecoderTests.m */; };
+		D43A24EC195C027C00D38228 /* libOgvKit.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D43A24E7195C025E00D38228 /* libOgvKit.a */; };
 		D4497D131831777C00B455DF /* OGVCommonsMediaList.m in Sources */ = {isa = PBXBuildFile; fileRef = D4497D121831777C00B455DF /* OGVCommonsMediaList.m */; };
 		D4874831183074060073FC36 /* motd.json in Resources */ = {isa = PBXBuildFile; fileRef = D4874830183074060073FC36 /* motd.json */; };
 		D487483418307AED0073FC36 /* OGVCommonsMediaFile.m in Sources */ = {isa = PBXBuildFile; fileRef = D487483318307AED0073FC36 /* OGVCommonsMediaFile.m */; };
@@ -24,10 +23,6 @@
 		D4A83418182A6EB80009A945 /* OGVFrameView.m in Sources */ = {isa = PBXBuildFile; fileRef = D4A83417182A6EB80009A945 /* OGVFrameView.m */; };
 		D4B2501A183012F8007E8EA6 /* OGVNavigationController.m in Sources */ = {isa = PBXBuildFile; fileRef = D4B25019183012F8007E8EA6 /* OGVNavigationController.m */; };
 		D4B2501D1830140D007E8EA6 /* OGVTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D4B2501C1830140D007E8EA6 /* OGVTableViewController.m */; };
-		D4DEC5A91829C104009234F9 /* OGVFrameBuffer.m in Sources */ = {isa = PBXBuildFile; fileRef = D4DEC5A81829C104009234F9 /* OGVFrameBuffer.m */; };
-		D4DEC5AA1829C104009234F9 /* OGVFrameBuffer.m in Sources */ = {isa = PBXBuildFile; fileRef = D4DEC5A81829C104009234F9 /* OGVFrameBuffer.m */; };
-		D4DEC5AD1829C294009234F9 /* OGVAudioBuffer.m in Sources */ = {isa = PBXBuildFile; fileRef = D4DEC5AC1829C294009234F9 /* OGVAudioBuffer.m */; };
-		D4DEC5AE1829C294009234F9 /* OGVAudioBuffer.m in Sources */ = {isa = PBXBuildFile; fileRef = D4DEC5AC1829C294009234F9 /* OGVAudioBuffer.m */; };
 		D4EB246C1825A81E008B9160 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4EB246B1825A81E008B9160 /* Foundation.framework */; };
 		D4EB246E1825A81E008B9160 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4EB246D1825A81E008B9160 /* CoreGraphics.framework */; };
 		D4EB24701825A81E008B9160 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4EB246F1825A81E008B9160 /* UIKit.framework */; };
@@ -42,15 +37,30 @@
 		D4EB24901825A81E008B9160 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4EB246F1825A81E008B9160 /* UIKit.framework */; };
 		D4EB24981825A81E008B9160 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = D4EB24961825A81E008B9160 /* InfoPlist.strings */; };
 		D4EB249A1825A81E008B9160 /* OGVLibraryTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D4EB24991825A81E008B9160 /* OGVLibraryTests.m */; };
-		D4EB24A61825A872008B9160 /* ogg.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4EB24A31825A872008B9160 /* ogg.framework */; };
-		D4EB24A71825A872008B9160 /* theora.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4EB24A41825A872008B9160 /* theora.framework */; };
-		D4EB24A81825A872008B9160 /* vorbis.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4EB24A51825A872008B9160 /* vorbis.framework */; };
-		D4EB24A91825A926008B9160 /* vorbis.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4EB24A51825A872008B9160 /* vorbis.framework */; };
-		D4EB24AA1825A929008B9160 /* theora.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4EB24A41825A872008B9160 /* theora.framework */; };
-		D4EB24AB1825A92E008B9160 /* ogg.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4EB24A31825A872008B9160 /* ogg.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		D43A24E6195C025E00D38228 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D43A24E1195C025E00D38228 /* OgvKit.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = D43A2478195BDFDC00D38228;
+			remoteInfo = OgvKit;
+		};
+		D43A24E8195C025E00D38228 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D43A24E1195C025E00D38228 /* OgvKit.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = D43A2488195BDFDC00D38228;
+			remoteInfo = OgvKitTests;
+		};
+		D43A24EA195C026D00D38228 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D43A24E1195C025E00D38228 /* OgvKit.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = D43A2477195BDFDC00D38228;
+			remoteInfo = OgvKit;
+		};
 		D4EB24911825A81E008B9160 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = D4EB24601825A81E008B9160 /* Project object */;
@@ -63,9 +73,8 @@
 /* Begin PBXFileReference section */
 		D41B41331826926D009D8652 /* black.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = black.png; sourceTree = "<group>"; };
 		D42F48361825F79700F7ED1F /* samples */ = {isa = PBXFileReference; lastKnownFileType = folder; path = samples; sourceTree = SOURCE_ROOT; };
-		D432751D1825C66400A43CE7 /* OGVDecoder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVDecoder.h; sourceTree = "<group>"; };
-		D432751E1825C66500A43CE7 /* OGVDecoder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVDecoder.m; sourceTree = "<group>"; };
 		D43275291825DD9800A43CE7 /* OGVDecoderTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVDecoderTests.m; sourceTree = "<group>"; };
+		D43A24E1195C025E00D38228 /* OgvKit.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = OgvKit.xcodeproj; path = ../OgvKit/OgvKit.xcodeproj; sourceTree = "<group>"; };
 		D4497D111831777C00B455DF /* OGVCommonsMediaList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVCommonsMediaList.h; sourceTree = "<group>"; };
 		D4497D121831777C00B455DF /* OGVCommonsMediaList.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVCommonsMediaList.m; sourceTree = "<group>"; };
 		D4874830183074060073FC36 /* motd.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = motd.json; sourceTree = "<group>"; };
@@ -82,10 +91,6 @@
 		D4B25019183012F8007E8EA6 /* OGVNavigationController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVNavigationController.m; sourceTree = "<group>"; };
 		D4B2501B1830140D007E8EA6 /* OGVTableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVTableViewController.h; sourceTree = "<group>"; };
 		D4B2501C1830140D007E8EA6 /* OGVTableViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVTableViewController.m; sourceTree = "<group>"; };
-		D4DEC5A71829C104009234F9 /* OGVFrameBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVFrameBuffer.h; sourceTree = "<group>"; };
-		D4DEC5A81829C104009234F9 /* OGVFrameBuffer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVFrameBuffer.m; sourceTree = "<group>"; };
-		D4DEC5AB1829C294009234F9 /* OGVAudioBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVAudioBuffer.h; sourceTree = "<group>"; };
-		D4DEC5AC1829C294009234F9 /* OGVAudioBuffer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVAudioBuffer.m; sourceTree = "<group>"; };
 		D4EB24681825A81E008B9160 /* OgvDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OgvDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D4EB246B1825A81E008B9160 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		D4EB246D1825A81E008B9160 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -105,9 +110,6 @@
 		D4EB24951825A81E008B9160 /* OgvDemoTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "OgvDemoTests-Info.plist"; sourceTree = "<group>"; };
 		D4EB24971825A81E008B9160 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		D4EB24991825A81E008B9160 /* OGVLibraryTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = OGVLibraryTests.m; sourceTree = "<group>"; };
-		D4EB24A31825A872008B9160 /* ogg.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ogg.framework; path = ../build/ogg.framework; sourceTree = "<group>"; };
-		D4EB24A41825A872008B9160 /* theora.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = theora.framework; path = ../build/theora.framework; sourceTree = "<group>"; };
-		D4EB24A51825A872008B9160 /* vorbis.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = vorbis.framework; path = ../build/vorbis.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -115,9 +117,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D4EB24A61825A872008B9160 /* ogg.framework in Frameworks */,
-				D4EB24A71825A872008B9160 /* theora.framework in Frameworks */,
-				D4EB24A81825A872008B9160 /* vorbis.framework in Frameworks */,
+				D43A24EC195C027C00D38228 /* libOgvKit.a in Frameworks */,
 				D4EB246E1825A81E008B9160 /* CoreGraphics.framework in Frameworks */,
 				D4EB24701825A81E008B9160 /* UIKit.framework in Frameworks */,
 				D4EB246C1825A81E008B9160 /* Foundation.framework in Frameworks */,
@@ -128,11 +128,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D4EB24AB1825A92E008B9160 /* ogg.framework in Frameworks */,
 				D4EB248E1825A81E008B9160 /* XCTest.framework in Frameworks */,
-				D4EB24A91825A926008B9160 /* vorbis.framework in Frameworks */,
 				D4EB24901825A81E008B9160 /* UIKit.framework in Frameworks */,
-				D4EB24AA1825A929008B9160 /* theora.framework in Frameworks */,
 				D4EB248F1825A81E008B9160 /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -140,17 +137,13 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		D4497D0D1831739400B455DF /* Decoder */ = {
+		D43A24E2195C025E00D38228 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				D432751D1825C66400A43CE7 /* OGVDecoder.h */,
-				D432751E1825C66500A43CE7 /* OGVDecoder.m */,
-				D4DEC5A71829C104009234F9 /* OGVFrameBuffer.h */,
-				D4DEC5A81829C104009234F9 /* OGVFrameBuffer.m */,
-				D4DEC5AB1829C294009234F9 /* OGVAudioBuffer.h */,
-				D4DEC5AC1829C294009234F9 /* OGVAudioBuffer.m */,
+				D43A24E7195C025E00D38228 /* libOgvKit.a */,
+				D43A24E9195C025E00D38228 /* OgvKitTests.xctest */,
 			);
-			name = Decoder;
+			name = Products;
 			sourceTree = "<group>";
 		};
 		D4497D0E183173B200B455DF /* Player */ = {
@@ -219,9 +212,7 @@
 		D4EB246A1825A81E008B9160 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				D4EB24A31825A872008B9160 /* ogg.framework */,
-				D4EB24A41825A872008B9160 /* theora.framework */,
-				D4EB24A51825A872008B9160 /* vorbis.framework */,
+				D43A24E1195C025E00D38228 /* OgvKit.xcodeproj */,
 				D4EB246B1825A81E008B9160 /* Foundation.framework */,
 				D4EB246D1825A81E008B9160 /* CoreGraphics.framework */,
 				D4EB246F1825A81E008B9160 /* UIKit.framework */,
@@ -234,7 +225,6 @@
 			isa = PBXGroup;
 			children = (
 				D4497D0F183173DB00B455DF /* Framing app */,
-				D4497D0D1831739400B455DF /* Decoder */,
 				D4497D0E183173B200B455DF /* Player */,
 				D4497D101831740400B455DF /* Icons */,
 				D4EB24721825A81E008B9160 /* Supporting Files */,
@@ -287,6 +277,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				D43A24EB195C026D00D38228 /* PBXTargetDependency */,
 			);
 			name = OgvDemo;
 			productName = OgvDemo;
@@ -337,6 +328,12 @@
 			mainGroup = D4EB245F1825A81E008B9160;
 			productRefGroup = D4EB24691825A81E008B9160 /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = D43A24E2195C025E00D38228 /* Products */;
+					ProjectRef = D43A24E1195C025E00D38228 /* OgvKit.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				D4EB24671825A81E008B9160 /* OgvDemo */,
@@ -344,6 +341,23 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		D43A24E7195C025E00D38228 /* libOgvKit.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libOgvKit.a;
+			remoteRef = D43A24E6195C025E00D38228 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		D43A24E9195C025E00D38228 /* OgvKitTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = OgvKitTests.xctest;
+			remoteRef = D43A24E8195C025E00D38228 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
 		D4EB24661825A81E008B9160 /* Resources */ = {
@@ -382,13 +396,10 @@
 				D487483418307AED0073FC36 /* OGVCommonsMediaFile.m in Sources */,
 				D4B2501D1830140D007E8EA6 /* OGVTableViewController.m in Sources */,
 				D4EB24781825A81E008B9160 /* main.m in Sources */,
-				D432751F1825C66500A43CE7 /* OGVDecoder.m in Sources */,
 				D4EB247C1825A81E008B9160 /* OGVAppDelegate.m in Sources */,
-				D4DEC5AD1829C294009234F9 /* OGVAudioBuffer.m in Sources */,
 				D4B2501A183012F8007E8EA6 /* OGVNavigationController.m in Sources */,
 				D4A83418182A6EB80009A945 /* OGVFrameView.m in Sources */,
 				D4497D131831777C00B455DF /* OGVCommonsMediaList.m in Sources */,
-				D4DEC5A91829C104009234F9 /* OGVFrameBuffer.m in Sources */,
 				D4EB24851825A81E008B9160 /* OGVViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -397,18 +408,20 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D4DEC5AA1829C104009234F9 /* OGVFrameBuffer.m in Sources */,
-				D4DEC5AE1829C294009234F9 /* OGVAudioBuffer.m in Sources */,
 				D432752A1825DD9800A43CE7 /* OGVDecoderTests.m in Sources */,
 				D4EB249A1825A81E008B9160 /* OGVLibraryTests.m in Sources */,
 				D487483518307AED0073FC36 /* OGVCommonsMediaFile.m in Sources */,
-				D43275201825C66500A43CE7 /* OGVDecoder.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		D43A24EB195C026D00D38228 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = OgvKit;
+			targetProxy = D43A24EA195C026D00D38228 /* PBXContainerItemProxy */;
+		};
 		D4EB24921825A81E008B9160 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = D4EB24671825A81E008B9160 /* OgvDemo */;

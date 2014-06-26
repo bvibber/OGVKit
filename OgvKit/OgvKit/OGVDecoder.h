@@ -6,8 +6,6 @@
 //  Copyright (c) 2013 Brion Vibber. All rights reserved.
 //
 
-#import <Foundation/Foundation.h>
-
 #import "OGVFrameBuffer.h"
 #import "OGVAudioBuffer.h"
 

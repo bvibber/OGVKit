@@ -1,0 +1,504 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		D43A247C195BDFDC00D38228 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D43A247B195BDFDC00D38228 /* Foundation.framework */; };
+		D43A2481195BDFDC00D38228 /* OgvKit.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = D43A2480195BDFDC00D38228 /* OgvKit.h */; };
+		D43A248A195BDFDC00D38228 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D43A2489195BDFDC00D38228 /* XCTest.framework */; };
+		D43A248B195BDFDC00D38228 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D43A247B195BDFDC00D38228 /* Foundation.framework */; };
+		D43A248D195BDFDC00D38228 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D43A248C195BDFDC00D38228 /* UIKit.framework */; };
+		D43A2490195BDFDC00D38228 /* libOgvKit.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D43A2478195BDFDC00D38228 /* libOgvKit.a */; };
+		D43A2496195BDFDC00D38228 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = D43A2494195BDFDC00D38228 /* InfoPlist.strings */; };
+		D43A2498195BDFDC00D38228 /* OgvKitTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D43A2497195BDFDC00D38228 /* OgvKitTests.m */; };
+		D43A24A8195BF76600D38228 /* libogg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D43A24A1195BF76600D38228 /* libogg.a */; };
+		D43A24A9195BF76600D38228 /* libtheora.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D43A24A2195BF76600D38228 /* libtheora.a */; };
+		D43A24AA195BF76600D38228 /* libtheoradec.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D43A24A3195BF76600D38228 /* libtheoradec.a */; };
+		D43A24AB195BF76600D38228 /* libtheoraenc.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D43A24A4195BF76600D38228 /* libtheoraenc.a */; };
+		D43A24AC195BF76600D38228 /* libvorbis.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D43A24A5195BF76600D38228 /* libvorbis.a */; };
+		D43A24AD195BF76600D38228 /* libvorbisenc.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D43A24A6195BF76600D38228 /* libvorbisenc.a */; };
+		D43A24AE195BF76600D38228 /* libvorbisfile.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D43A24A7195BF76600D38228 /* libvorbisfile.a */; };
+		D43A24B9195BFE7F00D38228 /* OGVAudioBuffer.m in Sources */ = {isa = PBXBuildFile; fileRef = D43A24B4195BFE7F00D38228 /* OGVAudioBuffer.m */; };
+		D43A24BA195BFE7F00D38228 /* OGVDecoder.m in Sources */ = {isa = PBXBuildFile; fileRef = D43A24B6195BFE7F00D38228 /* OGVDecoder.m */; };
+		D43A24BB195BFE7F00D38228 /* OGVFrameBuffer.m in Sources */ = {isa = PBXBuildFile; fileRef = D43A24B8195BFE7F00D38228 /* OGVFrameBuffer.m */; };
+		D43A24F0195C030700D38228 /* OGVAudioBuffer.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = D43A24B3195BFE7F00D38228 /* OGVAudioBuffer.h */; };
+		D43A24F1195C030700D38228 /* OGVDecoder.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = D43A24B5195BFE7F00D38228 /* OGVDecoder.h */; };
+		D43A24F2195C030700D38228 /* OGVFrameBuffer.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = D43A24B7195BFE7F00D38228 /* OGVFrameBuffer.h */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		D43A248E195BDFDC00D38228 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D43A2470195BDFDC00D38228 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D43A2477195BDFDC00D38228;
+			remoteInfo = OgvKit;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		D43A2476195BDFDC00D38228 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "include/$(PRODUCT_NAME)";
+			dstSubfolderSpec = 16;
+			files = (
+				D43A24F0195C030700D38228 /* OGVAudioBuffer.h in CopyFiles */,
+				D43A24F1195C030700D38228 /* OGVDecoder.h in CopyFiles */,
+				D43A24F2195C030700D38228 /* OGVFrameBuffer.h in CopyFiles */,
+				D43A2481195BDFDC00D38228 /* OgvKit.h in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		D43A2478195BDFDC00D38228 /* libOgvKit.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libOgvKit.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		D43A247B195BDFDC00D38228 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		D43A247F195BDFDC00D38228 /* OgvKit-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "OgvKit-Prefix.pch"; sourceTree = "<group>"; };
+		D43A2480195BDFDC00D38228 /* OgvKit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OgvKit.h; sourceTree = "<group>"; };
+		D43A2488195BDFDC00D38228 /* OgvKitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = OgvKitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		D43A2489195BDFDC00D38228 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
+		D43A248C195BDFDC00D38228 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = Library/Frameworks/UIKit.framework; sourceTree = DEVELOPER_DIR; };
+		D43A2493195BDFDC00D38228 /* OgvKitTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "OgvKitTests-Info.plist"; sourceTree = "<group>"; };
+		D43A2495195BDFDC00D38228 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		D43A2497195BDFDC00D38228 /* OgvKitTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = OgvKitTests.m; sourceTree = "<group>"; };
+		D43A24A1195BF76600D38228 /* libogg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libogg.a; path = ../build/out/lib/libogg.a; sourceTree = "<group>"; };
+		D43A24A2195BF76600D38228 /* libtheora.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtheora.a; path = ../build/out/lib/libtheora.a; sourceTree = "<group>"; };
+		D43A24A3195BF76600D38228 /* libtheoradec.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtheoradec.a; path = ../build/out/lib/libtheoradec.a; sourceTree = "<group>"; };
+		D43A24A4195BF76600D38228 /* libtheoraenc.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtheoraenc.a; path = ../build/out/lib/libtheoraenc.a; sourceTree = "<group>"; };
+		D43A24A5195BF76600D38228 /* libvorbis.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvorbis.a; path = ../build/out/lib/libvorbis.a; sourceTree = "<group>"; };
+		D43A24A6195BF76600D38228 /* libvorbisenc.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvorbisenc.a; path = ../build/out/lib/libvorbisenc.a; sourceTree = "<group>"; };
+		D43A24A7195BF76600D38228 /* libvorbisfile.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvorbisfile.a; path = ../build/out/lib/libvorbisfile.a; sourceTree = "<group>"; };
+		D43A24AF195BF7D600D38228 /* ogg */ = {isa = PBXFileReference; lastKnownFileType = folder; name = ogg; path = ../../build/out/include/ogg; sourceTree = "<group>"; };
+		D43A24B0195BF7D600D38228 /* theora */ = {isa = PBXFileReference; lastKnownFileType = folder; name = theora; path = ../../build/out/include/theora; sourceTree = "<group>"; };
+		D43A24B1195BF7D600D38228 /* vorbis */ = {isa = PBXFileReference; lastKnownFileType = folder; name = vorbis; path = ../../build/out/include/vorbis; sourceTree = "<group>"; };
+		D43A24B3195BFE7F00D38228 /* OGVAudioBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVAudioBuffer.h; sourceTree = "<group>"; };
+		D43A24B4195BFE7F00D38228 /* OGVAudioBuffer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVAudioBuffer.m; sourceTree = "<group>"; };
+		D43A24B5195BFE7F00D38228 /* OGVDecoder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVDecoder.h; sourceTree = "<group>"; };
+		D43A24B6195BFE7F00D38228 /* OGVDecoder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVDecoder.m; sourceTree = "<group>"; };
+		D43A24B7195BFE7F00D38228 /* OGVFrameBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVFrameBuffer.h; sourceTree = "<group>"; };
+		D43A24B8195BFE7F00D38228 /* OGVFrameBuffer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVFrameBuffer.m; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		D43A2475195BDFDC00D38228 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D43A24A8195BF76600D38228 /* libogg.a in Frameworks */,
+				D43A24A9195BF76600D38228 /* libtheora.a in Frameworks */,
+				D43A24AA195BF76600D38228 /* libtheoradec.a in Frameworks */,
+				D43A24AB195BF76600D38228 /* libtheoraenc.a in Frameworks */,
+				D43A24AC195BF76600D38228 /* libvorbis.a in Frameworks */,
+				D43A24AD195BF76600D38228 /* libvorbisenc.a in Frameworks */,
+				D43A24AE195BF76600D38228 /* libvorbisfile.a in Frameworks */,
+				D43A247C195BDFDC00D38228 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D43A2485195BDFDC00D38228 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D43A248A195BDFDC00D38228 /* XCTest.framework in Frameworks */,
+				D43A2490195BDFDC00D38228 /* libOgvKit.a in Frameworks */,
+				D43A248D195BDFDC00D38228 /* UIKit.framework in Frameworks */,
+				D43A248B195BDFDC00D38228 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		D43A246F195BDFDC00D38228 = {
+			isa = PBXGroup;
+			children = (
+				D43A247D195BDFDC00D38228 /* OgvKit */,
+				D43A2491195BDFDC00D38228 /* OgvKitTests */,
+				D43A247A195BDFDC00D38228 /* Frameworks */,
+				D43A2479195BDFDC00D38228 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		D43A2479195BDFDC00D38228 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D43A2478195BDFDC00D38228 /* libOgvKit.a */,
+				D43A2488195BDFDC00D38228 /* OgvKitTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		D43A247A195BDFDC00D38228 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				D43A24BC195BFF0700D38228 /* Xiph library dependencies */,
+				D43A247B195BDFDC00D38228 /* Foundation.framework */,
+				D43A2489195BDFDC00D38228 /* XCTest.framework */,
+				D43A248C195BDFDC00D38228 /* UIKit.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		D43A247D195BDFDC00D38228 /* OgvKit */ = {
+			isa = PBXGroup;
+			children = (
+				D43A24B2195BF7DF00D38228 /* Xiph library headers */,
+				D43A2480195BDFDC00D38228 /* OgvKit.h */,
+				D43A24B3195BFE7F00D38228 /* OGVAudioBuffer.h */,
+				D43A24B4195BFE7F00D38228 /* OGVAudioBuffer.m */,
+				D43A24B5195BFE7F00D38228 /* OGVDecoder.h */,
+				D43A24B6195BFE7F00D38228 /* OGVDecoder.m */,
+				D43A24B7195BFE7F00D38228 /* OGVFrameBuffer.h */,
+				D43A24B8195BFE7F00D38228 /* OGVFrameBuffer.m */,
+				D43A247E195BDFDC00D38228 /* Supporting Files */,
+			);
+			path = OgvKit;
+			sourceTree = "<group>";
+		};
+		D43A247E195BDFDC00D38228 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				D43A247F195BDFDC00D38228 /* OgvKit-Prefix.pch */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		D43A2491195BDFDC00D38228 /* OgvKitTests */ = {
+			isa = PBXGroup;
+			children = (
+				D43A2497195BDFDC00D38228 /* OgvKitTests.m */,
+				D43A2492195BDFDC00D38228 /* Supporting Files */,
+			);
+			path = OgvKitTests;
+			sourceTree = "<group>";
+		};
+		D43A2492195BDFDC00D38228 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				D43A2493195BDFDC00D38228 /* OgvKitTests-Info.plist */,
+				D43A2494195BDFDC00D38228 /* InfoPlist.strings */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		D43A24B2195BF7DF00D38228 /* Xiph library headers */ = {
+			isa = PBXGroup;
+			children = (
+				D43A24AF195BF7D600D38228 /* ogg */,
+				D43A24B0195BF7D600D38228 /* theora */,
+				D43A24B1195BF7D600D38228 /* vorbis */,
+			);
+			name = "Xiph library headers";
+			sourceTree = "<group>";
+		};
+		D43A24BC195BFF0700D38228 /* Xiph library dependencies */ = {
+			isa = PBXGroup;
+			children = (
+				D43A24A1195BF76600D38228 /* libogg.a */,
+				D43A24A2195BF76600D38228 /* libtheora.a */,
+				D43A24A3195BF76600D38228 /* libtheoradec.a */,
+				D43A24A4195BF76600D38228 /* libtheoraenc.a */,
+				D43A24A5195BF76600D38228 /* libvorbis.a */,
+				D43A24A6195BF76600D38228 /* libvorbisenc.a */,
+				D43A24A7195BF76600D38228 /* libvorbisfile.a */,
+			);
+			name = "Xiph library dependencies";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		D43A2477195BDFDC00D38228 /* OgvKit */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D43A249B195BDFDC00D38228 /* Build configuration list for PBXNativeTarget "OgvKit" */;
+			buildPhases = (
+				D43A2474195BDFDC00D38228 /* Sources */,
+				D43A2475195BDFDC00D38228 /* Frameworks */,
+				D43A2476195BDFDC00D38228 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = OgvKit;
+			productName = OgvKit;
+			productReference = D43A2478195BDFDC00D38228 /* libOgvKit.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		D43A2487195BDFDC00D38228 /* OgvKitTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D43A249E195BDFDC00D38228 /* Build configuration list for PBXNativeTarget "OgvKitTests" */;
+			buildPhases = (
+				D43A2484195BDFDC00D38228 /* Sources */,
+				D43A2485195BDFDC00D38228 /* Frameworks */,
+				D43A2486195BDFDC00D38228 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D43A248F195BDFDC00D38228 /* PBXTargetDependency */,
+			);
+			name = OgvKitTests;
+			productName = OgvKitTests;
+			productReference = D43A2488195BDFDC00D38228 /* OgvKitTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		D43A2470195BDFDC00D38228 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0510;
+				ORGANIZATIONNAME = "Brion Vibber";
+			};
+			buildConfigurationList = D43A2473195BDFDC00D38228 /* Build configuration list for PBXProject "OgvKit" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = D43A246F195BDFDC00D38228;
+			productRefGroup = D43A2479195BDFDC00D38228 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				D43A2477195BDFDC00D38228 /* OgvKit */,
+				D43A2487195BDFDC00D38228 /* OgvKitTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		D43A2486195BDFDC00D38228 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D43A2496195BDFDC00D38228 /* InfoPlist.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		D43A2474195BDFDC00D38228 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D43A24BB195BFE7F00D38228 /* OGVFrameBuffer.m in Sources */,
+				D43A24B9195BFE7F00D38228 /* OGVAudioBuffer.m in Sources */,
+				D43A24BA195BFE7F00D38228 /* OGVDecoder.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D43A2484195BDFDC00D38228 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D43A2498195BDFDC00D38228 /* OgvKitTests.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		D43A248F195BDFDC00D38228 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D43A2477195BDFDC00D38228 /* OgvKit */;
+			targetProxy = D43A248E195BDFDC00D38228 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		D43A2494195BDFDC00D38228 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				D43A2495195BDFDC00D38228 /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		D43A2499195BDFDC00D38228 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.1;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+		D43A249A195BDFDC00D38228 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = YES;
+				ENABLE_NS_ASSERTIONS = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.1;
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		D43A249C195BDFDC00D38228 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = YES;
+				DSTROOT = /tmp/OgvKit.dst;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "OgvKit/OgvKit-Prefix.pch";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/Users/brion/src/media/OgvKit/build/out/lib,
+				);
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				USER_HEADER_SEARCH_PATHS = ../build/out/include;
+			};
+			name = Debug;
+		};
+		D43A249D195BDFDC00D38228 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = YES;
+				DSTROOT = /tmp/OgvKit.dst;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "OgvKit/OgvKit-Prefix.pch";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/Users/brion/src/media/OgvKit/build/out/lib,
+				);
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				USER_HEADER_SEARCH_PATHS = ../build/out/include;
+			};
+			name = Release;
+		};
+		D43A249F195BDFDC00D38228 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(SDKROOT)/Developer/Library/Frameworks",
+					"$(inherited)",
+					"$(DEVELOPER_FRAMEWORKS_DIR)",
+				);
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "OgvKit/OgvKit-Prefix.pch";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				INFOPLIST_FILE = "OgvKitTests/OgvKitTests-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = xctest;
+			};
+			name = Debug;
+		};
+		D43A24A0195BDFDC00D38228 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(SDKROOT)/Developer/Library/Frameworks",
+					"$(inherited)",
+					"$(DEVELOPER_FRAMEWORKS_DIR)",
+				);
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "OgvKit/OgvKit-Prefix.pch";
+				INFOPLIST_FILE = "OgvKitTests/OgvKitTests-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = xctest;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		D43A2473195BDFDC00D38228 /* Build configuration list for PBXProject "OgvKit" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D43A2499195BDFDC00D38228 /* Debug */,
+				D43A249A195BDFDC00D38228 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D43A249B195BDFDC00D38228 /* Build configuration list for PBXNativeTarget "OgvKit" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D43A249C195BDFDC00D38228 /* Debug */,
+				D43A249D195BDFDC00D38228 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D43A249E195BDFDC00D38228 /* Build configuration list for PBXNativeTarget "OgvKitTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D43A249F195BDFDC00D38228 /* Debug */,
+				D43A24A0195BDFDC00D38228 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = D43A2470195BDFDC00D38228 /* Project object */;
+}

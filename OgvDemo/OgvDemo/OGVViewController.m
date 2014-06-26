@@ -8,7 +8,7 @@
 
 #import "OGVAppDelegate.h"
 #import "OGVViewController.h"
-#import "OGVDecoder.h"
+#import <OgvKit/OgvKit.h>
 
 @interface OGVViewController ()
 

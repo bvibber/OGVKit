@@ -200,7 +200,7 @@
 			
             self.hasAudio = YES;
             self.audioChannels = vi.channels;
-            self.audioRate = vi.rate;
+            self.audioRate = (int)vi.rate;
 		}
         
         appState = STATE_DECODING;
