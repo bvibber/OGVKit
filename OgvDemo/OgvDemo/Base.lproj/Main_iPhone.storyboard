@@ -84,6 +84,9 @@
                     <navigationItem key="navigationItem" id="i1c-a7-6sp"/>
                     <connections>
                         <outlet property="frameView" destination="QMM-HX-RpJ" id="Raf-r9-nWE"/>
+                        <outlet property="playPauseButton" destination="02w-P5-8AP" id="8H2-zu-t9t"/>
+                        <outlet property="positionSlider" destination="WWg-A1-uwM" id="hty-Ct-hUX"/>
+                        <outlet property="resolutionPicker" destination="uSE-1g-yVb" id="KiI-86-C6T"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="x5A-6p-PRh" sceneMemberID="firstResponder"/>

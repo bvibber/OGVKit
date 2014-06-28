@@ -118,7 +118,8 @@
 
 - (void)showStatus:(NSString *)status
 {
-    self.statusLabel.text = status;
+    //self.statusLabel.text = status;
+    NSLog(@"%@", status);
 }
 
 - (void)processNextFrame

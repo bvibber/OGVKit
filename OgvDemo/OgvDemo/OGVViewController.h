@@ -12,7 +12,9 @@
 @interface OGVViewController : UIViewController <NSURLConnectionDataDelegate>
 
 @property (weak, nonatomic) IBOutlet OGVFrameView *frameView;
-@property (weak, nonatomic) IBOutlet UILabel *statusLabel;
+@property (weak, nonatomic) IBOutlet UIButton *playPauseButton;
+@property (weak, nonatomic) IBOutlet UISlider *positionSlider;
+@property (weak, nonatomic) IBOutlet UISegmentedControl *resolutionPicker;
 
 @property NSURL *mediaSourceURL;
 

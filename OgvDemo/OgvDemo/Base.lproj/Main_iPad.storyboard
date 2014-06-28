@@ -90,6 +90,9 @@
                     <simulatedOrientationMetrics key="simulatedOrientationMetrics" orientation="landscapeRight"/>
                     <connections>
                         <outlet property="frameView" destination="QMM-HX-RpJ" id="Raf-r9-nWE"/>
+                        <outlet property="playPauseButton" destination="02w-P5-8AP" id="o4l-vL-oaC"/>
+                        <outlet property="positionSlider" destination="WWg-A1-uwM" id="4bL-vq-ggE"/>
+                        <outlet property="resolutionPicker" destination="uSE-1g-yVb" id="4id-rv-zOZ"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="x5A-6p-PRh" sceneMemberID="firstResponder"/>
