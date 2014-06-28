@@ -59,7 +59,6 @@ typedef enum {
             
             [self stopWithBlock:^() {
                 self.mediaSource = note.userInfo[@"mediaSource"];
-                playing = YES;
                 [self startDownload];
             }];
         }];
@@ -84,6 +83,7 @@ typedef enum {
         for (NSInteger i = OGVPlaybackResolution480p; i >= OGVPlaybackResolution160p; i--) {
             if ([self.resolutionPicker isEnabledForSegmentAtIndex:i]) {
                 self.resolutionPicker.selectedSegmentIndex = i;
+                break;
             }
         }
     }
@@ -121,15 +121,14 @@ typedef enum {
 - (void)stopWithBlock:(void (^)())completionBlock
 {
     if (playing) {
+        if (!doneDownloading) {
+            [connection cancel];
+        }
+        connection = nil;
+        playing = NO;
+        
         dispatch_async(decodeQueue, ^() {
-            if (!doneDownloading) {
-                [connection cancel];
-            }
-            if (playing) {
-                playing = NO;
-            }
             decoder = nil;
-            connection = nil;
             dispatch_async(dispatch_get_main_queue(), completionBlock);
         });
     } else {
@@ -142,8 +141,6 @@ typedef enum {
     [super viewDidAppear:animated];
     if (self.mediaSource) {
         if (!playing) {
-            playing = YES;
-            self.mediaSourceURL = [self selectPickedResolutionURL];
             [self startDownload];
         }
     }
@@ -216,6 +213,9 @@ typedef enum {
     if (self.mediaSourceURL) {
         NSURLRequest *req = [NSURLRequest requestWithURL:self.mediaSourceURL];
         connection = [NSURLConnection connectionWithRequest:req delegate:self];
+        playing = YES;
+        doneDownloading = NO;
+        waitingForData = YES;
     } else {
         NSLog(@"Nothing to play");
     }
@@ -319,7 +319,6 @@ typedef enum {
         [self stopWithBlock:^() {
             NSLog(@"restarting playback");
             self.mediaSourceURL = url;
-            playing = YES;
             [self startDownload];
         }];
     }
