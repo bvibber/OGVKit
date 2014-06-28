@@ -8,7 +8,9 @@
 
 #import "OGVCommonsMediaFile.h"
 
-@implementation OGVCommonsMediaFile
+@implementation OGVCommonsMediaFile {
+    NSMutableDictionary *_derivativeURLs;
+}
 
 - (id)initWithFilename:(NSString *)filename
 {
@@ -16,6 +18,7 @@
     if (self) {
         _filename = filename;
         _dataReady = NO;
+        _derivativeURLs = [[NSMutableDictionary alloc] init];
     }
     return self;
 }
@@ -57,8 +60,7 @@
 
     _mediaType = videoinfo[@"mediatype"];
     _thumbnailURL = [NSURL URLWithString:videoinfo[@"thumburl"]];
-
-    int targetHeight = 9999999;
+    _sourceURL = [NSURL URLWithString:videoinfo[@"url"]];
 
     NSArray *derivatives = videoinfo[@"derivatives"];
     for (NSDictionary *item in derivatives) {
@@ -71,13 +73,15 @@
         if ([type isEqualToString:@"video/ogg; codecs=\"theora, vorbis\""] ||
             [type isEqualToString:@"video/ogg; codecs=\"theora\""] ||
             [type isEqualToString:@"audio/ogg; codecs=\"vorbis\""]) {
-            if (height < targetHeight) {
-                targetHeight = height;
-                _sourceURL = [NSURL URLWithString:urlStr];
-            }
+            _derivativeURLs[@(height)] = [NSURL URLWithString:urlStr];
         }
     }
     
+}
+
+- (NSURL *)derivativeURLForHeight:(int)height
+{
+    return _derivativeURLs[@(height)];
 }
 
 @end

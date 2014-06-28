@@ -21,4 +21,6 @@
 
 - (void)fetch:(void (^)())completionBlock;
 
+- (NSURL *)derivativeURLForHeight:(int)height;
+
 @end

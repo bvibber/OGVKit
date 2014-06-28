@@ -82,8 +82,10 @@
 {
     if (playing) {
         dispatch_async(decodeQueue, ^() {
-            if (playing) {
+            if (!doneDownloading) {
                 [connection cancel];
+            }
+            if (playing) {
                 playing = NO;
             }
             decoder = nil;
