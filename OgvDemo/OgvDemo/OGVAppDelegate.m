@@ -45,7 +45,7 @@
 - (BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation
 {
     NSLog(@"Requested opening URL in app: %@", url);
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"OGVPlayerOpenURL" object:[UIApplication sharedApplication] userInfo:@{@"URL": url}];
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"OGVPlayerOpenMedia" object:[UIApplication sharedApplication] userInfo:@{@"URL": url}];
     return YES;
 }
 

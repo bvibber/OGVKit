@@ -34,13 +34,13 @@
 
     if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) {
         NSLog(@"Registering...");
-        [[NSNotificationCenter defaultCenter] addObserverForName:@"OGVPlayerOpenURL" object:[UIApplication sharedApplication] queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
+        [[NSNotificationCenter defaultCenter] addObserverForName:@"OGVPlayerOpenMedia" object:[UIApplication sharedApplication] queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
 
-            NSLog(@"got OGVPlayerOpenURL notification");
+            NSLog(@"got OGVPlayerOpenMedia notification");
             OGVViewController *player = [[UIStoryboard storyboardWithName:@"Main_iPhone" bundle:nil] instantiateViewControllerWithIdentifier:@"OGVPlayerViewController"];
             
-            assert(note.userInfo[@"URL"]);
-            player.mediaSourceURL = note.userInfo[@"URL"];
+            assert(note.userInfo[@"mediaSource"]);
+            player.mediaSource = note.userInfo[@"mediaSource"];
             
             [self.navigationController pushViewController:player animated:YES];
         }];
@@ -150,8 +150,7 @@
     NSString *filename = item[@"filename"];
     OGVCommonsMediaFile *mediaFile = [[OGVCommonsMediaFile alloc] initWithFilename:filename];
     [mediaFile fetch:^{
-        NSURL *url = mediaFile.sourceURL;
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"OGVPlayerOpenURL" object:[UIApplication sharedApplication] userInfo:@{@"URL": url}];
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"OGVPlayerOpenMedia" object:[UIApplication sharedApplication] userInfo:@{@"mediaSource": mediaFile}];
     }];
 }
 

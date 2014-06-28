@@ -44,14 +44,14 @@
     
     if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
         NSLog(@"Registering...");
-        [[NSNotificationCenter defaultCenter] addObserverForName:@"OGVPlayerOpenURL" object:[UIApplication sharedApplication] queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
+        [[NSNotificationCenter defaultCenter] addObserverForName:@"OGVPlayerOpenMedia" object:[UIApplication sharedApplication] queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
             
-            NSLog(@"got OGVPlayerOpenURL notification");
+            NSLog(@"got OGVPlayerOpenMedia notification");
             
-            assert(note.userInfo[@"URL"]);
+            assert(note.userInfo[@"mediaSource"]);
             
             [self stopWithBlock:^() {
-                self.mediaSourceURL = note.userInfo[@"URL"];
+                self.mediaSource = note.userInfo[@"mediaSource"];
                 playing = YES;
                 [self startDownload];
             }];
@@ -67,6 +67,8 @@
 
 - (void)startDownload
 {
+    self.mediaSourceURL = self.mediaSource.sourceURL;
+    
     decoder = [[OGVDecoder alloc] init];
 
     // decode on background thread

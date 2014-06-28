@@ -8,6 +8,7 @@
 
 #import <UIKit/UIKit.h>
 #import "OGVFrameView.h"
+#import "OGVCommonsMediaFile.h"
 
 @interface OGVViewController : UIViewController <NSURLConnectionDataDelegate>
 
@@ -16,6 +17,7 @@
 @property (weak, nonatomic) IBOutlet UISlider *positionSlider;
 @property (weak, nonatomic) IBOutlet UISegmentedControl *resolutionPicker;
 
+@property OGVCommonsMediaFile *mediaSource;
 @property NSURL *mediaSourceURL;
 
 @end
