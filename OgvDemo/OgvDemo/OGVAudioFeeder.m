@@ -13,14 +13,24 @@
 
 @interface OGVAudioFeeder()
 -(void)handleQueue:(AudioQueueRef)queue buffer:(AudioQueueBufferRef)buffer;
+-(void)handleInterrupted:(UInt32)interruptionState;
 @end
 
 static const int nBuffers = 3;
 
 static void OGVAudioFeederBufferHandler(void *data, AudioQueueRef queue, AudioQueueBufferRef buffer)
 {
+    NSLog(@"bufferHandler");
     OGVAudioFeeder *feeder = (__bridge OGVAudioFeeder *)data;
     [feeder handleQueue:queue buffer:buffer];
+}
+
+static void OGVAudioFeederInterruptedHandler (void     *data,
+                                              UInt32   interruptionState)
+{
+    NSLog(@"interrupted Handler");
+    OGVAudioFeeder *feeder = (__bridge OGVAudioFeeder *)data;
+    [feeder handleInterrupted:interruptionState];
 }
 
 @implementation OGVAudioFeeder {
@@ -35,7 +45,6 @@ static void OGVAudioFeederBufferHandler(void *data, AudioQueueRef queue, AudioQu
     UInt32 bufferByteSize;
     SInt64 mCurrentPacket;
     UInt32 mNumPacketsToRead;
-    AudioStreamPacketDescription packetDesc;
     BOOL isRunning;
     BOOL closing;
 }
@@ -91,10 +100,6 @@ static void OGVAudioFeederBufferHandler(void *data, AudioQueueRef queue, AudioQu
                         userInfo:@{}];
             }
         }
-        
-        AudioQueueSetParameter(queue,
-                               kAudioQueueParam_Volume,
-                               1.0f);
     }
     return self;
 }
@@ -108,9 +113,14 @@ static void OGVAudioFeederBufferHandler(void *data, AudioQueueRef queue, AudioQu
 
 -(void)bufferData:(OGVAudioBuffer *)buffer
 {
-    [inputBuffers addObject:buffer];
-    if (!isRunning && [inputBuffers count] >= nBuffers) {
-        [self startAudio];
+    NSLog(@"bufferData");
+    
+    if (buffer.samples > 0) {
+        [inputBuffers addObject:buffer];
+        if (!isRunning && [inputBuffers count] >= nBuffers) {
+            NSLog(@"Starting audio!");
+            [self startAudio];
+        }
     }
 }
 
@@ -143,33 +153,47 @@ static void OGVAudioFeederBufferHandler(void *data, AudioQueueRef queue, AudioQu
     assert(_queue != NULL);
     assert(buffer != NULL);
     assert(queue == _queue);
+    
+    NSLog(@"handleQueue...");
 
-    if ([inputBuffers count] > 0) {
+    if (closing) {
+        NSLog(@"Stopping queue");
+        AudioQueueStop(queue, NO);
+    } else if ([inputBuffers count] > 0) {
         OGVAudioBuffer *inputBuffer = inputBuffers[0];
         [inputBuffers removeObjectAtIndex:0];
         
+        int channelSize = inputBuffer.samples * sizeof(Float32);
+        int packetSize = channelSize * _channels;
+        NSLog(@"channelSize %d | packetSize %d | samples %d",
+              channelSize, packetSize, inputBuffer.samples);
+        
         for (int channel = 0; channel < _channels; channel++) {
 
-            int channelSize = inputBuffer.samples * sizeof(Float32);
-
-            Float32 *dest = (Float32 *)buffer->mAudioData;
+            Float32 *dest = &((Float32 *)buffer->mAudioData)[channel * channelSize];
             NSData *source = (NSData *)inputBuffer.pcm[channel];
 
-            memcpy(&dest[channel * channelSize],
+            memcpy(dest,
                    [source bytes],
                    channelSize);
+            
+            for (int i = 0; i < inputBuffer.samples; i++) {
+                dest[i] = (float)i / inputBuffer.samples;
+            }
         }
         
-        packetDesc.mVariableFramesInPacket = inputBuffer.samples;
-        packetDesc.mStartOffset = 0;
-        packetDesc.mDataByteSize = inputBuffer.samples * _channels * sizeof(Float32);
-        AudioQueueEnqueueBuffer(queue, buffer, 1, &packetDesc);
+        buffer->mAudioDataByteSize = packetSize;
+
+        OSStatus status;
+        status = AudioQueueEnqueueBuffer(queue, buffer, 0, NULL);
+        if (status) {
+            @throw [NSException
+                    exceptionWithName:@"OGVAudioFeederBufferNotEnqueued"
+                    reason:[NSString stringWithFormat:@"err %d", status]
+                    userInfo:@{}];
+        }
     } else {
         NSLog(@"starved for audio?");
-    }
-    
-    if (closing) {
-        AudioQueueStop(queue, NO);
     }
 }
 
@@ -178,13 +202,37 @@ static void OGVAudioFeederBufferHandler(void *data, AudioQueueRef queue, AudioQu
     assert(!isRunning);
     assert([inputBuffers count] >= nBuffers);
     
+    AudioSessionInitialize(CFRunLoopGetCurrent(),
+                           kCFRunLoopCommonModes,
+                           OGVAudioFeederInterruptedHandler,
+                           (__bridge void *)self);
+
     // Prime the buffers!
     for (int i = 0; i < nBuffers; i++) {
         [self handleQueue:queue buffer:buffers[i]];
     }
-
-    AudioQueueStart(queue, NULL);
+    OSStatus status;
+    
+    status = AudioQueuePrime(queue, 128 * 3, NULL);
+    if (status) {
+        @throw [NSException
+                exceptionWithName:@"OGVAudioFeederQueueNotPrimed"
+                reason:[NSString stringWithFormat:@"err %d", status]
+                userInfo:@{}];
+    }
+    
+    status = AudioQueueStart(queue, NULL);
+    if (status) {
+        @throw [NSException
+                exceptionWithName:@"OGVAudioFeederQueueNotStarted"
+                reason:[NSString stringWithFormat:@"err %d", status]
+                userInfo:@{}];
+    }
     isRunning = YES;
 }
 
+-(void)handleInterrupted:(UInt32)interruptionState
+{
+    NSLog(@"waaaaat interruption %d", interruptionState);
+}
 @end
