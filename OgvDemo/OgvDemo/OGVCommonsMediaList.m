@@ -14,7 +14,7 @@
 {
     NSString *path = [[NSBundle mainBundle] pathForResource:@"motd" ofType:@"json"];
     NSData *data = [NSData dataWithContentsOfFile:path];
-    NSArray *motdList = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+    NSArray *motdList = [OGVCommonsMediaList rework: [NSJSONSerialization JSONObjectWithData:data options:0 error:nil]];
     return [OGVCommonsMediaList reverseArray:motdList];
 }
 
@@ -38,5 +38,15 @@
     return [NSArray arrayWithArray:out];
 }
 
++ (NSArray *)rework:(NSDictionary *)dict
+{
+    NSMutableArray *items = [[NSMutableArray alloc] init];
+    NSArray *keys = [dict keysSortedByValueUsingSelector:@selector(compare:)];
+    for (NSString *key in [keys sortedArrayUsingSelector:@selector(compare:)]) {
+        [items addObject:@{@"date": key,
+                           @"filename": dict[key]}];
+    }
+    return [NSArray arrayWithArray:items];
+}
 
 @end
