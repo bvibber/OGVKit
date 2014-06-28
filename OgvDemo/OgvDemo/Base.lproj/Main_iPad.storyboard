@@ -40,6 +40,9 @@
                                             <segment title="orig"/>
                                         </segments>
                                         <color key="tintColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                        <connections>
+                                            <action selector="resolutionPicked:" destination="vXZ-lx-hvc" eventType="valueChanged" id="1Ci-9c-xfF"/>
+                                        </connections>
                                     </segmentedControl>
                                     <button opaque="NO" contentMode="scaleToFill" ambiguous="YES" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="02w-P5-8AP">
                                         <rect key="frame" x="20" y="20" width="46" height="42"/>

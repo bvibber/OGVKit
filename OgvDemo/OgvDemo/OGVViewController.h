@@ -20,4 +20,6 @@
 @property OGVCommonsMediaFile *mediaSource;
 @property NSURL *mediaSourceURL;
 
+- (IBAction)resolutionPicked:(UISegmentedControl *)sender;
+
 @end

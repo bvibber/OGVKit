@@ -10,6 +10,13 @@
 #import "OGVViewController.h"
 #import <OgvKit/OgvKit.h>
 
+typedef enum {
+    OGVPlaybackResolution160p = 0,
+    OGVPlaybackResolution360p = 1,
+    OGVPlaybackResolution480p = 2,
+    OGVPlaybackResolutionOrig = 3
+} OGVPlaybackResolution;
+
 @interface OGVViewController ()
 
 @end
@@ -52,6 +59,7 @@
             
             [self stopWithBlock:^() {
                 self.mediaSource = note.userInfo[@"mediaSource"];
+                self.mediaSourceURL = [self selectPickedResolutionURL];
                 playing = YES;
                 [self startDownload];
             }];
@@ -67,8 +75,6 @@
 
 - (void)startDownload
 {
-    self.mediaSourceURL = self.mediaSource.sourceURL;
-    
     decoder = [[OGVDecoder alloc] init];
 
     // decode on background thread
@@ -102,9 +108,10 @@
 - (void)viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
-    if (self.mediaSourceURL) {
+    if (self.mediaSource) {
         if (!playing) {
             playing = YES;
+            self.mediaSourceURL = [self selectPickedResolutionURL];
             [self startDownload];
         }
     }
@@ -243,7 +250,7 @@
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
 {
     dispatch_async(decodeQueue, ^() {
-        NSLog(@"receive input: %lu bytes", (unsigned long)data.length);
+        //NSLog(@"receive input: %lu bytes", (unsigned long)data.length);
         [decoder receiveInput:data];
         if (!decoder.dataReady) {
             // We need to process enough of the file that we can
@@ -270,6 +277,39 @@
     dispatch_async(decodeQueue, ^() {
         doneDownloading = YES;
     });
+}
+
+- (IBAction)resolutionPicked:(UISegmentedControl *)sender {
+    NSURL *url = [self selectPickedResolutionURL];
+    NSLog(@"picked target: %@", url);
+    if (url && ![url isEqual:self.mediaSourceURL]) {
+        NSLog(@"new target so stopping...");
+        [self stopWithBlock:^() {
+            NSLog(@"restarting playback");
+            self.mediaSourceURL = url;
+            playing = YES;
+            [self startDownload];
+        }];
+    }
+    
+}
+
+-(NSURL *)selectPickedResolutionURL
+{
+    OGVPlaybackResolution index = (OGVPlaybackResolution)self.resolutionPicker.selectedSegmentIndex;
+    switch (index) {
+        case OGVPlaybackResolution160p:
+            return [self.mediaSource derivativeURLForHeight:160];
+        case OGVPlaybackResolution360p:
+            return [self.mediaSource derivativeURLForHeight:360];
+        case OGVPlaybackResolution480p:
+            return [self.mediaSource derivativeURLForHeight:480];
+        case OGVPlaybackResolutionOrig:
+            return self.mediaSource.sourceURL;
+        default:
+            NSLog(@"noooooooooooooooooooo unknown resolution");
+            return nil;
+    }
 }
 
 @end
