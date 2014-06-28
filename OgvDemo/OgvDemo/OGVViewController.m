@@ -59,12 +59,44 @@ typedef enum {
             
             [self stopWithBlock:^() {
                 self.mediaSource = note.userInfo[@"mediaSource"];
-                self.mediaSourceURL = [self selectPickedResolutionURL];
                 playing = YES;
                 [self startDownload];
             }];
         }];
     }
+}
+
+- (void)setMediaSource:(OGVCommonsMediaFile *)mediaSource
+{
+    _mediaSource = mediaSource;
+
+    [self.resolutionPicker setEnabled:[self.mediaSource hasDerivativeForHeight:160]
+                    forSegmentAtIndex:OGVPlaybackResolution160p];
+    [self.resolutionPicker setEnabled:[self.mediaSource hasDerivativeForHeight:360]
+                    forSegmentAtIndex:OGVPlaybackResolution360p];
+    [self.resolutionPicker setEnabled:[self.mediaSource hasDerivativeForHeight:480]
+                    forSegmentAtIndex:OGVPlaybackResolution480p];
+    [self.resolutionPicker setEnabled:[self.mediaSource isOgg]
+                    forSegmentAtIndex:OGVPlaybackResolutionOrig];
+
+    // Bump resolution down if the currently selected one isn't available?
+    if (self.resolutionPicker.selectedSegmentIndex == UISegmentedControlNoSegment) {
+        for (NSInteger i = OGVPlaybackResolution480p; i >= OGVPlaybackResolution160p; i--) {
+            if ([self.resolutionPicker isEnabledForSegmentAtIndex:i]) {
+                self.resolutionPicker.selectedSegmentIndex = i;
+            }
+        }
+    }
+    // Try original if there wasn't one of those...
+    if (self.resolutionPicker.selectedSegmentIndex == UISegmentedControlNoSegment) {
+        if ([self.resolutionPicker isEnabledForSegmentAtIndex:OGVPlaybackResolutionOrig]) {
+            self.resolutionPicker.selectedSegmentIndex = OGVPlaybackResolutionOrig;
+        }
+    }
+    if (self.resolutionPicker.selectedSegmentIndex == UISegmentedControlNoSegment) {
+        NSLog(@"WHAAAAAT still not selected");
+    }
+    self.mediaSourceURL = [self selectPickedResolutionURL];
 }
 
 - (void)didReceiveMemoryWarning

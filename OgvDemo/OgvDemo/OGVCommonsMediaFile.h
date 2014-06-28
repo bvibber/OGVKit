@@ -22,5 +22,7 @@
 - (void)fetch:(void (^)())completionBlock;
 
 - (NSURL *)derivativeURLForHeight:(int)height;
+- (BOOL)hasDerivativeForHeight:(int)height;
+- (BOOL)isOgg;
 
 @end

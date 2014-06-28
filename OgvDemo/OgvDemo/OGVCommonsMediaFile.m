@@ -84,4 +84,18 @@
     return _derivativeURLs[@(height)];
 }
 
+- (BOOL)hasDerivativeForHeight:(int)height
+{
+    return ([self derivativeURLForHeight:height] != nil);
+}
+
+- (BOOL)isOgg
+{
+    // hack
+    NSString *ext = [[self.sourceURL pathExtension] lowercaseString];
+    return ([ext isEqualToString:@"ogg"] ||
+            [ext isEqualToString:@"ogv"] ||
+            [ext isEqualToString:@"oga"]);
+}
+
 @end

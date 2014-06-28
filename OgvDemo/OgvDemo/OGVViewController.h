@@ -17,7 +17,7 @@
 @property (weak, nonatomic) IBOutlet UISlider *positionSlider;
 @property (weak, nonatomic) IBOutlet UISegmentedControl *resolutionPicker;
 
-@property OGVCommonsMediaFile *mediaSource;
+@property (strong, nonatomic) OGVCommonsMediaFile *mediaSource;
 @property NSURL *mediaSourceURL;
 
 - (IBAction)resolutionPicked:(UISegmentedControl *)sender;
