@@ -39,6 +39,8 @@
 		D4EB24981825A81E008B9160 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = D4EB24961825A81E008B9160 /* InfoPlist.strings */; };
 		D4EB249A1825A81E008B9160 /* OGVLibraryTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D4EB24991825A81E008B9160 /* OGVLibraryTests.m */; };
 		D4FF1488195EE6F6009E926C /* OGVSplitViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D4FF1487195EE6F6009E926C /* OGVSplitViewController.m */; };
+		D4FF148B195F14FB009E926C /* OGVAudioFeeder.m in Sources */ = {isa = PBXBuildFile; fileRef = D4FF148A195F14FB009E926C /* OGVAudioFeeder.m */; };
+		D4FF148D195F3926009E926C /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4FF148C195F3926009E926C /* AudioToolbox.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -115,6 +117,9 @@
 		D4EB24991825A81E008B9160 /* OGVLibraryTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = OGVLibraryTests.m; sourceTree = "<group>"; };
 		D4FF1486195EE6F6009E926C /* OGVSplitViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVSplitViewController.h; sourceTree = "<group>"; };
 		D4FF1487195EE6F6009E926C /* OGVSplitViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVSplitViewController.m; sourceTree = "<group>"; };
+		D4FF1489195F14FB009E926C /* OGVAudioFeeder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVAudioFeeder.h; sourceTree = "<group>"; };
+		D4FF148A195F14FB009E926C /* OGVAudioFeeder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVAudioFeeder.m; sourceTree = "<group>"; };
+		D4FF148C195F3926009E926C /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -122,6 +127,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D4FF148D195F3926009E926C /* AudioToolbox.framework in Frameworks */,
 				D43A24EC195C027C00D38228 /* libOgvKit.a in Frameworks */,
 				D4EB246E1825A81E008B9160 /* CoreGraphics.framework in Frameworks */,
 				D4EB24701825A81E008B9160 /* UIKit.framework in Frameworks */,
@@ -158,6 +164,8 @@
 				D4EB24841825A81E008B9160 /* OGVViewController.m */,
 				D4A83416182A6EB80009A945 /* OGVFrameView.h */,
 				D4A83417182A6EB80009A945 /* OGVFrameView.m */,
+				D4FF1489195F14FB009E926C /* OGVAudioFeeder.h */,
+				D4FF148A195F14FB009E926C /* OGVAudioFeeder.m */,
 			);
 			name = Player;
 			sourceTree = "<group>";
@@ -220,6 +228,7 @@
 		D4EB246A1825A81E008B9160 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				D4FF148C195F3926009E926C /* AudioToolbox.framework */,
 				D43A24E1195C025E00D38228 /* OgvKit.xcodeproj */,
 				D4EB246B1825A81E008B9160 /* Foundation.framework */,
 				D4EB246D1825A81E008B9160 /* CoreGraphics.framework */,
@@ -402,6 +411,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D4FF148B195F14FB009E926C /* OGVAudioFeeder.m in Sources */,
 				D487483418307AED0073FC36 /* OGVCommonsMediaFile.m in Sources */,
 				D4B2501D1830140D007E8EA6 /* OGVTableViewController.m in Sources */,
 				D4EB24781825A81E008B9160 /* main.m in Sources */,

@@ -8,7 +8,9 @@
 
 #import "OGVAppDelegate.h"
 #import "OGVViewController.h"
+
 #import <OgvKit/OgvKit.h>
+#import "OGVAudioFeeder.h"
 
 typedef enum {
     OGVPlaybackResolution160p = 0,
@@ -30,6 +32,8 @@ typedef enum {
     
     dispatch_queue_t decodeQueue;
     dispatch_queue_t drawingQueue;
+    
+    OGVAudioFeeder *audioFeeder;
     
     // Stats
     double pixelsPerFrame;
@@ -174,6 +178,9 @@ typedef enum {
         if (!more) {
             break;
         }
+        if (decoder.audioReady) {
+            [audioFeeder bufferData:[decoder audioBuffer]];
+        }
     }
     NSTimeInterval delta = [[NSDate date] timeIntervalSinceDate:start];
     decodingTime += delta;
@@ -199,6 +206,10 @@ typedef enum {
     } else {
         if (doneDownloading) {
             NSLog(@"ran out of data, no more frames? done!");
+            if (decoder.hasAudio) {
+                [audioFeeder close];
+                audioFeeder = nil;
+            }
         } else {
             // more data to process...
             // tell the downloader to ping us when data comes in
@@ -238,6 +249,11 @@ typedef enum {
 
     drawingTime = 0;
     averageDrawingRate = 0;
+    
+    if (decoder.hasAudio) {
+        audioFeeder = [[OGVAudioFeeder alloc] initWithSampleRate:decoder.audioRate
+                                                        channels:decoder.audioChannels];
+    }
 }
 
 #pragma mark Drawing methods
