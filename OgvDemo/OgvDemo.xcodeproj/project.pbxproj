@@ -38,6 +38,7 @@
 		D4EB24901825A81E008B9160 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4EB246F1825A81E008B9160 /* UIKit.framework */; };
 		D4EB24981825A81E008B9160 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = D4EB24961825A81E008B9160 /* InfoPlist.strings */; };
 		D4EB249A1825A81E008B9160 /* OGVLibraryTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D4EB24991825A81E008B9160 /* OGVLibraryTests.m */; };
+		D4FF1488195EE6F6009E926C /* OGVSplitViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D4FF1487195EE6F6009E926C /* OGVSplitViewController.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -112,6 +113,8 @@
 		D4EB24951825A81E008B9160 /* OgvDemoTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "OgvDemoTests-Info.plist"; sourceTree = "<group>"; };
 		D4EB24971825A81E008B9160 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		D4EB24991825A81E008B9160 /* OGVLibraryTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = OGVLibraryTests.m; sourceTree = "<group>"; };
+		D4FF1486195EE6F6009E926C /* OGVSplitViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVSplitViewController.h; sourceTree = "<group>"; };
+		D4FF1487195EE6F6009E926C /* OGVSplitViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVSplitViewController.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -175,6 +178,8 @@
 				D487483318307AED0073FC36 /* OGVCommonsMediaFile.m */,
 				D4497D111831777C00B455DF /* OGVCommonsMediaList.h */,
 				D4497D121831777C00B455DF /* OGVCommonsMediaList.m */,
+				D4FF1486195EE6F6009E926C /* OGVSplitViewController.h */,
+				D4FF1487195EE6F6009E926C /* OGVSplitViewController.m */,
 			);
 			name = "Framing app";
 			sourceTree = "<group>";
@@ -404,6 +409,7 @@
 				D4B2501A183012F8007E8EA6 /* OGVNavigationController.m in Sources */,
 				D4A83418182A6EB80009A945 /* OGVFrameView.m in Sources */,
 				D4497D131831777C00B455DF /* OGVCommonsMediaList.m in Sources */,
+				D4FF1488195EE6F6009E926C /* OGVSplitViewController.m in Sources */,
 				D4EB24851825A81E008B9160 /* OGVViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

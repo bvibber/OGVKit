@@ -22,18 +22,10 @@
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                             </imageView>
-                            <view contentMode="scaleToFill" ambiguous="YES" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="hvj-DQ-crr">
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="hvj-DQ-crr">
                                 <rect key="frame" x="0.0" y="688" width="703" height="80"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <subviews>
-                                    <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Initializing..." textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="vMC-iN-oed">
-                                        <rect key="frame" x="0.0" y="99" width="568" height="21"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                        <color key="backgroundColor" red="0.50263249870000004" green="0.50263249870000004" blue="0.50263249870000004" alpha="0.20000000000000001" colorSpace="calibratedRGB"/>
-                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                        <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                        <nil key="highlightedColor"/>
-                                    </label>
                                     <segmentedControl opaque="NO" contentMode="scaleToFill" ambiguous="YES" misplaced="YES" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="uSE-1g-yVb">
                                         <rect key="frame" x="485" y="27" width="198" height="29"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
@@ -77,6 +69,7 @@
                                     <constraint firstItem="02w-P5-8AP" firstAttribute="leading" secondItem="hvj-DQ-crr" secondAttribute="leading" constant="20" id="HON-sh-GbT"/>
                                     <constraint firstItem="WWg-A1-uwM" firstAttribute="leading" secondItem="02w-P5-8AP" secondAttribute="trailing" constant="8" id="NgV-xk-Zj3"/>
                                     <constraint firstAttribute="trailing" secondItem="uSE-1g-yVb" secondAttribute="trailing" constant="20" id="TM9-3A-gbv"/>
+                                    <constraint firstAttribute="height" constant="80" id="frW-Ed-5Jv"/>
                                     <constraint firstItem="uSE-1g-yVb" firstAttribute="centerY" secondItem="WWg-A1-uwM" secondAttribute="centerY" id="tFr-UQ-Eeo"/>
                                 </constraints>
                             </view>
@@ -88,7 +81,7 @@
                             <constraint firstAttribute="trailing" secondItem="hvj-DQ-crr" secondAttribute="trailing" id="Svx-lq-HEm"/>
                             <constraint firstItem="QMM-HX-RpJ" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leading" id="bU7-OO-6RD"/>
                             <constraint firstAttribute="trailing" secondItem="QMM-HX-RpJ" secondAttribute="trailing" id="kQf-Co-v8P"/>
-                            <constraint firstItem="gFv-uk-OtF" firstAttribute="top" secondItem="hvj-DQ-crr" secondAttribute="bottom" id="pT5-kV-ItV"/>
+                            <constraint firstItem="gFv-uk-OtF" firstAttribute="top" secondItem="hvj-DQ-crr" secondAttribute="bottom" id="wqm-vP-Dwc"/>
                             <constraint firstItem="hvj-DQ-crr" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leading" id="ye6-rz-2NS"/>
                         </constraints>
                         <simulatedOrientationMetrics key="simulatedOrientationMetrics" orientation="landscapeRight"/>
@@ -97,7 +90,6 @@
                     <simulatedOrientationMetrics key="simulatedOrientationMetrics" orientation="landscapeRight"/>
                     <connections>
                         <outlet property="frameView" destination="QMM-HX-RpJ" id="Raf-r9-nWE"/>
-                        <outlet property="statusLabel" destination="vMC-iN-oed" id="jyo-mK-wXu"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="x5A-6p-PRh" sceneMemberID="firstResponder"/>
@@ -168,7 +160,7 @@
         <!--Split View Controller-->
         <scene sceneID="Eks-T4-nOE">
             <objects>
-                <splitViewController id="Oh6-NN-6jZ" sceneMemberID="viewController">
+                <splitViewController id="Oh6-NN-6jZ" customClass="OGVSplitViewController" sceneMemberID="viewController">
                     <toolbarItems/>
                     <connections>
                         <segue destination="c2O-Fs-dZm" kind="relationship" relationship="masterViewController" id="W1Q-ZS-ye4"/>
@@ -177,7 +169,7 @@
                 </splitViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="9n6-R9-KJg" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-2191" y="265"/>
+            <point key="canvasLocation" x="-2157" y="301"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="Grr-ac-YSW">

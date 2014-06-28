@@ -14,33 +14,21 @@
                         <viewControllerLayoutGuide type="bottom" id="gFv-uk-OtF"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="kh9-bI-dsS">
-                        <rect key="frame" x="0.0" y="0.0" width="568" height="320"/>
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="black.png" translatesAutoresizingMaskIntoConstraints="NO" id="QMM-HX-RpJ" customClass="OGVFrameView">
-                                <rect key="frame" x="0.0" y="0.0" width="568" height="320"/>
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                             </imageView>
                             <view contentMode="scaleToFill" ambiguous="YES" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="hvj-DQ-crr">
-                                <rect key="frame" x="0.0" y="240" width="568" height="80"/>
+                                <rect key="frame" x="0.0" y="448" width="320" height="120"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <subviews>
-                                    <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Initializing..." textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="vMC-iN-oed">
-                                        <rect key="frame" x="0.0" y="99" width="568" height="21"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                        <color key="backgroundColor" red="0.50263249870000004" green="0.50263249870000004" blue="0.50263249870000004" alpha="0.20000000000000001" colorSpace="calibratedRGB"/>
-                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                        <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                        <nil key="highlightedColor"/>
-                                    </label>
                                     <segmentedControl opaque="NO" contentMode="scaleToFill" ambiguous="YES" misplaced="YES" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="uSE-1g-yVb">
-                                        <rect key="frame" x="350" y="27" width="198" height="29"/>
+                                        <rect key="frame" x="61" y="72" width="198" height="29"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                        <constraints>
-                                            <constraint firstAttribute="width" constant="198" id="u6y-ZU-aGe"/>
-                                            <constraint firstAttribute="height" constant="28" id="xyY-HW-G4d"/>
-                                        </constraints>
                                         <segments>
                                             <segment title="160p"/>
                                             <segment title="360p"/>
@@ -49,12 +37,12 @@
                                         </segments>
                                         <color key="tintColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                     </segmentedControl>
-                                    <button opaque="NO" contentMode="scaleToFill" ambiguous="YES" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="02w-P5-8AP">
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="02w-P5-8AP">
                                         <rect key="frame" x="20" y="20" width="46" height="42"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <constraints>
-                                            <constraint firstAttribute="width" constant="46" id="atV-wW-Ypg"/>
-                                            <constraint firstAttribute="height" constant="42" id="d0Z-Aq-i7l"/>
+                                            <constraint firstAttribute="height" constant="42" id="ADA-mG-gku"/>
+                                            <constraint firstAttribute="width" constant="46" id="hKE-Al-JyN"/>
                                         </constraints>
                                         <fontDescription key="fontDescription" type="system" pointSize="42"/>
                                         <state key="normal" title="▷">
@@ -62,22 +50,23 @@
                                             <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                         </state>
                                     </button>
-                                    <slider opaque="NO" contentMode="scaleToFill" ambiguous="YES" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.5" minValue="0.0" maxValue="1" translatesAutoresizingMaskIntoConstraints="NO" id="WWg-A1-uwM">
-                                        <rect key="frame" x="72" y="26" width="262" height="31"/>
+                                    <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.5" minValue="0.0" maxValue="1" translatesAutoresizingMaskIntoConstraints="NO" id="WWg-A1-uwM">
+                                        <rect key="frame" x="72" y="26" width="230" height="31"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <constraints>
-                                            <constraint firstAttribute="height" constant="30" id="zWj-ob-mHM"/>
+                                            <constraint firstAttribute="height" constant="30" id="Sqt-KZ-gQR"/>
                                         </constraints>
                                     </slider>
                                 </subviews>
                                 <color key="backgroundColor" red="0.49788743622448983" green="0.49788743622448983" blue="0.49788743622448983" alpha="0.5" colorSpace="calibratedRGB"/>
                                 <constraints>
-                                    <constraint firstItem="uSE-1g-yVb" firstAttribute="leading" secondItem="WWg-A1-uwM" secondAttribute="trailing" constant="18" id="1fx-q5-j0B"/>
-                                    <constraint firstItem="uSE-1g-yVb" firstAttribute="centerY" secondItem="02w-P5-8AP" secondAttribute="centerY" id="6AG-Rg-wpv"/>
-                                    <constraint firstItem="02w-P5-8AP" firstAttribute="leading" secondItem="hvj-DQ-crr" secondAttribute="leading" constant="20" id="HON-sh-GbT"/>
-                                    <constraint firstItem="WWg-A1-uwM" firstAttribute="leading" secondItem="02w-P5-8AP" secondAttribute="trailing" constant="8" id="NgV-xk-Zj3"/>
-                                    <constraint firstAttribute="trailing" secondItem="uSE-1g-yVb" secondAttribute="trailing" constant="20" id="TM9-3A-gbv"/>
-                                    <constraint firstItem="uSE-1g-yVb" firstAttribute="centerY" secondItem="WWg-A1-uwM" secondAttribute="centerY" id="tFr-UQ-Eeo"/>
+                                    <constraint firstItem="WWg-A1-uwM" firstAttribute="centerY" secondItem="02w-P5-8AP" secondAttribute="centerY" id="DHx-R3-XUf"/>
+                                    <constraint firstItem="02w-P5-8AP" firstAttribute="leading" secondItem="hvj-DQ-crr" secondAttribute="leading" constant="20" id="ZWQ-Q0-8Q0"/>
+                                    <constraint firstAttribute="centerX" secondItem="uSE-1g-yVb" secondAttribute="centerX" id="fOE-24-hBX"/>
+                                    <constraint firstAttribute="trailing" secondItem="WWg-A1-uwM" secondAttribute="trailing" constant="20" id="mKy-TI-iPg"/>
+                                    <constraint firstItem="02w-P5-8AP" firstAttribute="top" secondItem="hvj-DQ-crr" secondAttribute="top" constant="20" id="odR-K4-lgG"/>
+                                    <constraint firstItem="WWg-A1-uwM" firstAttribute="leading" secondItem="02w-P5-8AP" secondAttribute="trailing" constant="8" id="vvI-Nf-MpN"/>
+                                    <constraint firstAttribute="bottom" secondItem="uSE-1g-yVb" secondAttribute="bottom" constant="20" id="xiA-V3-5FC"/>
                                 </constraints>
                             </view>
                         </subviews>
@@ -91,13 +80,10 @@
                             <constraint firstItem="gFv-uk-OtF" firstAttribute="top" secondItem="hvj-DQ-crr" secondAttribute="bottom" id="pT5-kV-ItV"/>
                             <constraint firstItem="hvj-DQ-crr" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leading" id="ye6-rz-2NS"/>
                         </constraints>
-                        <simulatedOrientationMetrics key="simulatedOrientationMetrics" orientation="landscapeRight"/>
                     </view>
                     <navigationItem key="navigationItem" id="i1c-a7-6sp"/>
-                    <simulatedOrientationMetrics key="simulatedOrientationMetrics" orientation="landscapeRight"/>
                     <connections>
                         <outlet property="frameView" destination="QMM-HX-RpJ" id="Raf-r9-nWE"/>
-                        <outlet property="statusLabel" destination="vMC-iN-oed" id="jyo-mK-wXu"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="x5A-6p-PRh" sceneMemberID="firstResponder"/>
