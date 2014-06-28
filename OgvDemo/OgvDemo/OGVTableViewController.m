@@ -32,16 +32,21 @@
 {
     [super viewDidLoad];
 
-    NSLog(@"Registering...");
-    [[NSNotificationCenter defaultCenter] addObserverForName:@"OGVPlayerOpenURL" object:[UIApplication sharedApplication] queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
+    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) {
+        NSLog(@"Registering...");
+        [[NSNotificationCenter defaultCenter] addObserverForName:@"OGVPlayerOpenURL" object:[UIApplication sharedApplication] queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
 
-        NSLog(@"got OGVPlayerOpenURL notification");
-        OGVViewController *player = [[UIStoryboard storyboardWithName:@"Main_iPhone" bundle:nil] instantiateViewControllerWithIdentifier:@"OGVPlayerViewController"];
-
-        assert(note.userInfo[@"URL"]);
-        player.mediaSourceURL = note.userInfo[@"URL"];
-        [self.navigationController pushViewController:player animated:YES];
-    }];
+            NSLog(@"got OGVPlayerOpenURL notification");
+            OGVViewController *player = [[UIStoryboard storyboardWithName:@"Main_iPhone" bundle:nil] instantiateViewControllerWithIdentifier:@"OGVPlayerViewController"];
+            
+            assert(note.userInfo[@"URL"]);
+            player.mediaSourceURL = note.userInfo[@"URL"];
+            
+            [self.navigationController pushViewController:player animated:YES];
+        }];
+    } else {
+        // Let the detail controller listen for the notifications
+    }
     
     [self loadList];
 }

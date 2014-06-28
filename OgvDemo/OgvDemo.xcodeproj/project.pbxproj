@@ -11,6 +11,7 @@
 		D42F48381825F79700F7ED1F /* samples in Resources */ = {isa = PBXBuildFile; fileRef = D42F48361825F79700F7ED1F /* samples */; };
 		D432752A1825DD9800A43CE7 /* OGVDecoderTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D43275291825DD9800A43CE7 /* OGVDecoderTests.m */; };
 		D43A24EC195C027C00D38228 /* libOgvKit.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D43A24E7195C025E00D38228 /* libOgvKit.a */; };
+		D43A4DD7195ED76B00AD2D58 /* Main_iPad.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D43A4DD5195ED76B00AD2D58 /* Main_iPad.storyboard */; };
 		D4497D131831777C00B455DF /* OGVCommonsMediaList.m in Sources */ = {isa = PBXBuildFile; fileRef = D4497D121831777C00B455DF /* OGVCommonsMediaList.m */; };
 		D4874831183074060073FC36 /* motd.json in Resources */ = {isa = PBXBuildFile; fileRef = D4874830183074060073FC36 /* motd.json */; };
 		D487483418307AED0073FC36 /* OGVCommonsMediaFile.m in Sources */ = {isa = PBXBuildFile; fileRef = D487483318307AED0073FC36 /* OGVCommonsMediaFile.m */; };
@@ -75,6 +76,7 @@
 		D42F48361825F79700F7ED1F /* samples */ = {isa = PBXFileReference; lastKnownFileType = folder; path = samples; sourceTree = SOURCE_ROOT; };
 		D43275291825DD9800A43CE7 /* OGVDecoderTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVDecoderTests.m; sourceTree = "<group>"; };
 		D43A24E1195C025E00D38228 /* OgvKit.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = OgvKit.xcodeproj; path = ../OgvKit/OgvKit.xcodeproj; sourceTree = "<group>"; };
+		D43A4DD6195ED76B00AD2D58 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main_iPad.storyboard; sourceTree = "<group>"; };
 		D4497D111831777C00B455DF /* OGVCommonsMediaList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVCommonsMediaList.h; sourceTree = "<group>"; };
 		D4497D121831777C00B455DF /* OGVCommonsMediaList.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVCommonsMediaList.m; sourceTree = "<group>"; };
 		D4874830183074060073FC36 /* motd.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = motd.json; sourceTree = "<group>"; };
@@ -161,6 +163,7 @@
 			isa = PBXGroup;
 			children = (
 				D4EB247D1825A81E008B9160 /* Main_iPhone.storyboard */,
+				D43A4DD5195ED76B00AD2D58 /* Main_iPad.storyboard */,
 				D4EB247A1825A81E008B9160 /* OGVAppDelegate.h */,
 				D4EB247B1825A81E008B9160 /* OGVAppDelegate.m */,
 				D4B25018183012F8007E8EA6 /* OGVNavigationController.h */,
@@ -367,6 +370,7 @@
 				D4EB24871825A81E008B9160 /* Images.xcassets in Resources */,
 				D4A25B7B182E5D81009902D2 /* theorafish-120.png in Resources */,
 				D4A25B7A182E5D81009902D2 /* theorafish-76.png in Resources */,
+				D43A4DD7195ED76B00AD2D58 /* Main_iPad.storyboard in Resources */,
 				D4A25B7D182E5D81009902D2 /* theorafish-320.png in Resources */,
 				D4A25B79182E5D81009902D2 /* theorafish-64.png in Resources */,
 				D4EB247F1825A81E008B9160 /* Main_iPhone.storyboard in Resources */,
@@ -430,6 +434,14 @@
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
+		D43A4DD5195ED76B00AD2D58 /* Main_iPad.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				D43A4DD6195ED76B00AD2D58 /* Base */,
+			);
+			name = Main_iPad.storyboard;
+			sourceTree = "<group>";
+		};
 		D4EB24741825A81E008B9160 /* InfoPlist.strings */ = {
 			isa = PBXVariantGroup;
 			children = (

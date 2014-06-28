@@ -41,6 +41,22 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    
+    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
+        NSLog(@"Registering...");
+        [[NSNotificationCenter defaultCenter] addObserverForName:@"OGVPlayerOpenURL" object:[UIApplication sharedApplication] queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
+            
+            NSLog(@"got OGVPlayerOpenURL notification");
+            
+            assert(note.userInfo[@"URL"]);
+            
+            [self stopWithBlock:^() {
+                self.mediaSourceURL = note.userInfo[@"URL"];
+                playing = YES;
+                [self startDownload];
+            }];
+        }];
+    }
 }
 
 - (void)didReceiveMemoryWarning
@@ -62,12 +78,31 @@
     [self loadVideoSample];
 }
 
+- (void)stopWithBlock:(void (^)())completionBlock
+{
+    if (playing) {
+        dispatch_async(decodeQueue, ^() {
+            if (playing) {
+                [connection cancel];
+                playing = NO;
+            }
+            decoder = nil;
+            connection = nil;
+            dispatch_async(dispatch_get_main_queue(), completionBlock);
+        });
+    } else {
+        dispatch_async(dispatch_get_main_queue(), completionBlock);
+    }
+}
+
 - (void)viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
-    if (!playing) {
-        playing = YES;
-        [self startDownload];
+    if (self.mediaSourceURL) {
+        if (!playing) {
+            playing = YES;
+            [self startDownload];
+        }
     }
 }
 
@@ -134,9 +169,12 @@
 
 - (void)loadVideoSample
 {
-    assert(self.mediaSourceURL != nil);
-    NSURLRequest *req = [NSURLRequest requestWithURL:self.mediaSourceURL];
-    connection = [NSURLConnection connectionWithRequest:req delegate:self];
+    if (self.mediaSourceURL) {
+        NSURLRequest *req = [NSURLRequest requestWithURL:self.mediaSourceURL];
+        connection = [NSURLConnection connectionWithRequest:req delegate:self];
+    } else {
+        NSLog(@"Nothing to play");
+    }
 }
 
 - (void)initPlaybackState
