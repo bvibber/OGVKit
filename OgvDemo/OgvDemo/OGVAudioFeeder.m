@@ -11,8 +11,14 @@
 #import <AVFoundation/AVFoundation.h>
 #import <AudioToolbox/AudioToolbox.h>
 
-@interface OGVAudioFeeder()
+@interface OGVAudioFeeder(Private)
+
 -(void)handleQueue:(AudioQueueRef)queue buffer:(AudioQueueBufferRef)buffer;
+
+-(int)buffersQueued;
+-(void)queueInput:(OGVAudioBuffer *)buffer;
+-(OGVAudioBuffer *)nextInput;
+
 @end
 
 static const int nBuffers = 3;
@@ -56,7 +62,7 @@ static void OGVAudioFeederBufferHandler(void *data, AudioQueueRef queue, AudioQu
         
         formatDescription.mSampleRate = (Float32)sampleRate;
         formatDescription.mFormatID = kAudioFormatLinearPCM;
-        formatDescription.mFormatFlags = kAudioFormatFlagsNativeFloatPacked;
+        formatDescription.mFormatFlags = kLinearPCMFormatFlagIsFloat;
         formatDescription.mBytesPerPacket = sizeof(Float32) * channels;
         formatDescription.mFramesPerPacket = 1;
         formatDescription.mBytesPerFrame = sizeof(Float32) * channels;
@@ -106,8 +112,8 @@ static void OGVAudioFeederBufferHandler(void *data, AudioQueueRef queue, AudioQu
     NSLog(@"bufferData");
     
     if (buffer.samples > 0) {
-        [inputBuffers addObject:buffer];
-        if (!isRunning && [inputBuffers count] >= nBuffers * 2) {
+        [self queueInput:buffer];
+        if (!isRunning && [self buffersQueued] >= nBuffers * 2) {
             NSLog(@"Starting audio!");
             [self startAudio];
         }
@@ -149,10 +155,13 @@ static void OGVAudioFeederBufferHandler(void *data, AudioQueueRef queue, AudioQu
     if (closing) {
         NSLog(@"Stopping queue");
         AudioQueueStop(queue, NO);
-    } else if ([inputBuffers count] > 0) {
+        return;
+    }
+    
+    OGVAudioBuffer *inputBuffer = [self nextInput];
+    
+    if (inputBuffer) {
         NSLog(@"handleQueue has data");
-        OGVAudioBuffer *inputBuffer = inputBuffers[0];
-        [inputBuffers removeObjectAtIndex:0];
         
         int channelSize = inputBuffer.samples * sizeof(Float32);
         int packetSize = channelSize * _channels;
@@ -216,4 +225,30 @@ static void OGVAudioFeederBufferHandler(void *data, AudioQueueRef queue, AudioQu
     NSLog(@"Started audio: %d", status);
 }
 
+-(int)buffersQueued
+{
+    @synchronized (inputBuffers) {
+        return (int)[inputBuffers count];
+    }
+}
+
+-(void)queueInput:(OGVAudioBuffer *)buffer
+{
+    @synchronized (inputBuffers) {
+        [inputBuffers addObject:buffer];
+    }
+}
+
+-(OGVAudioBuffer *)nextInput
+{
+    @synchronized (inputBuffers) {
+        if ([inputBuffers count] > 0) {
+            OGVAudioBuffer *inputBuffer = inputBuffers[0];
+            [inputBuffers removeObjectAtIndex:0];
+            return inputBuffer;
+        } else {
+            return nil;
+        }
+    }
+}
 @end
