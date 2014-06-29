@@ -25,4 +25,6 @@
 @property unsigned int strideCb;
 @property unsigned int strideCr;
 
+@property float timestamp;
+
 @end

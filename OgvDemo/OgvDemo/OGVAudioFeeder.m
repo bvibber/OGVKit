@@ -14,6 +14,7 @@
 @interface OGVAudioFeeder(Private)
 
 -(void)handleQueue:(AudioQueueRef)queue buffer:(AudioQueueBufferRef)buffer;
+-(void)handleQueue:(AudioQueueRef)queue propChanged:(AudioQueuePropertyID)prop;
 
 -(int)buffersQueued;
 -(void)queueInput:(OGVAudioBuffer *)buffer;
@@ -23,11 +24,28 @@
 
 static const int nBuffers = 3;
 
+typedef OSStatus (^OSStatusWrapperBlock)();
+
+static void throwIfError(OSStatusWrapperBlock wrappedBlock) {
+    OSStatus status = wrappedBlock();
+    if (status != 0) {
+        @throw [NSException
+                exceptionWithName:@"OGVAudioFeederAudioQueueException"
+                reason:[NSString stringWithFormat:@"err %d", (int)status]
+                userInfo:@{}];
+    }
+}
+
 static void OGVAudioFeederBufferHandler(void *data, AudioQueueRef queue, AudioQueueBufferRef buffer)
 {
     //NSLog(@"bufferHandler");
     OGVAudioFeeder *feeder = (__bridge OGVAudioFeeder *)data;
     [feeder handleQueue:queue buffer:buffer];
+}
+
+static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQueuePropertyID prop) {
+    OGVAudioFeeder *feeder = (__bridge OGVAudioFeeder *)data;
+    [feeder handleQueue:queue propChanged:prop];
 }
 
 @implementation OGVAudioFeeder {
@@ -42,6 +60,7 @@ static void OGVAudioFeederBufferHandler(void *data, AudioQueueRef queue, AudioQu
     UInt32 bufferByteSize;
     SInt64 mCurrentPacket;
     UInt32 mNumPacketsToRead;
+    BOOL isStarting;
     BOOL isRunning;
     BOOL closing;
 }
@@ -52,6 +71,7 @@ static void OGVAudioFeederBufferHandler(void *data, AudioQueueRef queue, AudioQu
     if (self) {
         _sampleRate = sampleRate;
         _channels = channels;
+        isStarting = NO;
         isRunning = NO;
         closing = NO;
         
@@ -70,31 +90,22 @@ static void OGVAudioFeederBufferHandler(void *data, AudioQueueRef queue, AudioQu
         formatDescription.mBitsPerChannel = sizeof(Float32) * 8;
         formatDescription.mReserved = 0;
         
-        OSStatus status;
-        status = AudioQueueNewOutput(&formatDescription,
-                                     OGVAudioFeederBufferHandler,
-                                     (__bridge void *)self,
-                                     NULL,
-                                     NULL,
-                                     0,
-                                     &queue);
-        if (status) {
-            @throw [NSException
-                    exceptionWithName:@"OGVAudioFeederQueueNotCreated"
-                    reason:[NSString stringWithFormat:@"err %d", (int)status]
-                    userInfo:@{}];
-        }
+        throwIfError(^() {
+            return AudioQueueNewOutput(&formatDescription,
+                                       OGVAudioFeederBufferHandler,
+                                       (__bridge void *)self,
+                                       NULL,
+                                       NULL,
+                                       0,
+                                       &queue);
+        });
         
         for (int i = 0; i < nBuffers; i++) {
-            status = AudioQueueAllocateBuffer(queue,
-                                              bufferByteSize,
-                                              &buffers[i]);
-            if (status) {
-                @throw [NSException
-                        exceptionWithName:@"OGVAudioFeederBufferNotCreated"
-                        reason:[NSString stringWithFormat:@"err %d", (int)status]
-                        userInfo:@{}];
-            }
+            throwIfError(^() {
+                return AudioQueueAllocateBuffer(queue,
+                                                bufferByteSize,
+                                                &buffers[i]);
+            });
         }
     }
     return self;
@@ -113,7 +124,7 @@ static void OGVAudioFeederBufferHandler(void *data, AudioQueueRef queue, AudioQu
     
     if (buffer.samples > 0) {
         [self queueInput:buffer];
-        if (!isRunning && [self buffersQueued] >= nBuffers * 2) {
+        if (!isStarting && !isRunning && [self buffersQueued] >= nBuffers * 2) {
             NSLog(@"Starting audio!");
             [self startAudio];
         }
@@ -143,8 +154,17 @@ static void OGVAudioFeederBufferHandler(void *data, AudioQueueRef queue, AudioQu
 
 -(float)playbackPosition
 {
-    // @todo
-    return 0.0f;
+    if (isRunning) {
+        __block AudioTimeStamp ts;
+        
+        throwIfError(^() {
+            return AudioQueueGetCurrentTime(queue, NULL, &ts, NULL);
+        });
+        
+        return ts.mSampleTime;
+    } else {
+        return 0.0f;
+    }
 }
 
 #pragma mark - Private methods
@@ -187,14 +207,9 @@ static void OGVAudioFeederBufferHandler(void *data, AudioQueueRef queue, AudioQu
         
         buffer->mAudioDataByteSize = packetSize;
 
-        OSStatus status;
-        status = AudioQueueEnqueueBuffer(queue, buffer, 0, NULL);
-        if (status) {
-            @throw [NSException
-                    exceptionWithName:@"OGVAudioFeederBufferNotEnqueued"
-                    reason:[NSString stringWithFormat:@"err %d", (int)status]
-                    userInfo:@{}];
-        }
+        throwIfError(^() {
+            return AudioQueueEnqueueBuffer(queue, buffer, 0, NULL);
+        });
     } else {
         NSLog(@"starved for audio?");
         /*
@@ -204,8 +219,24 @@ static void OGVAudioFeederBufferHandler(void *data, AudioQueueRef queue, AudioQu
     }
 }
 
+-(void)handleQueue:(AudioQueueRef)_queue propChanged:(AudioQueuePropertyID)prop
+{
+    assert(_queue == queue);
+
+    if (prop == kAudioQueueProperty_IsRunning) {
+        __block UInt32 _isRunning = 0;
+        __block UInt32 _size = sizeof(_isRunning);
+        throwIfError(^(){
+            return AudioQueueGetProperty(queue, prop, &_isRunning, &_size);
+        });
+        isRunning = (BOOL)_isRunning;
+        NSLog(@"isRunning is %d", (int)isRunning);
+    }
+}
+
 -(void)startAudio
 {
+    assert(!isStarting);
     assert(!isRunning);
     assert([inputBuffers count] >= nBuffers);
     
@@ -215,18 +246,19 @@ static void OGVAudioFeederBufferHandler(void *data, AudioQueueRef queue, AudioQu
     for (int i = 0; i < nBuffers; i++) {
         [self handleQueue:queue buffer:buffers[i]];
     }
-    OSStatus status;
+
+    throwIfError(^(){
+        // Set a listener to update isRunning
+        return AudioQueueAddPropertyListener(queue,
+                                             kAudioQueueProperty_IsRunning,
+                                             OGVAudioFeederPropListener,
+                                             (__bridge void *)self);
+    });
+    throwIfError(^() {
+        return AudioQueueStart(queue, NULL);
+    });
     
-    status = AudioQueueStart(queue, NULL);
-    if (status) {
-        @throw [NSException
-                exceptionWithName:@"OGVAudioFeederQueueNotStarted"
-                reason:[NSString stringWithFormat:@"err %d", (int)status]
-                userInfo:@{}];
-    }
-    
-    isRunning = YES;
-    NSLog(@"Started audio: %d", (int)status);
+    isStarting = YES;
 }
 
 -(int)buffersQueued

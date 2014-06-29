@@ -294,6 +294,8 @@
     buffer.dataCb = [NSData dataWithBytes:ycbcr[1].data length:lengthCb];
     buffer.dataCr = [NSData dataWithBytes:ycbcr[2].data length:lengthCr];
     
+    buffer.timestamp = videobuf_time;
+    
     queuedFrame = buffer;
 }
 

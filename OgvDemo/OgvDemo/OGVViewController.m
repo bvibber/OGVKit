@@ -34,6 +34,8 @@ typedef enum {
     dispatch_queue_t drawingQueue;
     
     OGVAudioFeeder *audioFeeder;
+    float frameEndTimestamp;
+    float targetFrameTime; // ???
     
     // Stats
     double pixelsPerFrame;
@@ -181,14 +183,17 @@ typedef enum {
             if (doneDownloading) {
                 NSLog(@"out of data, closing");
                 // @todo wait for audio to run out!
-                [audioFeeder close];
-                audioFeeder = nil;
+                float timeLeft = [audioFeeder secondsQueued];
+                dispatch_time_t closeTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(timeLeft * NSEC_PER_SEC));
+                dispatch_after(closeTime, drawingQueue, ^{
+                    [self stopWithBlock:^{}];
+                });
             } else {
                 // Ran out of buffered input
                 // Wait for more bytes
                 waitingForData = YES;
             }
-            break;
+            return;
         }
         
         if (!(decoder.audioReady || decoder.frameReady)) {
@@ -198,7 +203,10 @@ typedef enum {
         
         if (decoder.hasAudio) {
             // Drive on the audio clock!
+            const float fudgeDelta = 0.1f;
             BOOL readyForAudio = ([audioFeeder samplesQueued] <= 8192);
+            float frameDelay = (frameEndTimestamp - [audioFeeder playbackPosition]);
+            BOOL readyForFrame = (frameDelay <= fudgeDelta);
             
             if (readyForAudio && decoder.audioReady) {
                 BOOL ok = [decoder decodeAudio];
@@ -208,50 +216,47 @@ typedef enum {
                     decodedSamples += audioBuffer.samples;
                 }
             }
+            
+            if (readyForFrame && decoder.frameReady) {
+                BOOL ok = [decoder decodeFrame];
+                if (ok) {
+                    [self drawFrame];
+                } else {
+                    NSLog(@"Bad video packet or something");
+                }
+                // update targetFrameTime?
+                targetFrameTime += 1.0f / decoder.frameRate;
+            }
+            
+            // Check in when all audio runs out
+            // .....
         } else {
             // Drive on the video clock
-            
-        }
-    }
-    NSTimeInterval delta = [[NSDate date] timeIntervalSinceDate:start];
-    decodingTime += delta;
-    
-    if (decoder.frameReady) {
-        if ([decoder decodeFrame]) {
-            [self drawBuffer:[decoder frameBuffer]];
-            if (!more && doneDownloading) {
-                NSLog(@"that was the last frame, done!");
-            } else {
-                // Don't decode the next frame until we're ready for it...
-                NSTimeInterval delta2 = [[NSDate date] timeIntervalSinceDate:start]; // in case frame dequeue took some time?
-                double delayInSeconds = (1.0 / decoder.frameRate) - delta2;
-                if (delayInSeconds < 0.0) {
-                    // d'oh
-                    NSLog(@"slow frame decode!");
-                    delayInSeconds = 0.0;
+            BOOL readyForFrame = YES; // check time?
+            if (readyForFrame && decoder.frameReady) {
+                // it's time to draw
+                BOOL ok = [decoder decodeFrame];
+                if (ok) {
+                    [self drawFrame];
+                    targetFrameTime += 1.0f / decoder.frameRate;
+                    [self pingProcessing:(1.0f / decoder.frameRate)];
+                } else {
+                    NSLog(@"Bad video packet or something");
+                    [self pingProcessing:(1.0f / decoder.frameRate)];
                 }
-                dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
-                dispatch_after(popTime, decodeQueue, ^(void){
-                    [self processNextFrame];
-                });
             }
-        } else {
-            NSLog(@"Video decoding failed?");
-        }
-    } else {
-        if (doneDownloading) {
-            NSLog(@"ran out of data, no more frames? done!");
-            if (decoder.hasAudio) {
-                [audioFeeder close];
-                audioFeeder = nil;
-            }
-        } else {
-            // more data to process...
-            // tell the downloader to ping us when data comes in
-            waitingForData = YES;
-            NSLog(@"starved for data!");
+            return;
         }
     }
+}
+
+- (void)pingProcessing:(float)delay
+{
+    // ...
+    dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delay * NSEC_PER_SEC));
+    dispatch_after(popTime, decodeQueue, ^() {
+        [self processNextFrame];
+    });
 }
 
 - (void)loadVideoSample
@@ -292,6 +297,13 @@ typedef enum {
 }
 
 #pragma mark Drawing methods
+
+-(void)drawFrame
+{
+    OGVFrameBuffer *buffer = [decoder frameBuffer];
+    [self drawBuffer:buffer];
+    frameEndTimestamp = buffer.timestamp;
+}
 
 // Incredibly inefficient \o/
 - (void)drawBuffer:(OGVFrameBuffer *)buffer
@@ -359,6 +371,7 @@ typedef enum {
     NSLog(@"done downloading");
     dispatch_async(decodeQueue, ^() {
         doneDownloading = YES;
+        waitingForData = NO;
     });
 }
 
