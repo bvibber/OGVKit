@@ -173,17 +173,44 @@ typedef enum {
     }
     NSDate *start = [NSDate date];
     BOOL more;
-    while (!decoder.frameReady) {
+    int decodedSamples = 0;
+    
+    while (true) {
         more = [decoder process];
         if (!more) {
+            if (doneDownloading) {
+                NSLog(@"out of data, closing");
+                // @todo wait for audio to run out!
+                [audioFeeder close];
+                audioFeeder = nil;
+            } else {
+                // Ran out of buffered input
+                // Wait for more bytes
+                waitingForData = YES;
+            }
             break;
         }
-        if (decoder.audioReady) {
-            if ([decoder decodeAudio]) {
-                [audioFeeder bufferData:[decoder audioBuffer]];
-            } else {
-                NSLog(@"Audio decoding failed?");
+        
+        if (!(decoder.audioReady || decoder.frameReady)) {
+            // Have to process some more pages to find data. Continue the loop.
+            continue;
+        }
+        
+        if (decoder.hasAudio) {
+            // Drive on the audio clock!
+            BOOL readyForAudio = ([audioFeeder samplesQueued] <= 8192);
+            
+            if (readyForAudio && decoder.audioReady) {
+                BOOL ok = [decoder decodeAudio];
+                if (ok) {
+                    OGVAudioBuffer *audioBuffer = [decoder audioBuffer];
+                    [audioFeeder bufferData:audioBuffer];
+                    decodedSamples += audioBuffer.samples;
+                }
             }
+        } else {
+            // Drive on the video clock
+            
         }
     }
     NSTimeInterval delta = [[NSDate date] timeIntervalSinceDate:start];

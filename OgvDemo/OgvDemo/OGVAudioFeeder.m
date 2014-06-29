@@ -25,7 +25,7 @@ static const int nBuffers = 3;
 
 static void OGVAudioFeederBufferHandler(void *data, AudioQueueRef queue, AudioQueueBufferRef buffer)
 {
-    NSLog(@"bufferHandler");
+    //NSLog(@"bufferHandler");
     OGVAudioFeeder *feeder = (__bridge OGVAudioFeeder *)data;
     [feeder handleQueue:queue buffer:buffer];
 }
@@ -109,7 +109,7 @@ static void OGVAudioFeederBufferHandler(void *data, AudioQueueRef queue, AudioQu
 
 -(void)bufferData:(OGVAudioBuffer *)buffer
 {
-    NSLog(@"bufferData");
+    //NSLog(@"bufferData");
     
     if (buffer.samples > 0) {
         [self queueInput:buffer];
@@ -127,8 +127,13 @@ static void OGVAudioFeederBufferHandler(void *data, AudioQueueRef queue, AudioQu
 
 -(int)samplesQueued
 {
-    // @todo
-    return 0;
+    int total = 0;
+    @synchronized (inputBuffers) {
+        for (OGVAudioBuffer *buffer in inputBuffers) {
+            total += buffer.samples;
+        }
+    }
+    return total;
 }
 
 -(float)secondsQueued
@@ -150,7 +155,7 @@ static void OGVAudioFeederBufferHandler(void *data, AudioQueueRef queue, AudioQu
     assert(buffer != NULL);
     assert(queue == _queue);
     
-    NSLog(@"handleQueue...");
+    //NSLog(@"handleQueue...");
 
     if (closing) {
         NSLog(@"Stopping queue");
@@ -161,12 +166,11 @@ static void OGVAudioFeederBufferHandler(void *data, AudioQueueRef queue, AudioQu
     OGVAudioBuffer *inputBuffer = [self nextInput];
     
     if (inputBuffer) {
-        NSLog(@"handleQueue has data");
+        //NSLog(@"handleQueue has data");
         
         int channelSize = inputBuffer.samples * sizeof(Float32);
         int packetSize = channelSize * _channels;
-        NSLog(@"channelSize %d | packetSize %d | samples %d",
-              channelSize, packetSize, inputBuffer.samples);
+        //NSLog(@"channelSize %d | packetSize %d | samples %d", channelSize, packetSize, inputBuffer.samples);
         
         int sampleCount = inputBuffer.samples;
         Float32 *dest = (Float32 *)buffer->mAudioData;
