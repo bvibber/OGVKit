@@ -35,7 +35,6 @@ typedef enum {
     
     OGVAudioFeeder *audioFeeder;
     float frameEndTimestamp;
-    float targetFrameTime; // ???
     
     // Stats
     double pixelsPerFrame;
@@ -173,7 +172,6 @@ typedef enum {
     if (!playing) {
         return;
     }
-    NSDate *start = [NSDate date];
     BOOL more;
     int decodedSamples = 0;
     
@@ -193,6 +191,7 @@ typedef enum {
                 // Wait for more bytes
                 waitingForData = YES;
             }
+            // End the processing loop and wait for next ping.
             return;
         }
         
@@ -204,16 +203,24 @@ typedef enum {
         if (decoder.hasAudio) {
             // Drive on the audio clock!
             const float fudgeDelta = 0.1f;
-            BOOL readyForAudio = ([audioFeeder samplesQueued] <= 8192);
+            const int bufferSize = 8192;
+            const float bufferDuration = (float)bufferSize / (float)decoder.audioRate;
+
+            float audioBufferedDuration = [audioFeeder secondsQueued];
+            BOOL readyForAudio = (audioBufferedDuration <= bufferDuration * 2);
+
             float frameDelay = (frameEndTimestamp - [audioFeeder playbackPosition]);
             BOOL readyForFrame = (frameDelay <= fudgeDelta);
             
             if (readyForAudio && decoder.audioReady) {
                 BOOL ok = [decoder decodeAudio];
                 if (ok) {
+                    //NSLog(@"Buffering audio...");
                     OGVAudioBuffer *audioBuffer = [decoder audioBuffer];
                     [audioFeeder bufferData:audioBuffer];
                     decodedSamples += audioBuffer.samples;
+                } else {
+                    NSLog(@"Bad audio packet or something");
                 }
             }
             
@@ -224,12 +231,34 @@ typedef enum {
                 } else {
                     NSLog(@"Bad video packet or something");
                 }
-                // update targetFrameTime?
-                targetFrameTime += 1.0f / decoder.frameRate;
             }
             
-            // Check in when all audio runs out
-            // .....
+            NSMutableArray *nextDelays = [[NSMutableArray alloc] init];
+            if (audioBufferedDuration <= bufferDuration * 2) {
+                // NEED MOAR BUFFERS
+            } else {
+                // Check in when the audio buffer runs low again...
+                [nextDelays addObject:@(bufferDuration / 2.0f)];
+                
+                if (decoder.hasVideo) {
+                    // Check in when the next frame is due
+                    // todo: Subtract time we already spent decoding
+                    [nextDelays addObject:@(frameDelay)];
+                }
+            }
+            
+            if ([nextDelays count]) {
+                NSArray *sortedDelays = [nextDelays sortedArrayUsingSelector:@selector(compare:)];
+                //NSLog(@"%@", sortedDelays);
+                NSNumber *nextDelay = sortedDelays[0];
+                [self pingProcessing:[nextDelay floatValue]];
+
+                // End the processing loop and wait for next ping.
+                return;
+            } else {
+                // Continue the processing loop...
+                continue;
+            }
         } else {
             // Drive on the video clock
             BOOL readyForFrame = YES; // check time?
@@ -238,13 +267,14 @@ typedef enum {
                 BOOL ok = [decoder decodeFrame];
                 if (ok) {
                     [self drawFrame];
-                    targetFrameTime += 1.0f / decoder.frameRate;
                     [self pingProcessing:(1.0f / decoder.frameRate)];
                 } else {
                     NSLog(@"Bad video packet or something");
                     [self pingProcessing:(1.0f / decoder.frameRate)];
                 }
             }
+
+            // End the processing loop and wait for next ping.
             return;
         }
     }
@@ -252,6 +282,7 @@ typedef enum {
 
 - (void)pingProcessing:(float)delay
 {
+    NSLog(@"ping after %f ms", delay * 1000.0);
     // ...
     dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delay * NSEC_PER_SEC));
     dispatch_after(popTime, decodeQueue, ^() {
@@ -290,6 +321,8 @@ typedef enum {
     drawingTime = 0;
     averageDrawingRate = 0;
     
+    frameEndTimestamp = 0.0f;
+    
     if (decoder.hasAudio) {
         audioFeeder = [[OGVAudioFeeder alloc] initWithSampleRate:decoder.audioRate
                                                         channels:decoder.audioChannels];
@@ -323,6 +356,7 @@ typedef enum {
 
 - (void)updateStats
 {
+    /*
     NSDate *now = [NSDate date];
     if (lastStatsUpdate == nil || [now timeIntervalSinceDate:lastStatsUpdate] > 1.0) {
         averageDecodingRate = pixelsProcessed / decodingTime;
@@ -338,6 +372,7 @@ typedef enum {
         [self showStatus:statusLine];
         NSLog(@"%@", statusLine);
     }
+    */
 }
 
 #pragma mark NSURLConnectionDataDelegate methods

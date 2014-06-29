@@ -62,7 +62,7 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
     UInt32 mNumPacketsToRead;
     BOOL isStarting;
     BOOL isRunning;
-    BOOL closing;
+    BOOL isClosing;
 }
 
 -(id)initWithSampleRate:(int)sampleRate channels:(int)channels
@@ -73,7 +73,7 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
         _channels = channels;
         isStarting = NO;
         isRunning = NO;
-        closing = NO;
+        isClosing = NO;
         
         inputBuffers = [[NSMutableArray alloc] init];
         
@@ -133,7 +133,7 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
 
 -(void)close
 {
-    closing = YES;
+    isClosing = YES;
 }
 
 -(int)samplesQueued
@@ -161,7 +161,9 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
             return AudioQueueGetCurrentTime(queue, NULL, &ts, NULL);
         });
         
-        return ts.mSampleTime;
+        float timeInSeconds = (float)(ts.mSampleTime) / (float)self.sampleRate;
+        //NSLog(@"PLAYBACK POSITION: %f", timeInSeconds);
+        return timeInSeconds;
     } else {
         return 0.0f;
     }
@@ -177,7 +179,7 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
     
     //NSLog(@"handleQueue...");
 
-    if (closing) {
+    if (isClosing) {
         NSLog(@"Stopping queue");
         AudioQueueStop(queue, NO);
         return;
