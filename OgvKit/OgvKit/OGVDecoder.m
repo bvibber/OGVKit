@@ -234,8 +234,8 @@
 		}
 	}
 	
-	if (vorbis_p) {
-		while (ogg_stream_packetout(&vo, &oggPacket) > 0) {
+	if (vorbis_p && !audiobuf_ready) {
+		if (ogg_stream_packetout(&vo, &oggPacket) > 0) {
 			if(vorbis_synthesis(&vb, &oggPacket)==0) {
 				vorbis_synthesis_blockin(&vd,&vb);
                 

@@ -169,10 +169,10 @@ static void OGVAudioFeederBufferHandler(void *data, AudioQueueRef queue, AudioQu
               channelSize, packetSize, inputBuffer.samples);
         
         int sampleCount = inputBuffer.samples;
-        
+        Float32 *dest = (Float32 *)buffer->mAudioData;
+
         for (int channel = 0; channel < _channels; channel++) {
             
-            Float32 *dest = (Float32 *)buffer->mAudioData;
             const Float32 *source = [inputBuffer PCMForChannel:channel];
             
             for (int i = 0; i < sampleCount; i++) {
