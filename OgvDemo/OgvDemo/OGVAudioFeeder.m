@@ -81,7 +81,7 @@ static void OGVAudioFeederBufferHandler(void *data, AudioQueueRef queue, AudioQu
         if (status) {
             @throw [NSException
                     exceptionWithName:@"OGVAudioFeederQueueNotCreated"
-                    reason:[NSString stringWithFormat:@"err %d", status]
+                    reason:[NSString stringWithFormat:@"err %d", (int)status]
                     userInfo:@{}];
         }
         
@@ -92,7 +92,7 @@ static void OGVAudioFeederBufferHandler(void *data, AudioQueueRef queue, AudioQu
             if (status) {
                 @throw [NSException
                         exceptionWithName:@"OGVAudioFeederBufferNotCreated"
-                        reason:[NSString stringWithFormat:@"err %d", status]
+                        reason:[NSString stringWithFormat:@"err %d", (int)status]
                         userInfo:@{}];
             }
         }
@@ -188,7 +188,7 @@ static void OGVAudioFeederBufferHandler(void *data, AudioQueueRef queue, AudioQu
         if (status) {
             @throw [NSException
                     exceptionWithName:@"OGVAudioFeederBufferNotEnqueued"
-                    reason:[NSString stringWithFormat:@"err %d", status]
+                    reason:[NSString stringWithFormat:@"err %d", (int)status]
                     userInfo:@{}];
         }
     } else {
@@ -217,12 +217,12 @@ static void OGVAudioFeederBufferHandler(void *data, AudioQueueRef queue, AudioQu
     if (status) {
         @throw [NSException
                 exceptionWithName:@"OGVAudioFeederQueueNotStarted"
-                reason:[NSString stringWithFormat:@"err %d", status]
+                reason:[NSString stringWithFormat:@"err %d", (int)status]
                 userInfo:@{}];
     }
     
     isRunning = YES;
-    NSLog(@"Started audio: %d", status);
+    NSLog(@"Started audio: %d", (int)status);
 }
 
 -(int)buffersQueued
