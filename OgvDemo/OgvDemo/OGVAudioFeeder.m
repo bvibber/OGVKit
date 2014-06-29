@@ -56,11 +56,10 @@ static void OGVAudioFeederBufferHandler(void *data, AudioQueueRef queue, AudioQu
         
         formatDescription.mSampleRate = (Float32)sampleRate;
         formatDescription.mFormatID = kAudioFormatLinearPCM;
-        formatDescription.mFormatFlags = kAudioFormatFlagsNativeFloatPacked |
-                                         kAudioFormatFlagIsNonInterleaved;
-        formatDescription.mBytesPerPacket = sizeof(Float32);
+        formatDescription.mFormatFlags = kAudioFormatFlagsNativeFloatPacked;
+        formatDescription.mBytesPerPacket = sizeof(Float32) * channels;
         formatDescription.mFramesPerPacket = 1;
-        formatDescription.mBytesPerFrame = sizeof(Float32);
+        formatDescription.mBytesPerFrame = sizeof(Float32) * channels;
         formatDescription.mChannelsPerFrame = channels;
         formatDescription.mBitsPerChannel = sizeof(Float32) * 8;
         formatDescription.mReserved = 0;
@@ -69,8 +68,8 @@ static void OGVAudioFeederBufferHandler(void *data, AudioQueueRef queue, AudioQu
         status = AudioQueueNewOutput(&formatDescription,
                                      OGVAudioFeederBufferHandler,
                                      (__bridge void *)self,
-                                     CFRunLoopGetCurrent(),
-                                     kCFRunLoopCommonModes,
+                                     NULL,
+                                     NULL,
                                      0,
                                      &queue);
         if (status) {
@@ -160,6 +159,7 @@ static void OGVAudioFeederBufferHandler(void *data, AudioQueueRef queue, AudioQu
         NSLog(@"channelSize %d | packetSize %d | samples %d",
               channelSize, packetSize, inputBuffer.samples);
         
+        /*
         for (int channel = 0; channel < _channels; channel++) {
 
             Float32 *dest = &((Float32 *)buffer->mAudioData)[channel * channelSize];
@@ -168,9 +168,18 @@ static void OGVAudioFeederBufferHandler(void *data, AudioQueueRef queue, AudioQu
             memcpy(dest,
                    [source bytes],
                    channelSize);
+        }
+         */
+        int sampleCount = inputBuffer.samples;
+        
+        for (int channel = 0; channel < _channels; channel++) {
             
-            for (int i = 0; i < inputBuffer.samples; i++) {
-                dest[i] = (float)i / inputBuffer.samples;
+            Float32 *dest = (Float32 *)buffer->mAudioData;
+            Float32 *source = (Float32 *)((NSData *)inputBuffer.pcm[channel]).bytes;
+            
+            for (int i = 0; i < sampleCount; i++) {
+                int j = i * _channels + channel;
+                dest[j] = source[i];
             }
         }
         
@@ -186,6 +195,8 @@ static void OGVAudioFeederBufferHandler(void *data, AudioQueueRef queue, AudioQu
         }
     } else {
         NSLog(@"starved for audio?");
+        buffer->mAudioDataByteSize = bufferByteSize;
+        memset(buffer->mAudioData, 0, bufferByteSize);
     }
 }
 
