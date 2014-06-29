@@ -13,5 +13,6 @@
 @property unsigned int samples;
 
 - (id)initWithPCM:(float **)pcm channels:(unsigned int)channels samples:(unsigned int)samples;
+- (const float *)PCMForChannel:(unsigned int)channel;
 
 @end

@@ -27,7 +27,7 @@
     return self;
 }
 
-- (const float *)pcmForChannel:(unsigned int)channel
+- (const float *)PCMForChannel:(unsigned int)channel
 {
     NSData *pcmData = self.pcm[channel];
     return (const float *)pcmData.bytes;
