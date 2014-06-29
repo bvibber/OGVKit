@@ -41,6 +41,7 @@ XCODE_ROOT=`xcode-select -print-path`
 PLATFORM_PATH="$XCODE_ROOT/Platforms/$PLATFORM.platform/Developer"
 SDK_PATH="$PLATFORM_PATH/SDKs/$PLATFORM$SDK_VERSION.sdk"
 FLAGS="-isysroot $SDK_PATH -arch $ARCH -miphoneos-version-min=$SDK_MINVER"
+FLAGS="$FLAGS -g"
 
 CC=`xcrun -find -sdk $platform clang`
 CXX=`xcrun -find -sdk $platform clang++`
