@@ -8,12 +8,11 @@
 
 #import "OGVAudioFeeder.h"
 
+#import <AVFoundation/AVFoundation.h>
 #import <AudioToolbox/AudioToolbox.h>
-
 
 @interface OGVAudioFeeder()
 -(void)handleQueue:(AudioQueueRef)queue buffer:(AudioQueueBufferRef)buffer;
--(void)handleInterrupted:(UInt32)interruptionState;
 @end
 
 static const int nBuffers = 3;
@@ -23,14 +22,6 @@ static void OGVAudioFeederBufferHandler(void *data, AudioQueueRef queue, AudioQu
     NSLog(@"bufferHandler");
     OGVAudioFeeder *feeder = (__bridge OGVAudioFeeder *)data;
     [feeder handleQueue:queue buffer:buffer];
-}
-
-static void OGVAudioFeederInterruptedHandler (void     *data,
-                                              UInt32   interruptionState)
-{
-    NSLog(@"interrupted Handler");
-    OGVAudioFeeder *feeder = (__bridge OGVAudioFeeder *)data;
-    [feeder handleInterrupted:interruptionState];
 }
 
 @implementation OGVAudioFeeder {
@@ -160,6 +151,7 @@ static void OGVAudioFeederInterruptedHandler (void     *data,
         NSLog(@"Stopping queue");
         AudioQueueStop(queue, NO);
     } else if ([inputBuffers count] > 0) {
+        NSLog(@"handleQueue has data");
         OGVAudioBuffer *inputBuffer = inputBuffers[0];
         [inputBuffers removeObjectAtIndex:0];
         
@@ -202,24 +194,13 @@ static void OGVAudioFeederInterruptedHandler (void     *data,
     assert(!isRunning);
     assert([inputBuffers count] >= nBuffers);
     
-    AudioSessionInitialize(CFRunLoopGetCurrent(),
-                           kCFRunLoopCommonModes,
-                           OGVAudioFeederInterruptedHandler,
-                           (__bridge void *)self);
-
+    [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback error:nil];
+    
     // Prime the buffers!
     for (int i = 0; i < nBuffers; i++) {
         [self handleQueue:queue buffer:buffers[i]];
     }
     OSStatus status;
-    
-    status = AudioQueuePrime(queue, 128 * 3, NULL);
-    if (status) {
-        @throw [NSException
-                exceptionWithName:@"OGVAudioFeederQueueNotPrimed"
-                reason:[NSString stringWithFormat:@"err %d", status]
-                userInfo:@{}];
-    }
     
     status = AudioQueueStart(queue, NULL);
     if (status) {
@@ -228,11 +209,9 @@ static void OGVAudioFeederInterruptedHandler (void     *data,
                 reason:[NSString stringWithFormat:@"err %d", status]
                 userInfo:@{}];
     }
+    
     isRunning = YES;
+    NSLog(@"Started audio: %d", status);
 }
 
--(void)handleInterrupted:(UInt32)interruptionState
-{
-    NSLog(@"waaaaat interruption %d", interruptionState);
-}
 @end
