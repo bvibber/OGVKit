@@ -32,7 +32,7 @@
     int          videobuf_ready;
     ogg_int64_t  videobuf_granulepos;
     double       videobuf_time;
-    th_ycbcr_buffer ycbcr;
+    OGVFrameBuffer *queuedFrame;
     
     int          audiobuf_ready;
     ogg_int64_t  audiobuf_granulepos; /* time position of last sample */
@@ -47,11 +47,14 @@
     vorbis_dsp_state vd;
     vorbis_block     vb;
     vorbis_comment   vc;
-    OGVAudioBuffer *_audioBuffer;
+    OGVAudioBuffer *queuedAudio;
 
     int          crop;
 
     ogg_packet oggPacket;
+    ogg_packet theoraPacket;
+    ogg_packet vorbisPacket;
+    BOOL needData;
     
     int frames;
     
@@ -210,75 +213,115 @@
 
 - (void)processDecoding
 {
-	if (theora_p) {
-		// fixme -- don't decode next frame until the time is right
-		if(!videobuf_ready){
-            /* theora is one in, one out... */
-            if (ogg_stream_packetout(&theoraStreamState, &oggPacket) > 0 ){
-                
-                if (th_decode_packetin(theoraDecoderContext,&oggPacket,&videobuf_granulepos)>=0){
-                    videobuf_time=th_granule_time(theoraDecoderContext,videobuf_granulepos);
-                    videobuf_ready=1;
-                    frames++;
-                }
-                
-            }
-		}
-        
-		if(videobuf_ready){
-			/* dumpvideo frame, and get new one */
-            th_decode_ycbcr_out(theoraDecoderContext,ycbcr);
-            
-			videobuf_ready=0;
+    needData = NO;
+	if (theora_p && !videobuf_ready) {
+        if (ogg_stream_packetpeek(&theoraStreamState, &theoraPacket) > 0) {
+            videobuf_ready = 1;
             self.frameReady = YES;
-		}
+        } else {
+            needData = YES;
+        }
 	}
 	
 	if (vorbis_p && !audiobuf_ready) {
-		if (ogg_stream_packetout(&vo, &oggPacket) > 0) {
-			if(vorbis_synthesis(&vb, &oggPacket)==0) {
-				vorbis_synthesis_blockin(&vd,&vb);
-                
-				// fixme -- timing etc!
-				float **pcm;
-				int sampleCount = vorbis_synthesis_pcmout(&vd, &pcm);
-                if (sampleCount > 0) {
-                    _audioBuffer = [[OGVAudioBuffer alloc] initWithPCM:pcm channels:self.audioChannels samples:sampleCount];
-                    vorbis_synthesis_read(&vd, sampleCount);
-                    self.audioReady = YES;
-                }
-			}
+		if (ogg_stream_packetpeek(&vo, &vorbisPacket) > 0) {
+			audiobuf_ready = 1;
+            self.audioReady = YES;
+		} else {
+			needData = YES;
 		}
 	}
+}
+
+- (BOOL) decodeFrame
+{
+	if (ogg_stream_packetout(&theoraStreamState, &theoraPacket) <= 0) {
+		printf("Theora packet didn't come out of stream\n");
+		return NO;
+	}
+	videobuf_ready=0;
+	int ret = th_decode_packetin(theoraDecoderContext, &theoraPacket, &videobuf_granulepos);
+	if (ret == 0){
+		double t = th_granule_time(theoraDecoderContext,videobuf_granulepos);
+		if (t > 0) {
+			videobuf_time = t;
+		} else {
+			// For some reason sometimes we get a bunch of 0s out of th_granule_time
+			videobuf_time += 1.0 / ((double)theoraInfo.fps_numerator / theoraInfo.fps_denominator);
+		}
+		frames++;
+        [self doDecodeFrame];
+		return YES;
+	} else if (ret == TH_DUPFRAME) {
+		// Duplicated frame, advance time
+		videobuf_time += 1.0 / ((double)theoraInfo.fps_numerator / theoraInfo.fps_denominator);
+		frames++;
+        [self doDecodeFrame];
+		return YES;
+	} else {
+		printf("Theora decoder failed mysteriously? %d\n", ret);
+		return NO;
+	}
+}
+
+-(void)doDecodeFrame
+{
+    assert(queuedFrame == nil);
+    
+    th_ycbcr_buffer ycbcr;
+    th_decode_ycbcr_out(theoraDecoderContext,ycbcr);
+    
+    OGVFrameBuffer *buffer = [[OGVFrameBuffer alloc] init];
+    
+    buffer.frameWidth = self.frameWidth;
+    buffer.frameHeight = self.frameHeight;
+    buffer.pictureWidth = self.pictureWidth;
+    buffer.pictureHeight = self.pictureHeight;
+    buffer.pictureOffsetX = self.pictureOffsetX;
+    buffer.pictureOffsetY = self.pictureOffsetY;
+    buffer.hDecimation = self.hDecimation;
+    buffer.vDecimation = self.vDecimation;
+    
+    buffer.strideY = ycbcr[0].stride;
+    buffer.strideCb = ycbcr[1].stride;
+    buffer.strideCr = ycbcr[2].stride;
+    
+    size_t lengthY = buffer.strideY * self.frameHeight;
+    size_t lengthCb = buffer.strideCb * (self.frameHeight >> self.vDecimation);
+    size_t lengthCr = buffer.strideCr * (self.frameHeight >> self.vDecimation);
+    
+    buffer.dataY = [NSData dataWithBytes:ycbcr[0].data length:lengthY];
+    buffer.dataCb = [NSData dataWithBytes:ycbcr[1].data length:lengthCb];
+    buffer.dataCr = [NSData dataWithBytes:ycbcr[2].data length:lengthCr];
+    
+    queuedFrame = buffer;
+}
+
+- (BOOL)decodeAudio
+{
+    if (ogg_stream_packetout(&vo, &vorbisPacket) > 0) {
+        if(vorbis_synthesis(&vb, &vorbisPacket) == 0) {
+            vorbis_synthesis_blockin(&vd,&vb);
+            
+            float **pcm;
+            int sampleCount = vorbis_synthesis_pcmout(&vd, &pcm);
+            if (sampleCount > 0) {
+                queuedAudio = [[OGVAudioBuffer alloc] initWithPCM:pcm channels:self.audioChannels samples:sampleCount];
+                vorbis_synthesis_read(&vd, sampleCount);
+                self.audioReady = YES;
+            }
+        }
+    }
+    return YES;
 }
 
 - (OGVFrameBuffer *)frameBuffer
 {
     if (self.frameReady) {
-        OGVFrameBuffer *buffer = [[OGVFrameBuffer alloc] init];
-
-        buffer.frameWidth = self.frameWidth;
-        buffer.frameHeight = self.frameHeight;
-        buffer.pictureWidth = self.pictureWidth;
-        buffer.pictureHeight = self.pictureHeight;
-        buffer.pictureOffsetX = self.pictureOffsetX;
-        buffer.pictureOffsetY = self.pictureOffsetY;
-        buffer.hDecimation = self.hDecimation;
-        buffer.vDecimation = self.vDecimation;
-
-        buffer.strideY = ycbcr[0].stride;
-        buffer.strideCb = ycbcr[1].stride;
-        buffer.strideCr = ycbcr[2].stride;
-
-        size_t lengthY = buffer.strideY * self.frameHeight;
-        size_t lengthCb = buffer.strideCb * (self.frameHeight >> self.vDecimation);
-        size_t lengthCr = buffer.strideCr * (self.frameHeight >> self.vDecimation);
-
-        buffer.dataY = [NSData dataWithBytes:ycbcr[0].data length:lengthY];
-        buffer.dataCb = [NSData dataWithBytes:ycbcr[1].data length:lengthCb];
-        buffer.dataCr = [NSData dataWithBytes:ycbcr[2].data length:lengthCr];
-        
+        OGVFrameBuffer *buffer = queuedFrame;
+        queuedFrame = nil;
         self.frameReady = NO;
+        videobuf_ready = NO;
         return buffer;
     } else {
         @throw [NSException
@@ -291,9 +334,10 @@
 - (OGVAudioBuffer *)audioBuffer
 {
     if (self.audioReady) {
-        OGVAudioBuffer *buffer = _audioBuffer;
-        _audioBuffer = nil;
+        OGVAudioBuffer *buffer = queuedAudio;
+        queuedAudio = nil;
         self.audioReady = NO;
+        audiobuf_ready = NO;
         return buffer;
     } else {
         @throw [NSException

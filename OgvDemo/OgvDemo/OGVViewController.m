@@ -179,29 +179,37 @@ typedef enum {
             break;
         }
         if (decoder.audioReady) {
-            [audioFeeder bufferData:[decoder audioBuffer]];
+            if ([decoder decodeAudio]) {
+                [audioFeeder bufferData:[decoder audioBuffer]];
+            } else {
+                NSLog(@"Audio decoding failed?");
+            }
         }
     }
     NSTimeInterval delta = [[NSDate date] timeIntervalSinceDate:start];
     decodingTime += delta;
     
     if (decoder.frameReady) {
-        [self drawBuffer:[decoder frameBuffer]];
-        if (!more && doneDownloading) {
-            NSLog(@"that was the last frame, done!");
-        } else {
-            // Don't decode the next frame until we're ready for it...
-            NSTimeInterval delta2 = [[NSDate date] timeIntervalSinceDate:start]; // in case frame dequeue took some time?
-            double delayInSeconds = (1.0 / decoder.frameRate) - delta2;
-            if (delayInSeconds < 0.0) {
-                // d'oh
-                NSLog(@"slow frame decode!");
-                delayInSeconds = 0.0;
+        if ([decoder decodeFrame]) {
+            [self drawBuffer:[decoder frameBuffer]];
+            if (!more && doneDownloading) {
+                NSLog(@"that was the last frame, done!");
+            } else {
+                // Don't decode the next frame until we're ready for it...
+                NSTimeInterval delta2 = [[NSDate date] timeIntervalSinceDate:start]; // in case frame dequeue took some time?
+                double delayInSeconds = (1.0 / decoder.frameRate) - delta2;
+                if (delayInSeconds < 0.0) {
+                    // d'oh
+                    NSLog(@"slow frame decode!");
+                    delayInSeconds = 0.0;
+                }
+                dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
+                dispatch_after(popTime, decodeQueue, ^(void){
+                    [self processNextFrame];
+                });
             }
-            dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
-            dispatch_after(popTime, decodeQueue, ^(void){
-                [self processNextFrame];
-            });
+        } else {
+            NSLog(@"Video decoding failed?");
         }
     } else {
         if (doneDownloading) {

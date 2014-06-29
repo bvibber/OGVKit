@@ -34,8 +34,9 @@
 - (id)init;
 - (void)receiveInput:(NSData *)data;
 - (BOOL)process;
+- (BOOL)decodeFrame;
+- (BOOL)decodeAudio;
 - (OGVFrameBuffer *)frameBuffer;
 - (OGVAudioBuffer *)audioBuffer;
-
 
 @end
