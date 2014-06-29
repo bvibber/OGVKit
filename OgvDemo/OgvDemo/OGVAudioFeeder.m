@@ -22,7 +22,7 @@
 
 @end
 
-static const int nBuffers = 3;
+static const int nBuffers = 16;
 
 typedef OSStatus (^OSStatusWrapperBlock)();
 
@@ -124,7 +124,7 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
     
     if (buffer.samples > 0) {
         [self queueInput:buffer];
-        if (!isStarting && !isRunning && [self buffersQueued] >= nBuffers * 2) {
+        if (!isStarting && !isRunning && [self buffersQueued] >= nBuffers) {
             NSLog(@"Starting audio!");
             [self startAudio];
         }
