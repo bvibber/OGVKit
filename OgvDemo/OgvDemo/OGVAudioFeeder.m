@@ -62,6 +62,8 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
     BOOL isStarting;
     BOOL isRunning;
     BOOL isClosing;
+    
+    float silenceTime;
 }
 
 -(id)initWithSampleRate:(int)sampleRate channels:(int)channels
@@ -73,6 +75,7 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
         isStarting = NO;
         isRunning = NO;
         isClosing = NO;
+        silenceTime = 0.0f;
         
         inputBuffers = [[NSMutableArray alloc] init];
         
@@ -121,13 +124,20 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
 {
     assert(buffer.samples <= bufferSize);
     
+    //NSLog(@"queuing samples: %d", buffer.samples);
     if (buffer.samples > 0) {
         [self queueInput:buffer];
+        //NSLog(@"buffer count: %d", [self buffersQueued]);
         if (!isStarting && !isRunning && [self buffersQueued] >= nBuffers) {
             NSLog(@"Starting audio!");
             [self startAudio];
         }
     }
+}
+
+-(BOOL)isStarted
+{
+    return isStarting || isRunning;
 }
 
 -(void)close
@@ -162,7 +172,7 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
         
         float timeInSeconds = (float)(ts.mSampleTime) / (float)self.sampleRate;
         //NSLog(@"PLAYBACK POSITION: %f", timeInSeconds);
-        return timeInSeconds;
+        return timeInSeconds - silenceTime;
     } else {
         return 0.0f;
     }
@@ -213,10 +223,11 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
         });
     } else {
         NSLog(@"starved for audio?");
-        /*
+        
+        // Buy us some decode time with some blank audio
+        silenceTime += ((float)bufferSize / (float)_sampleRate);
         buffer->mAudioDataByteSize = bufferByteSize;
         memset(buffer->mAudioData, 0, bufferByteSize);
-         */
     }
 }
 

@@ -13,6 +13,7 @@
 		D43A24EC195C027C00D38228 /* libOgvKit.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D43A24E7195C025E00D38228 /* libOgvKit.a */; };
 		D43A4DD7195ED76B00AD2D58 /* Main_iPad.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D43A4DD5195ED76B00AD2D58 /* Main_iPad.storyboard */; };
 		D4497D131831777C00B455DF /* OGVCommonsMediaList.m in Sources */ = {isa = PBXBuildFile; fileRef = D4497D121831777C00B455DF /* OGVCommonsMediaList.m */; };
+		D45C9344196174BC00662DB5 /* OGVDeviceClass.m in Sources */ = {isa = PBXBuildFile; fileRef = D45C9343196174BC00662DB5 /* OGVDeviceClass.m */; };
 		D4874831183074060073FC36 /* motd.json in Resources */ = {isa = PBXBuildFile; fileRef = D4874830183074060073FC36 /* motd.json */; };
 		D487483418307AED0073FC36 /* OGVCommonsMediaFile.m in Sources */ = {isa = PBXBuildFile; fileRef = D487483318307AED0073FC36 /* OGVCommonsMediaFile.m */; };
 		D487483518307AED0073FC36 /* OGVCommonsMediaFile.m in Sources */ = {isa = PBXBuildFile; fileRef = D487483318307AED0073FC36 /* OGVCommonsMediaFile.m */; };
@@ -82,6 +83,8 @@
 		D43A4DD6195ED76B00AD2D58 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main_iPad.storyboard; sourceTree = "<group>"; };
 		D4497D111831777C00B455DF /* OGVCommonsMediaList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVCommonsMediaList.h; sourceTree = "<group>"; };
 		D4497D121831777C00B455DF /* OGVCommonsMediaList.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVCommonsMediaList.m; sourceTree = "<group>"; };
+		D45C9342196174BC00662DB5 /* OGVDeviceClass.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVDeviceClass.h; sourceTree = "<group>"; };
+		D45C9343196174BC00662DB5 /* OGVDeviceClass.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVDeviceClass.m; sourceTree = "<group>"; };
 		D4874830183074060073FC36 /* motd.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = motd.json; sourceTree = "<group>"; };
 		D487483218307AED0073FC36 /* OGVCommonsMediaFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVCommonsMediaFile.h; sourceTree = "<group>"; };
 		D487483318307AED0073FC36 /* OGVCommonsMediaFile.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVCommonsMediaFile.m; sourceTree = "<group>"; };
@@ -166,6 +169,8 @@
 				D4A83417182A6EB80009A945 /* OGVFrameView.m */,
 				D4FF1489195F14FB009E926C /* OGVAudioFeeder.h */,
 				D4FF148A195F14FB009E926C /* OGVAudioFeeder.m */,
+				D45C9342196174BC00662DB5 /* OGVDeviceClass.h */,
+				D45C9343196174BC00662DB5 /* OGVDeviceClass.m */,
 			);
 			name = Player;
 			sourceTree = "<group>";
@@ -421,6 +426,7 @@
 				D4497D131831777C00B455DF /* OGVCommonsMediaList.m in Sources */,
 				D4FF1488195EE6F6009E926C /* OGVSplitViewController.m in Sources */,
 				D4EB24851825A81E008B9160 /* OGVViewController.m in Sources */,
+				D45C9344196174BC00662DB5 /* OGVDeviceClass.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

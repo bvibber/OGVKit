@@ -47,4 +47,9 @@
  */
 -(float)playbackPosition;
 
+/**
+ * Have we started?
+ */
+-(BOOL)isStarted;
+
 @end

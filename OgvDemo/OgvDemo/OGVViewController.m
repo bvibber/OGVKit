@@ -11,6 +11,7 @@
 
 #import <OgvKit/OgvKit.h>
 #import "OGVAudioFeeder.h"
+#import "OGVDeviceClass.h"
 
 typedef enum {
     OGVPlaybackResolution160p = 0,
@@ -67,6 +68,18 @@ typedef enum {
                 [self startDownload];
             }];
         }];
+    }
+    
+    // Select a default resolution based on the device's CPU type
+    OGVDeviceClass *device = [[OGVDeviceClass alloc] init];
+    if ([device isSimulator] || [device isAtLeastARM64]) {
+        // iPhone 5S (A7-class) runs real nice!
+        [self.resolutionPicker setSelectedSegmentIndex:OGVPlaybackResolution480p];
+    } else {
+        // iPod Touch 4 (A4-class) currently only handles 160p well
+        // todo: test iPod Touch 5 (A5-class)
+        // todo: test iPhone 5 (A6-class)
+        [self.resolutionPicker setSelectedSegmentIndex:OGVPlaybackResolution160p];
     }
 }
 
@@ -223,7 +236,8 @@ typedef enum {
             const float bufferDuration = (float)bufferSize / (float)decoder.audioRate;
 
             float audioBufferedDuration = [audioFeeder secondsQueued];
-            BOOL readyForAudio = (audioBufferedDuration <= bufferDuration * 2);
+            //NSLog(@"%f ms audio queued", audioBufferedDuration * 1000);
+            BOOL readyForAudio = (audioBufferedDuration <= bufferDuration * 2) || ![audioFeeder isStarted];
 
             float frameDelay = (frameEndTimestamp - [audioFeeder playbackPosition]);
             BOOL readyForFrame = (frameDelay <= fudgeDelta);
@@ -418,8 +432,8 @@ typedef enum {
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection
 {
-    NSLog(@"done downloading");
     dispatch_async(decodeQueue, ^() {
+        NSLog(@"done downloading");
         doneDownloading = YES;
         waitingForData = NO;
     });
