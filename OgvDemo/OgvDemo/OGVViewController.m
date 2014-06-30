@@ -132,15 +132,22 @@ typedef enum {
 - (void)stopWithBlock:(void (^)())completionBlock
 {
     if (playing) {
+        playing = NO;
+
         if (!doneDownloading) {
             [connection cancel];
         }
-        connection = nil;
-        playing = NO;
         
         dispatch_async(decodeQueue, ^() {
             decoder = nil;
-            dispatch_async(dispatch_get_main_queue(), completionBlock);
+            dispatch_async(dispatch_get_main_queue(), ^() {
+                connection = nil;
+
+                [audioFeeder close];
+                audioFeeder = nil;
+                
+                completionBlock();
+            });
         });
     } else {
         dispatch_async(dispatch_get_main_queue(), completionBlock);

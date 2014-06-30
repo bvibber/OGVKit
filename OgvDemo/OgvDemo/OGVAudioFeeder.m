@@ -58,8 +58,7 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
     
     UInt32 bufferSize;
     UInt32 bufferByteSize;
-    SInt64 mCurrentPacket;
-    UInt32 mNumPacketsToRead;
+
     BOOL isStarting;
     BOOL isRunning;
     BOOL isClosing;
@@ -120,7 +119,7 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
 
 -(void)bufferData:(OGVAudioBuffer *)buffer
 {
-    //NSLog(@"bufferData");
+    assert(buffer.samples <= bufferSize);
     
     if (buffer.samples > 0) {
         [self queueInput:buffer];
@@ -181,7 +180,7 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
 
     if (isClosing) {
         NSLog(@"Stopping queue");
-        AudioQueueStop(queue, NO);
+        AudioQueueStop(queue, YES);
         return;
     }
     
@@ -238,10 +237,15 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
 
 -(void)startAudio
 {
-    assert(!isStarting);
+    if (isStarting) {
+        // This... probably shouldn't happen.
+        return;
+    }
     assert(!isRunning);
     assert([inputBuffers count] >= nBuffers);
-    
+
+    isStarting = YES;
+
     [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback error:nil];
     
     // Prime the buffers!
@@ -259,8 +263,6 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
     throwIfError(^() {
         return AudioQueueStart(queue, NULL);
     });
-    
-    isStarting = YES;
 }
 
 -(int)buffersQueued
