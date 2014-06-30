@@ -188,9 +188,9 @@ typedef enum {
         more = [decoder process];
         if (!more) {
             if (doneDownloading) {
-                NSLog(@"out of data, closing");
                 // @todo wait for audio to run out!
                 float timeLeft = [audioFeeder secondsQueued];
+                NSLog(@"out of data, closing in %f ms", timeLeft * 1000.0f);
                 dispatch_time_t closeTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(timeLeft * NSEC_PER_SEC));
                 dispatch_after(closeTime, drawingQueue, ^{
                     [self stopWithBlock:^{}];

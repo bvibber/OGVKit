@@ -88,6 +88,8 @@
         
         process_audio = 1;
         process_video = 1;
+        
+        needData = YES;
     }
     return self;
 }
@@ -362,23 +364,27 @@
 
 - (BOOL)process
 {
-	if (ogg_sync_pageout(&oggSyncState, &oggPage) > 0) {
-        if (theora_p) {
-            ogg_stream_pagein(&theoraStreamState, &oggPage);
+    if (needData) {
+        if (ogg_sync_pageout(&oggSyncState, &oggPage) > 0) {
+            if (theora_p) {
+                ogg_stream_pagein(&theoraStreamState, &oggPage);
+            }
+            if (vorbis_p) {
+                ogg_stream_pagein(&vo, &oggPage);
+            }
+        } else {
+            // Out of data!
+            return 0;
         }
-        if (vorbis_p) {
-            ogg_stream_pagein(&vo, &oggPage);
-        }
-		if (appState == STATE_BEGIN) {
-			[self processBegin];
-		} else if (appState == STATE_HEADERS) {
-			[self processHeaders];
-		} else if (appState == STATE_DECODING) {
-			[self processDecoding];
-		}
-		return 1;
-	}
-	return 0;
+    }
+    if (appState == STATE_BEGIN) {
+        [self processBegin];
+    } else if (appState == STATE_HEADERS) {
+        [self processHeaders];
+    } else if (appState == STATE_DECODING) {
+        [self processDecoding];
+    }
+    return 1;
 }
 
 
