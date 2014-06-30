@@ -27,6 +27,8 @@ typedef enum {
 @implementation OGVViewController {
     OGVDecoder *decoder;
     NSURLConnection *connection;
+    OGVPlaybackResolution lastSelectedResolution;
+
     BOOL doneDownloading;
     BOOL waitingForData;
     BOOL playing;
@@ -74,13 +76,14 @@ typedef enum {
     OGVDeviceClass *device = [[OGVDeviceClass alloc] init];
     if ([device isSimulator] || [device isAtLeastARM64]) {
         // iPhone 5S (A7-class) runs real nice!
-        [self.resolutionPicker setSelectedSegmentIndex:OGVPlaybackResolution480p];
+        lastSelectedResolution = OGVPlaybackResolution480p;
     } else {
         // iPod Touch 4 (A4-class) currently only handles 160p well
         // todo: test iPod Touch 5 (A5-class)
         // todo: test iPhone 5 (A6-class)
-        [self.resolutionPicker setSelectedSegmentIndex:OGVPlaybackResolution160p];
+        lastSelectedResolution = OGVPlaybackResolution160p;
     }
+    [self.resolutionPicker setSelectedSegmentIndex:lastSelectedResolution];
 }
 
 - (void)setMediaSource:(OGVCommonsMediaFile *)mediaSource
@@ -101,6 +104,13 @@ typedef enum {
                     forSegmentAtIndex:OGVPlaybackResolution480p];
     [self.resolutionPicker setEnabled:[self.mediaSource isOgg]
                     forSegmentAtIndex:OGVPlaybackResolutionOrig];
+
+    // Reselect the last-human-selected resolution, so if we're
+    // running down the line on iPad we don't keep changing when
+    // some of them didn't have the selected res.
+    if ([self.resolutionPicker isEnabledForSegmentAtIndex:lastSelectedResolution]) {
+        [self.resolutionPicker setSelectedSegmentIndex:lastSelectedResolution];
+    }
 
     // Bump resolution down if the currently selected one isn't available?
     if (self.resolutionPicker.selectedSegmentIndex == UISegmentedControlNoSegment) {
@@ -440,6 +450,7 @@ typedef enum {
 }
 
 - (IBAction)resolutionPicked:(UISegmentedControl *)sender {
+    lastSelectedResolution = (OGVPlaybackResolution)self.resolutionPicker.selectedSegmentIndex;
     NSURL *url = [self selectPickedResolutionURL];
     NSLog(@"picked target: %@", url);
     if (url && ![url isEqual:self.mediaSourceURL]) {
