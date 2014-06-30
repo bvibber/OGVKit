@@ -218,7 +218,7 @@ typedef enum {
         
         if (decoder.hasAudio) {
             // Drive on the audio clock!
-            const float fudgeDelta = 0.1f;
+            const float fudgeDelta = 0.001f;
             const int bufferSize = 8192;
             const float bufferDuration = (float)bufferSize / (float)decoder.audioRate;
 
@@ -265,7 +265,6 @@ typedef enum {
             
             if ([nextDelays count]) {
                 NSArray *sortedDelays = [nextDelays sortedArrayUsingSelector:@selector(compare:)];
-                //NSLog(@"%@", sortedDelays);
                 NSNumber *nextDelay = sortedDelays[0];
                 [self pingProcessing:[nextDelay floatValue]];
 
@@ -298,7 +297,7 @@ typedef enum {
 
 - (void)pingProcessing:(float)delay
 {
-    NSLog(@"ping after %f ms", delay * 1000.0);
+    //NSLog(@"ping after %f ms", delay * 1000.0);
     // ...
     dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delay * NSEC_PER_SEC));
     dispatch_after(popTime, decodeQueue, ^() {
