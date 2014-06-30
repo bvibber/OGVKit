@@ -73,6 +73,12 @@ typedef enum {
 - (void)setMediaSource:(OGVCommonsMediaFile *)mediaSource
 {
     _mediaSource = mediaSource;
+    
+    if (self.resolutionPicker == nil) {
+        // We haven't loaded fully from the nib/storyboard yet
+        // Fill out the details later...
+        return;
+    }
 
     [self.resolutionPicker setEnabled:[self.mediaSource hasDerivativeForHeight:160]
                     forSegmentAtIndex:OGVPlaybackResolution160p];
@@ -144,8 +150,11 @@ typedef enum {
 - (void)viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
-    if (self.mediaSource) {
+    if (self.mediaSource && self.mediaSourceURL == nil) {
         if (!playing) {
+            // Force to reset details...
+            self.mediaSource = self.mediaSource;
+            assert(self.mediaSourceURL != nil);
             [self startDownload];
         }
     }
