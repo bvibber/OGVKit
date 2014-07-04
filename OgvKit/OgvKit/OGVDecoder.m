@@ -292,9 +292,9 @@
     size_t lengthCb = buffer.strideCb * (self.frameHeight >> self.vDecimation);
     size_t lengthCr = buffer.strideCr * (self.frameHeight >> self.vDecimation);
     
-    buffer.dataY = [NSData dataWithBytes:ycbcr[0].data length:lengthY];
-    buffer.dataCb = [NSData dataWithBytes:ycbcr[1].data length:lengthCb];
-    buffer.dataCr = [NSData dataWithBytes:ycbcr[2].data length:lengthCr];
+    buffer.dataY = [NSData dataWithBytesNoCopy:ycbcr[0].data length:lengthY freeWhenDone:NO];
+    buffer.dataCb = [NSData dataWithBytesNoCopy:ycbcr[1].data length:lengthCb freeWhenDone:NO];
+    buffer.dataCr = [NSData dataWithBytesNoCopy:ycbcr[2].data length:lengthCr freeWhenDone:NO];
     
     buffer.timestamp = videobuf_time;
     
