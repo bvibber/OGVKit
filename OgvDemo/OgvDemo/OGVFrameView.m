@@ -181,10 +181,11 @@ static GLfloat rectangle[] = {
 
 -(GLuint)setupTexturePosition:(NSString *)varname width:(int)texWidth height:(int)texHeight
 {
+    // Don't forget we're upside-down in OpenGL coordinate space
     GLfloat textureX0 = (float)nextFrame.pictureOffsetX / texWidth;
     GLfloat textureX1 = (float)(nextFrame.pictureOffsetX + nextFrame.pictureWidth) / texWidth;
-    GLfloat textureY0 = (float)nextFrame.pictureOffsetY / texHeight;
-    GLfloat textureY1 = (float)(nextFrame.pictureOffsetY + nextFrame.pictureHeight) / texHeight;
+    GLfloat textureY0 = (float)(nextFrame.pictureOffsetY + nextFrame.pictureHeight) / texHeight;
+    GLfloat textureY1 = (float)nextFrame.pictureOffsetY / texHeight;
     const GLfloat textureRectangle[] = {
         textureX0, textureY0,
         textureX1, textureY0,
