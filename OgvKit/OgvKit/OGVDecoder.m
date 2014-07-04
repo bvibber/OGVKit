@@ -13,6 +13,16 @@
 #include <vorbis/vorbisfile.h>
 #include <theora/theoradec.h>
 
+@interface OGVDecoder (Private)
+    -(void)stripeCallbackBuffer:(th_ycbcr_buffer)buf fragStart:(int)yfrag0 fragEnd:(int)yfrag_end;
+@end
+
+static void OGVDecoderStripeCallback(void *ctx, th_ycbcr_buffer buf, int yfrag0, int yfrag_end)
+{
+    OGVDecoder *decoder = (__bridge OGVDecoder *)ctx;
+    [decoder stripeCallbackBuffer:buf fragStart:yfrag0 fragEnd:yfrag_end];
+}
+
 @implementation OGVDecoder {
     /* Ogg and codec state for demux/decode */
     ogg_sync_state    oggSyncState;
@@ -24,6 +34,7 @@
     th_comment        theoraComment;
     th_setup_info    *theoraSetupInfo;
     th_dec_ctx       *theoraDecoderContext;
+    th_stripe_callback theoraDecoderCallback;
     
     int              theora_p;
     int              theora_processing_headers;
@@ -32,6 +43,9 @@
     int          videobuf_ready;
     ogg_int64_t  videobuf_granulepos;
     double       videobuf_time;
+    NSMutableData *dataY;
+    NSMutableData *dataCb;
+    NSMutableData *dataCr;
     OGVFrameBuffer *queuedFrame;
     
     int          audiobuf_ready;
@@ -185,7 +199,11 @@
     } else {
         /* and now we have it all.  initialize decoders */
         if(theora_p){
-            theoraDecoderContext=th_decode_alloc(&theoraInfo,theoraSetupInfo);
+            theoraDecoderContext = th_decode_alloc(&theoraInfo, theoraSetupInfo);
+
+            theoraDecoderCallback.ctx = (__bridge void *)self;
+            theoraDecoderCallback.stripe_decoded = OGVDecoderStripeCallback;
+            th_decode_ctl(theoraDecoderContext, TH_DECCTL_SET_STRIPE_CB, &theoraDecoderCallback, sizeof(theoraDecoderCallback));
             
             self.hasVideo = YES;
 			self.frameWidth = theoraInfo.frame_width;
@@ -242,7 +260,27 @@
 		return NO;
 	}
 	videobuf_ready=0;
-	int ret = th_decode_packetin(theoraDecoderContext, &theoraPacket, &videobuf_granulepos);
+
+    assert(queuedFrame == nil);
+    OGVFrameBuffer *buffer = [[OGVFrameBuffer alloc] init];
+    
+    buffer.frameWidth = self.frameWidth;
+    buffer.frameHeight = self.frameHeight;
+    buffer.pictureWidth = self.pictureWidth;
+    buffer.pictureHeight = self.pictureHeight;
+    buffer.pictureOffsetX = self.pictureOffsetX;
+    buffer.pictureOffsetY = self.pictureOffsetY;
+    buffer.hDecimation = self.hDecimation;
+    buffer.vDecimation = self.vDecimation;
+    
+    // Allocate these once we know the stride size
+    buffer.dataY = nil;
+    buffer.dataCb = nil;
+    buffer.dataCr = nil;
+    
+    queuedFrame = buffer; // work in progress :D
+	
+    int ret = th_decode_packetin(theoraDecoderContext, &theoraPacket, &videobuf_granulepos);
 	if (ret == 0){
 		double t = th_granule_time(theoraDecoderContext,videobuf_granulepos);
 		if (t > 0) {
@@ -268,38 +306,47 @@
 
 -(void)doDecodeFrame
 {
-    assert(queuedFrame == nil);
+    assert(queuedFrame != nil);
     
-    th_ycbcr_buffer ycbcr;
-    th_decode_ycbcr_out(theoraDecoderContext,ycbcr);
-    
-    OGVFrameBuffer *buffer = [[OGVFrameBuffer alloc] init];
-    
-    buffer.frameWidth = self.frameWidth;
-    buffer.frameHeight = self.frameHeight;
-    buffer.pictureWidth = self.pictureWidth;
-    buffer.pictureHeight = self.pictureHeight;
-    buffer.pictureOffsetX = self.pictureOffsetX;
-    buffer.pictureOffsetY = self.pictureOffsetY;
-    buffer.hDecimation = self.hDecimation;
-    buffer.vDecimation = self.vDecimation;
-    
-    buffer.strideY = ycbcr[0].stride;
-    buffer.strideCb = ycbcr[1].stride;
-    buffer.strideCr = ycbcr[2].stride;
-    
-    size_t lengthY = buffer.strideY * self.frameHeight;
-    size_t lengthCb = buffer.strideCb * (self.frameHeight >> self.vDecimation);
-    size_t lengthCr = buffer.strideCr * (self.frameHeight >> self.vDecimation);
-    
-    buffer.dataY = [NSData dataWithBytes:ycbcr[0].data length:lengthY];
-    buffer.dataCb = [NSData dataWithBytes:ycbcr[1].data length:lengthCb];
-    buffer.dataCr = [NSData dataWithBytes:ycbcr[2].data length:lengthCr];
-    
-    buffer.timestamp = videobuf_time;
-    
-    queuedFrame = buffer;
+    queuedFrame.timestamp = videobuf_time;
 }
+
+-(void)stripeCallbackBuffer:(th_ycbcr_buffer)ycbcr fragStart:(int)yfrag0 fragEnd:(int)yfrag_end
+{
+    if (queuedFrame.dataY == nil) {
+        queuedFrame.strideY = ycbcr[0].stride;
+        queuedFrame.strideCb = ycbcr[1].stride;
+        queuedFrame.strideCr = ycbcr[2].stride;
+        
+        size_t lengthY = queuedFrame.strideY * self.frameHeight;
+        size_t lengthCb = queuedFrame.strideCb * (self.frameHeight >> self.vDecimation);
+        size_t lengthCr = queuedFrame.strideCr * (self.frameHeight >> self.vDecimation);
+        
+        queuedFrame.dataY = dataY = [[NSMutableData alloc] initWithLength:lengthY];
+        queuedFrame.dataCb = dataCb = [[NSMutableData alloc] initWithLength:lengthCb];
+        queuedFrame.dataCr = dataCr = [[NSMutableData alloc] initWithLength:lengthCr];
+    }
+
+    const int y0 = yfrag0 * 8;
+    const int y1 = yfrag_end * 8;
+    int start, end, stride;
+
+    stride = ycbcr[0].stride;
+    start = y0 * stride;
+    end = y1 * stride;
+    [dataY replaceBytesInRange:NSMakeRange(start, end - start) withBytes:(ycbcr[0].data + start)];
+
+    stride = ycbcr[1].stride;
+    start = (y0 >> self.vDecimation) * stride;
+    end = (y1 >> self.vDecimation) * stride;
+    [dataCb replaceBytesInRange:NSMakeRange(start, end - start) withBytes:(ycbcr[1].data + start)];
+
+    stride = ycbcr[2].stride;
+    start = (y0 >> self.vDecimation) * stride;
+    end = (y1 >> self.vDecimation) * stride;
+    [dataCr replaceBytesInRange:NSMakeRange(start, end - start) withBytes:(ycbcr[2].data + start)];
+}
+
 
 - (BOOL)decodeAudio
 {
