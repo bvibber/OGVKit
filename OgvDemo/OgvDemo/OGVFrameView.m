@@ -50,16 +50,17 @@ static GLfloat rectangle[] = {
 
 - (void)drawRect:(CGRect)rect
 {
-    if (!program) {
-        [self setupGLStuff];
-    }
-
     glClearColor(0, 0, 0, 1);
     [self debugCheck];
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glDepthMask(GL_TRUE); // voodoo from http://stackoverflow.com/questions/5470822/ios-opengl-es-logical-buffer-loads
+    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
     [self debugCheck];
 
+    if (!program) {
+        [self setupGLStuff];
+    }
+    
     if (nextFrame) {
         // Set up our rectangle as a buffer...
         GLuint rectangleBuffer;
@@ -225,48 +226,64 @@ static GLfloat rectangle[] = {
     if (textures[index] != 0) {
         // Reuse & update the existing texture
         texture = textures[index];
+
+        glActiveTexture(reg);
+        [self debugCheck];
+        
+        glTexSubImage2D(GL_TEXTURE_2D,
+                        0, // mip level
+                        0, // x
+                        0, // y
+                        texWidth,
+                        texHeight,
+                        GL_LUMINANCE, // format
+                        GL_UNSIGNED_BYTE,
+                        [data bytes]);
+        [self debugCheck];
+
     } else {
         glGenTextures(1, &texture);
         [self debugCheck];
         textures[index] = texture;
+        
+        glActiveTexture(reg);
+        [self debugCheck];
+
+        glBindTexture(GL_TEXTURE_2D, texture);
+        [self debugCheck];
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        [self debugCheck];
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        [self debugCheck];
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        [self debugCheck];
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        [self debugCheck];
+        
+        GLuint uniformLoc = glGetUniformLocation(program, [varname UTF8String]);
+        [self debugCheck];
+        
+        glUniform1i(uniformLoc, index);
+        [self debugCheck];
+
+        glTexImage2D(GL_TEXTURE_2D,
+                     0, // mip level
+                     GL_LUMINANCE, // internal format
+                     texWidth,
+                     texHeight,
+                     0, // border
+                     GL_LUMINANCE, // format
+                     GL_UNSIGNED_BYTE,
+                     [data bytes]);
+        [self debugCheck];
     }
-    
-    glActiveTexture(reg);
-    [self debugCheck];
-    glBindTexture(GL_TEXTURE_2D, texture);
-    [self debugCheck];
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    [self debugCheck];
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    [self debugCheck];
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    [self debugCheck];
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    [self debugCheck];
-    
-    glTexImage2D(GL_TEXTURE_2D,
-                 0, // mip level
-                 GL_LUMINANCE, // internal format
-                 texWidth,
-                 texHeight,
-                 0, // border
-                 GL_LUMINANCE, // format
-                 GL_UNSIGNED_BYTE,
-                 [data bytes]);
-    [self debugCheck];
-    
-    GLuint uniformLoc = glGetUniformLocation(program, [varname UTF8String]);
-    [self debugCheck];
-    
-    glUniform1i(uniformLoc, index);
-    [self debugCheck];
     
     return texture;
 }
 
 -(void)debugCheck
 {
-    if (YES) {
+    if (NO) {
         GLenum err = glGetError();
         if (err != GL_NO_ERROR) {
             NSString *str = [self stringForGLError:err];
