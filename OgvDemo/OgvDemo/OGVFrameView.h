@@ -7,9 +7,10 @@
 //
 
 #import <UIKit/UIKit.h>
+#import <GLKit/GLKit.h>
 #import <OgvKit/OgvKit.h>
 
-@interface OGVFrameView : UIImageView
+@interface OGVFrameView : GLKView
 
 - (void)drawFrame:(OGVFrameBuffer *)buffer;
 

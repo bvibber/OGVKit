@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="5056" systemVersion="13D65" targetRuntime="iOS.CocoaTouch.iPad" propertyAccessControl="none" useAutolayout="YES" initialViewController="Oh6-NN-6jZ">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="5056" systemVersion="13E28" targetRuntime="iOS.CocoaTouch.iPad" propertyAccessControl="none" useAutolayout="YES" initialViewController="Oh6-NN-6jZ">
     <dependencies>
         <deployment defaultVersion="1536" identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="3733"/>
@@ -17,11 +17,10 @@
                         <rect key="frame" x="0.0" y="0.0" width="703" height="768"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="black.png" translatesAutoresizingMaskIntoConstraints="NO" id="QMM-HX-RpJ" customClass="OGVFrameView">
+                            <glkView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" translatesAutoresizingMaskIntoConstraints="NO" id="7uo-lo-Klj" customClass="OGVFrameView">
                                 <rect key="frame" x="0.0" y="0.0" width="703" height="768"/>
-                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                                <color key="backgroundColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                            </imageView>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                            </glkView>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="hvj-DQ-crr">
                                 <rect key="frame" x="0.0" y="688" width="703" height="80"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
@@ -79,11 +78,11 @@
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                         <constraints>
-                            <constraint firstItem="gFv-uk-OtF" firstAttribute="top" secondItem="QMM-HX-RpJ" secondAttribute="bottom" id="2os-XN-dyU"/>
-                            <constraint firstItem="QMM-HX-RpJ" firstAttribute="top" secondItem="kh9-bI-dsS" secondAttribute="top" id="8ol-aJ-q1d"/>
+                            <constraint firstItem="7uo-lo-Klj" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leading" id="CeJ-Tn-ClS"/>
                             <constraint firstAttribute="trailing" secondItem="hvj-DQ-crr" secondAttribute="trailing" id="Svx-lq-HEm"/>
-                            <constraint firstItem="QMM-HX-RpJ" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leading" id="bU7-OO-6RD"/>
-                            <constraint firstAttribute="trailing" secondItem="QMM-HX-RpJ" secondAttribute="trailing" id="kQf-Co-v8P"/>
+                            <constraint firstItem="7uo-lo-Klj" firstAttribute="top" secondItem="kh9-bI-dsS" secondAttribute="top" id="UXx-n9-IsL"/>
+                            <constraint firstAttribute="trailing" secondItem="7uo-lo-Klj" secondAttribute="trailing" id="ZOu-uj-y40"/>
+                            <constraint firstAttribute="bottom" secondItem="7uo-lo-Klj" secondAttribute="bottom" id="wCY-cl-j76"/>
                             <constraint firstItem="gFv-uk-OtF" firstAttribute="top" secondItem="hvj-DQ-crr" secondAttribute="bottom" id="wqm-vP-Dwc"/>
                             <constraint firstItem="hvj-DQ-crr" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leading" id="ye6-rz-2NS"/>
                         </constraints>
@@ -92,7 +91,7 @@
                     <navigationItem key="navigationItem" id="i1c-a7-6sp"/>
                     <simulatedOrientationMetrics key="simulatedOrientationMetrics" orientation="landscapeRight"/>
                     <connections>
-                        <outlet property="frameView" destination="QMM-HX-RpJ" id="Raf-r9-nWE"/>
+                        <outlet property="frameView" destination="7uo-lo-Klj" id="LBN-dA-gbL"/>
                         <outlet property="playPauseButton" destination="02w-P5-8AP" id="o4l-vL-oaC"/>
                         <outlet property="positionSlider" destination="WWg-A1-uwM" id="4bL-vq-ggE"/>
                         <outlet property="resolutionPicker" destination="uSE-1g-yVb" id="4id-rv-zOZ"/>
@@ -100,7 +99,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="x5A-6p-PRh" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-716" y="1169"/>
+            <point key="canvasLocation" x="-790" y="1069"/>
         </scene>
         <!--Table View Controller - OgvDemo-->
         <scene sceneID="8YZ-xR-b7B">
@@ -180,7 +179,6 @@
         <!--Navigation Controller-->
         <scene sceneID="Grr-ac-YSW">
             <objects>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="5gY-SK-ddP" userLabel="First Responder" sceneMemberID="firstResponder"/>
                 <navigationController definesPresentationContext="YES" id="c2O-Fs-dZm" customClass="OGVNavigationController" sceneMemberID="viewController">
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="n9C-Gn-ckc">
                         <autoresizingMask key="autoresizingMask"/>
@@ -189,13 +187,11 @@
                         <segue destination="lgn-kl-kcH" kind="relationship" relationship="rootViewController" id="AMF-oM-aFi"/>
                     </connections>
                 </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="5gY-SK-ddP" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="-692" y="-243"/>
         </scene>
     </scenes>
-    <resources>
-        <image name="black.png" width="1" height="1"/>
-    </resources>
     <simulatedMetricsContainer key="defaultSimulatedMetrics">
         <simulatedStatusBarMetrics key="statusBar"/>
         <simulatedOrientationMetrics key="orientation"/>

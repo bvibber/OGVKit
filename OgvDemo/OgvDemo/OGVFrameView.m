@@ -8,7 +8,36 @@
 
 #import "OGVFrameView.h"
 
-@implementation OGVFrameView
+@interface OGVFrameView (Private)
+-(GLuint)setupTexturePosition:(NSString *)varname width:(int)texWidth height:(int)texHeight;
+@end
+
+// In the world of GL there are no rectangles.
+// There are only triangles.
+// THERE IS NO SPOON.
+static const GLuint rectanglePoints = 6;
+static GLfloat rectangle[] = {
+    // First triangle (top left, clockwise)
+    -1.0, -1.0,
+    +1.0, -1.0,
+    -1.0, +1.0,
+    
+    // Second triangle (bottom right, clockwise)
+    -1.0, +1.0,
+    +1.0, -1.0,
+    +1.0, +1.0
+};
+
+@implementation OGVFrameView {
+    OGVFrameBuffer *nextFrame;
+    GLuint vertexShader;
+    GLuint fragmentShader;
+    GLuint program;
+    GLuint textures[3];
+    
+}
+
+#pragma mark GLKView method overrides
 
 - (id)initWithFrame:(CGRect)frame
 {
@@ -19,90 +48,249 @@
     return self;
 }
 
-/*
-// Only override drawRect: if you perform custom drawing.
-// An empty implementation adversely affects performance during animation.
 - (void)drawRect:(CGRect)rect
 {
-    // Drawing code
+    if (!program) {
+        [self setupGLStuff];
+    }
+
+    glClearColor(0, 0, 0, 1);
+    [self debugCheck];
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    [self debugCheck];
+
+    if (nextFrame) {
+        // Set up our rectangle as a buffer...
+        GLuint rectangleBuffer;
+        glGenBuffers(1, &rectangleBuffer);
+        [self debugCheck];
+
+        glBindBuffer(GL_ARRAY_BUFFER, rectangleBuffer);
+        [self debugCheck];
+
+        glBufferData(GL_ARRAY_BUFFER, rectanglePoints * sizeof(GLfloat) * 2, rectangle, GL_STATIC_DRAW);
+        [self debugCheck];
+        
+        // Assign the rectangle to the position input on the vertex shader
+        GLuint positionLocation = glGetAttribLocation(program, "aPosition");
+        [self debugCheck];
+
+        glEnableVertexAttribArray(positionLocation);
+        [self debugCheck];
+
+        glVertexAttribPointer(positionLocation, 2, GL_FLOAT, false, 0, 0);
+        [self debugCheck];
+        
+        
+        GLuint lumaPositionBuffer = [self setupTexturePosition:@"aLumaPosition"
+                                                         width:nextFrame.strideY
+                                                        height:nextFrame.frameHeight];
+        GLuint chromaPositionBuffer = [self setupTexturePosition:@"aChromaPosition"
+                                                           width:nextFrame.strideCb << nextFrame.hDecimation
+                                                          height:nextFrame.frameHeight];
+        
+        [self attachTexture:@"uTextureY"
+                        reg:GL_TEXTURE0
+                      index:0
+                      width:nextFrame.strideY
+                     height:nextFrame.frameHeight
+                       data:nextFrame.dataY];
+
+        [self attachTexture:@"uTextureCb"
+                        reg:GL_TEXTURE1
+                      index:1
+                      width:nextFrame.strideCb
+                     height:nextFrame.frameHeight >> nextFrame.vDecimation
+                       data:nextFrame.dataCb];
+
+        [self attachTexture:@"uTextureCr"
+                        reg:GL_TEXTURE2
+                      index:2
+                      width:nextFrame.strideCr
+                     height:nextFrame.frameHeight >> nextFrame.vDecimation
+                       data:nextFrame.dataCr];
+        
+        glDrawArrays(GL_TRIANGLES, 0, rectanglePoints);
+        [self debugCheck];
+        
+        glDeleteBuffers(1, &chromaPositionBuffer);
+        [self debugCheck];
+        glDeleteBuffers(1, &lumaPositionBuffer);
+        [self debugCheck];
+        glDeleteBuffers(1, &rectangleBuffer);
+        [self debugCheck];
+        
+        // @todo destroy textures when tearing down, do we need to?
+    }
+    
 }
-*/
+
+#pragma mark OGVFrameView methods
 
 - (void)drawFrame:(OGVFrameBuffer *)buffer
 {
-    self.image = [self imageWithBuffer:buffer];
+    if (!self.context) {
+        self.context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3];
+        [EAGLContext setCurrentContext:self.context];
+    }
+
+    nextFrame = buffer;
+    //[self drawRect:self.frame];
+    [self setNeedsDisplay];
 }
+
 
 #pragma mark Private methods
 
-static inline int clamp(int i) {
-    if (i < 0) {
-        return 0;
-    } else if (i > 0xff00) {
-        return 0xff00;
-    } else {
-        return i;
-    }
+-(void)setupGLStuff
+{
+    vertexShader = [self compileShader:GL_VERTEX_SHADER fromFile:@"YCbCr-vertex"];
+    fragmentShader = [self compileShader:GL_FRAGMENT_SHADER fromFile:@"YCbCr-fragment"];
+    
+    program = glCreateProgram();
+    [self debugCheck];
+    glAttachShader(program, vertexShader);
+    [self debugCheck];
+    glAttachShader(program, fragmentShader);
+    [self debugCheck];
+    glLinkProgram(program);
+    [self debugCheck];
+    glUseProgram(program);
+    [self debugCheck];
 }
 
-- (NSData *)convertYCbCrToRGBA:(OGVFrameBuffer *)buffer
+-(GLuint)compileShader:(GLenum)shaderType fromFile:(NSString *)filename
 {
-    int width = buffer.frameWidth;
-    int height = buffer.frameHeight;
-    int length = width * height * 4;
-    int hdec = buffer.hDecimation;
-    int vdec = buffer.vDecimation;
-    unsigned char *bytes = malloc(length);
-    unsigned char *outPtr = bytes;
+    NSString *path = [[NSBundle mainBundle] pathForResource:filename ofType:@"glsl"];
+    NSData *data = [NSData dataWithContentsOfFile:path];
+    GLuint shader = glCreateShader(shaderType);
+    [self debugCheck];
     
-    for (unsigned int y = 0; y < height; y++) {
-        int ydec = y >> vdec;
-        unsigned char *YPtr = (unsigned char *)buffer.dataY.bytes + y * buffer.strideY;
-        unsigned char *CbPtr = (unsigned char *)buffer.dataCb.bytes + ydec * buffer.strideCb;
-        unsigned char *CrPtr = (unsigned char *)buffer.dataCr.bytes + ydec * buffer.strideCr;
-        for (unsigned int x = 0; x < width; x++) {
-            int xdec = x >> hdec;
-            int colorY = YPtr[x];
-            int colorCb = CbPtr[xdec];
-            int colorCr = CrPtr[xdec];
-            
-            // Quickie YUV conversion
-            // https://en.wikipedia.org/wiki/YCbCr#ITU-R_BT.2020_conversion
-            unsigned int multY = (298 * colorY);
-            *(outPtr++) = clamp((multY + (409 * colorCr) - 223*256)) >> 8;
-            *(outPtr++) = clamp((multY - (100 * colorCb) - (208 * colorCr) + 136*256)) >> 8;
-            *(outPtr++) = clamp((multY + (516 * colorCb) - 277*256)) >> 8;
-            *(outPtr++) = 0;
+    const GLchar *str = [data bytes];
+    const GLint len = (GLint)[data length];
+    glShaderSource(shader, 1, &str, &len);
+    [self debugCheck];
+    glCompileShader(shader);
+    [self debugCheck];
+
+    // todo: error handling? meh whatever
+    
+    return shader;
+}
+
+-(GLuint)setupTexturePosition:(NSString *)varname width:(int)texWidth height:(int)texHeight
+{
+    GLfloat textureX0 = (float)nextFrame.pictureOffsetX / texWidth;
+    GLfloat textureX1 = (float)(nextFrame.pictureOffsetX + nextFrame.pictureWidth) / texWidth;
+    GLfloat textureY0 = (float)nextFrame.pictureOffsetY / texHeight;
+    GLfloat textureY1 = (float)(nextFrame.pictureOffsetY + nextFrame.pictureHeight) / texHeight;
+    const GLfloat textureRectangle[] = {
+        textureX0, textureY0,
+        textureX1, textureY0,
+        textureX0, textureY1,
+        textureX0, textureY1,
+        textureX1, textureY0,
+        textureX1, textureY1
+    };
+    
+    GLuint texturePositionBuffer;
+    glGenBuffers(1, &texturePositionBuffer);
+    [self debugCheck];
+    glBindBuffer(GL_ARRAY_BUFFER, texturePositionBuffer);
+    [self debugCheck];
+    glBufferData(GL_ARRAY_BUFFER, rectanglePoints * sizeof(GLfloat) * 2, textureRectangle, GL_STATIC_DRAW);
+    [self debugCheck];
+    
+    GLuint texturePositionLocation = glGetAttribLocation(program, [varname UTF8String]);
+    [self debugCheck];
+    glEnableVertexAttribArray(texturePositionLocation);
+    [self debugCheck];
+    glVertexAttribPointer(texturePositionLocation, 2, GL_FLOAT, false, 0, 0);
+    [self debugCheck];
+    
+    return texturePositionBuffer;
+}
+
+-(GLuint)attachTexture:(NSString *)varname
+                   reg:(GLenum)reg
+                 index:(GLuint)index
+                 width:(GLuint)texWidth
+                height:(GLuint)texHeight
+                  data:(NSData *)data
+{
+    GLuint texture;
+    
+    if (textures[index] != 0) {
+        // Reuse & update the existing texture
+        texture = textures[index];
+    } else {
+        glGenTextures(1, &texture);
+        [self debugCheck];
+        textures[index] = texture;
+    }
+    
+    glActiveTexture(reg);
+    [self debugCheck];
+    glBindTexture(GL_TEXTURE_2D, texture);
+    [self debugCheck];
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    [self debugCheck];
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    [self debugCheck];
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    [self debugCheck];
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    [self debugCheck];
+    
+    glTexImage2D(GL_TEXTURE_2D,
+                 0, // mip level
+                 GL_LUMINANCE, // internal format
+                 texWidth,
+                 texHeight,
+                 0, // border
+                 GL_LUMINANCE, // format
+                 GL_UNSIGNED_BYTE,
+                 [data bytes]);
+    [self debugCheck];
+    
+    GLuint uniformLoc = glGetUniformLocation(program, [varname UTF8String]);
+    [self debugCheck];
+    
+    glUniform1i(uniformLoc, index);
+    [self debugCheck];
+    
+    return texture;
+}
+
+-(void)debugCheck
+{
+    if (YES) {
+        GLenum err = glGetError();
+        if (err != GL_NO_ERROR) {
+            NSString *str = [self stringForGLError:err];
+            NSLog(@"GL error: %d %@", (int)err, str);
+            @throw [NSException exceptionWithName:@"OGVFrameViewException"
+                                           reason:str
+                                         userInfo:@{@"glError": @((int)err),
+                                                    @"glErrorString": str}];
         }
     }
-    
-    return [NSData dataWithBytesNoCopy:bytes length:length];
 }
 
-- (UIImage *)imageWithBuffer:(OGVFrameBuffer *)buffer
+-(NSString *)stringForGLError:(GLenum)err
 {
-    NSData *data = [self convertYCbCrToRGBA:buffer];
-    CGDataProviderRef dataProviderRef = CGDataProviderCreateWithCFData((__bridge CFDataRef)data);
-    CGColorSpaceRef colorSpaceRef = CGColorSpaceCreateDeviceRGB();
-    CGImageRef imageRef = CGImageCreate(buffer.frameWidth,
-                                        buffer.frameHeight,
-                                        8 /* bitsPerColorComponent */,
-                                        32 /* bitsPerPixel */,
-                                        4 * buffer.frameWidth /* bytesPerRow */,
-                                        colorSpaceRef,
-                                        kCGBitmapByteOrder32Big | kCGImageAlphaNone,
-                                        dataProviderRef,
-                                        NULL,
-                                        YES /* shouldInterpolate */,
-                                        kCGRenderingIntentDefault);
-    
-    UIImage *image = [UIImage imageWithCGImage:imageRef];
-    
-    CGDataProviderRelease(dataProviderRef);
-    CGColorSpaceRelease(colorSpaceRef);
-    CGImageRelease(imageRef);
-    
-    return image;
+    switch (err) {
+        case GL_NO_ERROR: return @"GL_NO_ERROR";
+        case GL_INVALID_ENUM: return @"GL_INVALID_ENUM";
+        case GL_INVALID_VALUE: return @"GL_INVALID_VALUE";
+        case GL_INVALID_OPERATION: return @"GL_INVALID_OPERATION";
+        case GL_INVALID_FRAMEBUFFER_OPERATION: return @"GL_INVALID_FRAMEBUFFER_OPERATION";
+        case GL_OUT_OF_MEMORY: return @"GL_OUT_OF_MEMORY";
+        case GL_STACK_UNDERFLOW: return @"GL_STACK_UNDERFLOW";
+        case GL_STACK_OVERFLOW: return @"GL_STACK_OVERFLOW";
+        default: return @"Unknown error";
+    }
 }
 
 @end

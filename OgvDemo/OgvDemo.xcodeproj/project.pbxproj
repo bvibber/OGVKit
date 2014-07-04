@@ -23,6 +23,9 @@
 		D4A25B7C182E5D81009902D2 /* theorafish-152.png in Resources */ = {isa = PBXBuildFile; fileRef = D4A25B77182E5D81009902D2 /* theorafish-152.png */; };
 		D4A25B7D182E5D81009902D2 /* theorafish-320.png in Resources */ = {isa = PBXBuildFile; fileRef = D4A25B78182E5D81009902D2 /* theorafish-320.png */; };
 		D4A83418182A6EB80009A945 /* OGVFrameView.m in Sources */ = {isa = PBXBuildFile; fileRef = D4A83417182A6EB80009A945 /* OGVFrameView.m */; };
+		D4AE151F196690670048BDD2 /* YCbCr-fragment.glsl in Resources */ = {isa = PBXBuildFile; fileRef = D4AE151D196690670048BDD2 /* YCbCr-fragment.glsl */; };
+		D4AE1520196690670048BDD2 /* YCbCr-vertex.glsl in Resources */ = {isa = PBXBuildFile; fileRef = D4AE151E196690670048BDD2 /* YCbCr-vertex.glsl */; };
+		D4AE1523196694300048BDD2 /* GLKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4AE1522196694300048BDD2 /* GLKit.framework */; };
 		D4B2501A183012F8007E8EA6 /* OGVNavigationController.m in Sources */ = {isa = PBXBuildFile; fileRef = D4B25019183012F8007E8EA6 /* OGVNavigationController.m */; };
 		D4B2501D1830140D007E8EA6 /* OGVTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D4B2501C1830140D007E8EA6 /* OGVTableViewController.m */; };
 		D4EB246C1825A81E008B9160 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4EB246B1825A81E008B9160 /* Foundation.framework */; };
@@ -95,6 +98,9 @@
 		D4A25B78182E5D81009902D2 /* theorafish-320.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "theorafish-320.png"; path = "logo/theorafish-320.png"; sourceTree = SOURCE_ROOT; };
 		D4A83416182A6EB80009A945 /* OGVFrameView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVFrameView.h; sourceTree = "<group>"; };
 		D4A83417182A6EB80009A945 /* OGVFrameView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVFrameView.m; sourceTree = "<group>"; };
+		D4AE151D196690670048BDD2 /* YCbCr-fragment.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "YCbCr-fragment.glsl"; sourceTree = "<group>"; };
+		D4AE151E196690670048BDD2 /* YCbCr-vertex.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "YCbCr-vertex.glsl"; sourceTree = "<group>"; };
+		D4AE1522196694300048BDD2 /* GLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLKit.framework; path = System/Library/Frameworks/GLKit.framework; sourceTree = SDKROOT; };
 		D4B25018183012F8007E8EA6 /* OGVNavigationController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVNavigationController.h; sourceTree = "<group>"; };
 		D4B25019183012F8007E8EA6 /* OGVNavigationController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVNavigationController.m; sourceTree = "<group>"; };
 		D4B2501B1830140D007E8EA6 /* OGVTableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVTableViewController.h; sourceTree = "<group>"; };
@@ -130,6 +136,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D4AE1523196694300048BDD2 /* GLKit.framework in Frameworks */,
 				D4FF148D195F3926009E926C /* AudioToolbox.framework in Frameworks */,
 				D43A24EC195C027C00D38228 /* libOgvKit.a in Frameworks */,
 				D4EB246E1825A81E008B9160 /* CoreGraphics.framework in Frameworks */,
@@ -233,6 +240,7 @@
 		D4EB246A1825A81E008B9160 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				D4AE1522196694300048BDD2 /* GLKit.framework */,
 				D4FF148C195F3926009E926C /* AudioToolbox.framework */,
 				D43A24E1195C025E00D38228 /* OgvKit.xcodeproj */,
 				D4EB246B1825A81E008B9160 /* Foundation.framework */,
@@ -257,6 +265,8 @@
 		D4EB24721825A81E008B9160 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				D4AE151D196690670048BDD2 /* YCbCr-fragment.glsl */,
+				D4AE151E196690670048BDD2 /* YCbCr-vertex.glsl */,
 				D4EB24731825A81E008B9160 /* OgvDemo-Info.plist */,
 				D4EB24741825A81E008B9160 /* InfoPlist.strings */,
 				D4EB24771825A81E008B9160 /* main.m */,
@@ -388,7 +398,9 @@
 			files = (
 				D4EB24871825A81E008B9160 /* Images.xcassets in Resources */,
 				D4A25B7B182E5D81009902D2 /* theorafish-120.png in Resources */,
+				D4AE1520196690670048BDD2 /* YCbCr-vertex.glsl in Resources */,
 				D4A25B7A182E5D81009902D2 /* theorafish-76.png in Resources */,
+				D4AE151F196690670048BDD2 /* YCbCr-fragment.glsl in Resources */,
 				D43A4DD7195ED76B00AD2D58 /* Main_iPad.storyboard in Resources */,
 				D4A25B7D182E5D81009902D2 /* theorafish-320.png in Resources */,
 				D4A25B79182E5D81009902D2 /* theorafish-64.png in Resources */,
