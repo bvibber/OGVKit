@@ -132,8 +132,11 @@ static GLfloat rectangle[] = {
 - (void)drawFrame:(OGVFrameBuffer *)buffer
 {
     if (!self.context) {
-        self.context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3];
-        [EAGLContext setCurrentContext:self.context];
+        EAGLContext *context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3];
+        if (context == nil) {
+            context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
+        }
+        self.context = context;
     }
 
     nextFrame = buffer;
