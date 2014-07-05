@@ -16,17 +16,6 @@
 // There are only triangles.
 // THERE IS NO SPOON.
 static const GLuint rectanglePoints = 6;
-static GLfloat rectangle[] = {
-    // First triangle (top left, clockwise)
-    -1.0, -1.0,
-    +1.0, -1.0,
-    -1.0, +1.0,
-    
-    // Second triangle (bottom right, clockwise)
-    -1.0, +1.0,
-    +1.0, -1.0,
-    +1.0, +1.0
-};
 
 @implementation OGVFrameView {
     OGVFrameBuffer *nextFrame;
@@ -71,27 +60,9 @@ static GLfloat rectangle[] = {
     [self debugCheck];
 
     if (nextFrame) {
-        // Set up our rectangle as a buffer...
-        GLuint rectangleBuffer;
-        glGenBuffers(1, &rectangleBuffer);
-        [self debugCheck];
-
-        glBindBuffer(GL_ARRAY_BUFFER, rectangleBuffer);
-        [self debugCheck];
-
-        glBufferData(GL_ARRAY_BUFFER, rectanglePoints * sizeof(GLfloat) * 2, rectangle, GL_STATIC_DRAW);
-        [self debugCheck];
-        
-        // Assign the rectangle to the position input on the vertex shader
-        GLuint positionLocation = glGetAttribLocation(program, "aPosition");
-        [self debugCheck];
-
-        glEnableVertexAttribArray(positionLocation);
-        [self debugCheck];
-
-        glVertexAttribPointer(positionLocation, 2, GL_FLOAT, false, 0, 0);
-        [self debugCheck];
-        
+        GLuint rectangleBuffer = [self setupPosition:@"aPosition"
+                                               width:self.frame.size.width
+                                              height:self.frame.size.height];
         
         GLuint lumaPositionBuffer = [self setupTexturePosition:@"aLumaPosition"
                                                          width:nextFrame.strideY
@@ -202,6 +173,60 @@ static GLfloat rectangle[] = {
     // todo: error handling? meh whatever
     
     return shader;
+}
+
+
+-(GLuint)setupPosition:(NSString *)varname width:(int)width height:(int)height
+{
+    // Set up our rectangle as a buffer...
+    GLuint rectangleBuffer;
+    glGenBuffers(1, &rectangleBuffer);
+    [self debugCheck];
+    
+    glBindBuffer(GL_ARRAY_BUFFER, rectangleBuffer);
+    [self debugCheck];
+    
+    //
+    GLfloat frameAspect = (float)nextFrame.pictureWidth / (float)nextFrame.pictureHeight;
+    GLfloat viewAspect = (float)width / (float)height;
+    
+    NSLog(@"frame %f; view %f", frameAspect, viewAspect);
+    GLfloat scaleX, scaleY;
+
+    if (frameAspect >= viewAspect) {
+        scaleX = 1.0f;
+        scaleY = viewAspect / frameAspect;
+    } else {
+        scaleY = 1.0f;
+        scaleX = frameAspect / viewAspect;
+    }
+    
+    GLfloat rectangle[] = {
+        // First triangle (top left, clockwise)
+        -scaleX, -scaleY,
+        +scaleX, -scaleY,
+        -scaleX, +scaleY,
+        
+        // Second triangle (bottom right, clockwise)
+        -scaleX, +scaleY,
+        +scaleX, -scaleY,
+        +scaleX, +scaleY
+    };
+
+    glBufferData(GL_ARRAY_BUFFER, rectanglePoints * sizeof(GLfloat) * 2, rectangle, GL_STATIC_DRAW);
+    [self debugCheck];
+    
+    // Assign the rectangle to the position input on the vertex shader
+    GLuint positionLocation = glGetAttribLocation(program, "aPosition");
+    [self debugCheck];
+    
+    glEnableVertexAttribArray(positionLocation);
+    [self debugCheck];
+    
+    glVertexAttribPointer(positionLocation, 2, GL_FLOAT, false, 0, 0);
+    [self debugCheck];
+    
+    return rectangleBuffer;
 }
 
 -(GLuint)setupTexturePosition:(NSString *)varname width:(int)texWidth height:(int)texHeight
