@@ -40,12 +40,16 @@ static void OGVAudioFeederBufferHandler(void *data, AudioQueueRef queue, AudioQu
 {
     //NSLog(@"bufferHandler");
     OGVAudioFeeder *feeder = (__bridge OGVAudioFeeder *)data;
-    [feeder handleQueue:queue buffer:buffer];
+    @autoreleasepool {
+        [feeder handleQueue:queue buffer:buffer];
+    }
 }
 
 static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQueuePropertyID prop) {
     OGVAudioFeeder *feeder = (__bridge OGVAudioFeeder *)data;
-    [feeder handleQueue:queue propChanged:prop];
+    @autoreleasepool {
+        [feeder handleQueue:queue propChanged:prop];
+    }
 }
 
 @implementation OGVAudioFeeder {
