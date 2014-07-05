@@ -186,11 +186,9 @@ static const GLuint rectanglePoints = 6;
     glBindBuffer(GL_ARRAY_BUFFER, rectangleBuffer);
     [self debugCheck];
     
-    //
+    // Set the aspect ratio
     GLfloat frameAspect = (float)nextFrame.pictureWidth / (float)nextFrame.pictureHeight;
     GLfloat viewAspect = (float)width / (float)height;
-    
-    NSLog(@"frame %f; view %f", frameAspect, viewAspect);
     GLfloat scaleX, scaleY;
 
     if (frameAspect >= viewAspect) {
