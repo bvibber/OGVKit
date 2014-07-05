@@ -212,7 +212,6 @@ typedef enum {
         return;
     }
     BOOL more;
-    int decodedSamples = 0;
     
     while (true) {
         more = [decoder process];
@@ -258,7 +257,6 @@ typedef enum {
                     //NSLog(@"Buffering audio...");
                     OGVAudioBuffer *audioBuffer = [decoder audioBuffer];
                     [audioFeeder bufferData:audioBuffer];
-                    decodedSamples += audioBuffer.samples;
                 } else {
                     NSLog(@"Bad audio packet or something");
                 }
