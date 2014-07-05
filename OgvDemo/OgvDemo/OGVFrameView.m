@@ -34,7 +34,8 @@ static GLfloat rectangle[] = {
     GLuint fragmentShader;
     GLuint program;
     GLuint textures[3];
-    
+    GLuint textureWidth[3];
+    GLuint textureHeight[3];
 }
 
 #pragma mark GLKView method overrides
@@ -44,12 +45,24 @@ static GLfloat rectangle[] = {
     self = [super initWithFrame:frame];
     if (self) {
         // Initialization code
+        self.context = [self createGLContext];
+    }
+    return self;
+}
+
+- (id)initWithCoder:(NSCoder *)coder
+{
+    self = [super initWithCoder:coder];
+    if (self) {
+        self.context = [self createGLContext];
     }
     return self;
 }
 
 - (void)drawRect:(CGRect)rect
 {
+    [self setupGLStuff];
+    
     glClearColor(0, 0, 0, 1);
     [self debugCheck];
 
@@ -57,10 +70,6 @@ static GLfloat rectangle[] = {
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
     [self debugCheck];
 
-    if (!program) {
-        [self setupGLStuff];
-    }
-    
     if (nextFrame) {
         // Set up our rectangle as a buffer...
         GLuint rectangleBuffer;
@@ -90,27 +99,8 @@ static GLfloat rectangle[] = {
         GLuint chromaPositionBuffer = [self setupTexturePosition:@"aChromaPosition"
                                                            width:nextFrame.strideCb << nextFrame.hDecimation
                                                           height:nextFrame.frameHeight];
-        
-        [self attachTexture:@"uTextureY"
-                        reg:GL_TEXTURE0
-                      index:0
-                      width:nextFrame.strideY
-                     height:nextFrame.frameHeight
-                       data:nextFrame.dataY];
 
-        [self attachTexture:@"uTextureCb"
-                        reg:GL_TEXTURE1
-                      index:1
-                      width:nextFrame.strideCb
-                     height:nextFrame.frameHeight >> nextFrame.vDecimation
-                       data:nextFrame.dataCb];
-
-        [self attachTexture:@"uTextureCr"
-                        reg:GL_TEXTURE2
-                      index:2
-                      width:nextFrame.strideCr
-                     height:nextFrame.frameHeight >> nextFrame.vDecimation
-                       data:nextFrame.dataCr];
+        // Note: moved texture attachment out of here
         
         glDrawArrays(GL_TRIANGLES, 0, rectanglePoints);
         [self debugCheck];
@@ -129,17 +119,37 @@ static GLfloat rectangle[] = {
 
 #pragma mark OGVFrameView methods
 
+// call me on the main thread
 - (void)drawFrame:(OGVFrameBuffer *)buffer
 {
-    if (!self.context) {
-        EAGLContext *context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3];
-        if (context == nil) {
-            context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
-        }
-        self.context = context;
-    }
+    // Initialize GL context if we haven't already
+    [EAGLContext setCurrentContext:self.context];
+    [self setupGLStuff];
 
     nextFrame = buffer;
+    
+    // Upload the textures now, they may not last
+    // @todo don't keep the frame structure beyond this, just keep the dimension info
+    [self attachTexture:@"uTextureY"
+                    reg:GL_TEXTURE0
+                  index:0
+                  width:nextFrame.strideY
+                 height:nextFrame.frameHeight
+                   data:nextFrame.dataY];
+    
+    [self attachTexture:@"uTextureCb"
+                    reg:GL_TEXTURE1
+                  index:1
+                  width:nextFrame.strideCb
+                 height:nextFrame.frameHeight >> nextFrame.vDecimation
+                   data:nextFrame.dataCb];
+    
+    [self attachTexture:@"uTextureCr"
+                    reg:GL_TEXTURE2
+                  index:2
+                  width:nextFrame.strideCr
+                 height:nextFrame.frameHeight >> nextFrame.vDecimation
+                   data:nextFrame.dataCr];
     //[self drawRect:self.frame];
     [self setNeedsDisplay];
 }
@@ -147,21 +157,32 @@ static GLfloat rectangle[] = {
 
 #pragma mark Private methods
 
+-(EAGLContext *)createGLContext
+{
+    EAGLContext *context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3];
+    if (context == nil) {
+        context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
+    }
+    return context;
+}
+
 -(void)setupGLStuff
 {
-    vertexShader = [self compileShader:GL_VERTEX_SHADER fromFile:@"YCbCr-vertex"];
-    fragmentShader = [self compileShader:GL_FRAGMENT_SHADER fromFile:@"YCbCr-fragment"];
-    
-    program = glCreateProgram();
-    [self debugCheck];
-    glAttachShader(program, vertexShader);
-    [self debugCheck];
-    glAttachShader(program, fragmentShader);
-    [self debugCheck];
-    glLinkProgram(program);
-    [self debugCheck];
-    glUseProgram(program);
-    [self debugCheck];
+    if (!program) {
+        vertexShader = [self compileShader:GL_VERTEX_SHADER fromFile:@"YCbCr-vertex"];
+        fragmentShader = [self compileShader:GL_FRAGMENT_SHADER fromFile:@"YCbCr-fragment"];
+        
+        program = glCreateProgram();
+        [self debugCheck];
+        glAttachShader(program, vertexShader);
+        [self debugCheck];
+        glAttachShader(program, fragmentShader);
+        [self debugCheck];
+        glLinkProgram(program);
+        [self debugCheck];
+        glUseProgram(program);
+        [self debugCheck];
+    }
 }
 
 -(GLuint)compileShader:(GLenum)shaderType fromFile:(NSString *)filename
@@ -224,9 +245,9 @@ static GLfloat rectangle[] = {
                 height:(GLuint)texHeight
                   data:(NSData *)data
 {
-    GLuint texture;
+    GLuint texture = textures[index];
     
-    if (textures[index] != 0) {
+    if (texture != 0 && textureWidth[index] == texWidth && textureHeight[index] == texHeight) {
         // Reuse & update the existing texture
         texture = textures[index];
 
@@ -245,9 +266,18 @@ static GLfloat rectangle[] = {
         [self debugCheck];
 
     } else {
+        // Create a new texture!
+        if (texture) {
+            glDeleteTextures(1, &texture);
+            [self debugCheck];
+        }
         glGenTextures(1, &texture);
         [self debugCheck];
         textures[index] = texture;
+        
+        // Save the size for later
+        textureWidth[index] = texWidth;
+        textureHeight[index] = texHeight;
         
         glActiveTexture(reg);
         [self debugCheck];
