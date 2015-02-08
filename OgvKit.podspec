@@ -133,15 +133,21 @@ Pod::Spec.new do |s|
 
 
   s.subspec "ogg" do |sp|
-  	sp.source_files = "libogg/src"
+    sp.source_files = "libogg/src", "libogg/include"
+    sp.header_mappings_dir = "libogg/include/ogg"
+    sp.header_dir = "ogg"
   end
   
   s.subspec "vorbis" do |sp|
-  	sp.source_files = "libvorbis/lib"
+    sp.source_files = "libvorbis/lib", "libvorbis/include"
+    sp.header_mappings_dir = "libvorbis/include/vorbis"
+    sp.header_dir = "vorbis"
   end
   
   s.subspec "theora" do |sp|
-    sp.source_files = "libtheora/lib"
+    sp.source_files = "libtheora/lib", "libtheora/include"
+    sp.header_mappings_dir = "libtheora/include/theora"
+    sp.header_dir = "theora"
   end
 
 end
