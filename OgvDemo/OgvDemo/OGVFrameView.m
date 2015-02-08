@@ -361,8 +361,6 @@ static const GLuint rectanglePoints = 6;
         case GL_INVALID_OPERATION: return @"GL_INVALID_OPERATION";
         case GL_INVALID_FRAMEBUFFER_OPERATION: return @"GL_INVALID_FRAMEBUFFER_OPERATION";
         case GL_OUT_OF_MEMORY: return @"GL_OUT_OF_MEMORY";
-        case GL_STACK_UNDERFLOW: return @"GL_STACK_UNDERFLOW";
-        case GL_STACK_OVERFLOW: return @"GL_STACK_OVERFLOW";
         default: return @"Unknown error";
     }
 }
