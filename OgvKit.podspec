@@ -87,8 +87,8 @@ Pod::Spec.new do |s|
   #  Not including the public_header_files will make all headers public.
   #
 
-  s.source_files  = "Classes", "Classes/**/*.{h,m}"
-  s.exclude_files = "Classes/Exclude"
+  #s.source_files  = "Classes", "Classes/**/*.{h,m}"
+  #s.exclude_files = "Classes/Exclude"
 
   # s.public_header_files = "Classes/**/*.h"
 
@@ -126,28 +126,41 @@ Pod::Spec.new do |s|
   #  where they will only apply to your library. If you depend on other Podspecs
   #  you can include multiple dependencies to ensure it works.
 
-  s.requires_arc = true
-
   # s.xcconfig = { "HEADER_SEARCH_PATHS" => "$(SDKROOT)/usr/include/libxml2" }
   # s.dependency "JSONKit", "~> 1.4"
 
+  s.subspec "Player" do |skit|
+    skit.requires_arc = true
+    skit.source_files  = "Classes", "Classes/**/*.{h,m}"
 
-  s.subspec "ogg" do |sp|
-    sp.source_files = "libogg/src", "libogg/include"
-    sp.header_mappings_dir = "libogg/include/ogg"
-    sp.header_dir = "ogg"
+    skit.dependency 'OgvKit/ogg'
+    skit.dependency 'OgvKit/vorbis'
+    skit.dependency 'OgvKit/theora'
+  end
+
+  s.subspec "ogg" do |sogg|
+    sogg.source_files = "libogg/src",
+                        "libogg/include/**/*.h"
+    sogg.public_header_files = "libogg/includes/**/*.h"
+    sogg.header_dir = "ogg"
   end
   
-  s.subspec "vorbis" do |sp|
-    sp.source_files = "libvorbis/lib", "libvorbis/include"
-    sp.header_mappings_dir = "libvorbis/include/vorbis"
-    sp.header_dir = "vorbis"
+  s.subspec "vorbis" do |svorbis|
+    svorbis.source_files = "libvorbis/lib",
+                           "libvorbis/include/**/*.h"
+    svorbis.exclude_files = "libvorbis/lib/psytune.c", # dead code that doesn't compile
+                            "libvorbis/lib/vorbisenc.c" # don't need encoder
+    svorbis.public_header_files = "libvorbis/includes/**/*.h"
+    svorbis.header_dir = "vorbis"
+    svorbis.dependency 'OgvKit/ogg'
   end
   
-  s.subspec "theora" do |sp|
-    sp.source_files = "libtheora/lib", "libtheora/include"
-    sp.header_mappings_dir = "libtheora/include/theora"
-    sp.header_dir = "theora"
+  s.subspec "theora" do |stheora|
+    stheora.source_files = "libtheora/lib",
+                           "libtheora/include/**/*.h"
+    stheora.public_header_files = "libtheora/include/**/*.h"
+    stheora.header_dir = "theora"
+    stheora.dependency 'OgvKit/ogg'
   end
 
 end
