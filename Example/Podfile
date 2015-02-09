@@ -1,0 +1,11 @@
+source 'https://github.com/CocoaPods/Specs.git'
+
+target 'OgvKit', :exclusive => true do
+  pod "OgvKit", :path => "../"
+end
+
+target 'Tests', :exclusive => true do
+  pod "OgvKit", :path => "../"
+
+  
+end
