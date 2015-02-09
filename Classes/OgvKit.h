@@ -1,6 +1,6 @@
 //
-//  OgvKit.h
-//  OgvKit
+//  OGVKit.h
+//  OGVKit
 //
 //  Created by Brion on 6/25/14.
 //  Copyright (c) 2014 Brion Vibber. All rights reserved.
@@ -10,10 +10,10 @@
 #import <UIKit/UIKit.h>
 #import <GLKit/GLKit.h>
 
-#import <OgvKit/OGVAudioBuffer.h>
-#import <OgvKit/OGVFrameBuffer.h>
-#import <OgvKit/OGVDecoder.h>
+#import <OGVKit/OGVAudioBuffer.h>
+#import <OGVKit/OGVFrameBuffer.h>
+#import <OGVKit/OGVDecoder.h>
 
-#import <OgvKit/OGVFrameView.h>
-#import <OgvKit/OGVAudioFeeder.h>
-#import <OgvKit/OGVPlayerView.h>
+#import <OGVKit/OGVFrameView.h>
+#import <OGVKit/OGVAudioFeeder.h>
+#import <OGVKit/OGVPlayerView.h>

@@ -1,12 +1,12 @@
 //
 //  OGVFrameView.m
-//  OgvDemo
+//  OGVKit
 //
 //  Created by Brion on 11/6/13.
 //  Copyright (c) 2013 Brion Vibber. All rights reserved.
 //
 
-#import <OgvKit/OgvKit.h>
+#import <OGVKit/OGVKit.h>
 
 @interface OGVFrameView (Private)
 -(GLuint)setupTexturePosition:(NSString *)varname width:(int)texWidth height:(int)texHeight;

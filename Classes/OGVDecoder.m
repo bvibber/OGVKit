@@ -1,12 +1,12 @@
 //
 //  OGVDecoder.m
-//  OgvDemo
+//  OGVKit
 //
 //  Created by Brion on 11/2/13.
 //  Copyright (c) 2013 Brion Vibber. All rights reserved.
 //
 
-#import <OgvKit/OgvKit.h>
+#import <OGVKit/OGVKit.h>
 
 #define OV_EXCLUDE_STATIC_CALLBACKS
 #include <ogg/ogg.h>

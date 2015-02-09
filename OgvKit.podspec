@@ -1,5 +1,5 @@
 Pod::Spec.new do |s|
-  s.name         = "OgvKit"
+  s.name         = "OGVKit"
   s.version      = "0.0.1"
   s.summary      = "Ogg Vorbis/Theora media playback widget for iOS."
 
@@ -9,7 +9,7 @@ Pod::Spec.new do |s|
                    to play a video or audio file from a URL.
                    DESC
 
-  s.homepage     = "https://github.com/brion/OgvKit"
+  s.homepage     = "https://github.com/brion/OGVKit"
 
   s.license      = { :type => "MIT", :file => "LICENSE" }
 
@@ -18,7 +18,7 @@ Pod::Spec.new do |s|
 
   s.platform     = :ios, "6.0"
 
-  s.source       = { :git => "https://github.com/brion/OgvKit.git",
+  s.source       = { :git => "https://github.com/brion/OGVKit.git",
                      :tag => "0.0.1",
                      :submodules => true }
 
@@ -26,9 +26,9 @@ Pod::Spec.new do |s|
     skit.requires_arc = true
     skit.source_files  = "Classes", "Classes/**/*.{h,m}"
 
-    skit.dependency 'OgvKit/ogg'
-    skit.dependency 'OgvKit/vorbis'
-    skit.dependency 'OgvKit/theora'
+    skit.dependency 'OGVKit/ogg'
+    skit.dependency 'OGVKit/vorbis'
+    skit.dependency 'OGVKit/theora'
   end
 
   s.subspec "ogg" do |sogg|
@@ -45,7 +45,7 @@ Pod::Spec.new do |s|
                             "libvorbis/lib/vorbisenc.c" # don't need encoder
     svorbis.public_header_files = "libvorbis/includes/**/*.h"
     svorbis.header_dir = "vorbis"
-    svorbis.dependency 'OgvKit/ogg'
+    svorbis.dependency 'OGVKit/ogg'
   end
   
   s.subspec "theora" do |stheora|
@@ -53,7 +53,7 @@ Pod::Spec.new do |s|
                            "libtheora/include/**/*.h"
     stheora.public_header_files = "libtheora/include/**/*.h"
     stheora.header_dir = "theora"
-    stheora.dependency 'OgvKit/ogg'
+    stheora.dependency 'OGVKit/ogg'
   end
 
 end

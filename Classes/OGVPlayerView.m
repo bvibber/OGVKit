@@ -1,12 +1,12 @@
 //
 //  OGVPlayerView.m
-//  OgvKit
+//  OGVKit
 //
 //  Created by Brion on 2/8/15.
 //  Copyright (c) 2015 Brion Vibber. All rights reserved.
 //
 
-#import <OgvKit/OgvKit.h>
+#import <OGVKit/OGVKit.h>
 
 @implementation OGVPlayerView
 

@@ -1,12 +1,12 @@
 //
 //  OGVAudioFeeder.m
-//  OgvDemo
+//  OGVKit
 //
 //  Created by Brion on 6/28/14.
 //  Copyright (c) 2014 Brion Vibber. All rights reserved.
 //
 
-#import <OgvKit/OgvKit.h>
+#import <OGVKit/OGVKit.h>
 
 #import <AVFoundation/AVFoundation.h>
 #import <AudioToolbox/AudioToolbox.h>

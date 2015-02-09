@@ -7,7 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
-#import <OgvKit/OgvKit.h>
+#import <OGVKit/OGVKit.h>
 
 @interface OGVViewController : UIViewController
 @property (weak, nonatomic) IBOutlet OGVPlayerView *player;
