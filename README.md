@@ -13,7 +13,7 @@ sudo gem install cocoapods
 First, get the source:
 
 ```
-git clone https://github.com/brion/OgvKit.git
+git clone https://github.com/brion/OGVKit.git
 git submodule update --init
 ```
 
@@ -24,7 +24,7 @@ cd Example
 pod update
 ```
 
-Now open OgvKit.xcworkspace -- the workspace NOT the project! And build.
+Now open OGVKit.xcworkspace -- the workspace NOT the project! And build.
 
 
 # Todo
