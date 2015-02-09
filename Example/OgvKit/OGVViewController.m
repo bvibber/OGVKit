@@ -17,13 +17,27 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-	// Do any additional setup after loading the view, typically from a nib.
+
+    self.player.sourceURL = [NSURL URLWithString:@"https://upload.wikimedia.org/wikipedia/commons/transcoded/b/bd/Toyama_Chih%C5%8D_Railway_Main_Line_2014-11-27_15-47-05_Higashi-Shinj%C5%8D_Station_-_Shinjo_Tanaka_Station.webm/Toyama_Chih%C5%8D_Railway_Main_Line_2014-11-27_15-47-05_Higashi-Shinj%C5%8D_Station_-_Shinjo_Tanaka_Station.webm.360p.ogv"];
 }
 
 - (void)didReceiveMemoryWarning
 {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
+}
+
+- (void)viewDidAppear:(BOOL)animated
+{
+    [super viewDidAppear:animated];
+    [self.player play];
+    self.player.paused = NO;
+}
+
+- (void)viewDidDisappear:(BOOL)animated
+{
+    [super viewDidDisappear:animated];
+    self.player.paused = YES;
 }
 
 @end

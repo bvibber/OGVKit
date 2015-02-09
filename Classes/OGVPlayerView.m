@@ -8,10 +8,6 @@
 
 #import <OgvKit/OgvKit.h>
 
-@interface OGVPlayerView (Private)
-@property (weak) OGVFrameView *frameView;
-@end
-
 @implementation OGVPlayerView
 
 {
@@ -42,6 +38,33 @@
     NSDate *lastStatsUpdate;
 }
 
+-(instancetype)initWithFrame:(CGRect)frame
+{
+    self = [super initWithFrame:frame];
+    if (self) {
+        OGVFrameView *frameView = [[OGVFrameView alloc] initWithFrame:CGRectMake(0, 0, frame.size.width, frame.size.height)];
+        [self addSubview:frameView];
+        self.frameView = frameView;
+    }
+    return self;
+}
+
+-(instancetype)initWithCoder:(NSCoder *)aDecoder
+{
+    self = [super initWithCoder:aDecoder];
+    if (self) {
+        OGVFrameView *frameView = [[OGVFrameView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, self.frame.size.height)];
+        [self addSubview:frameView];
+        self.frameView = frameView;
+    }
+    return self;
+}
+
+-(void)layoutSubviews
+{
+    [super layoutSubviews];
+    self.frameView.frame = CGRectMake(0, 0, self.frame.size.width, self.frame.size.height);
+}
 
 -(void)play
 {

@@ -23,6 +23,7 @@
 @interface OGVPlayerView : UIView
 
 @property (weak) id<OGVPlayerDelegate> delegate;
+@property (weak) OGVFrameView *frameView;
 
 @property (nonatomic) NSURL *sourceURL;
 

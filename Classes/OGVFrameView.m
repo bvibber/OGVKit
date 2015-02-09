@@ -204,7 +204,7 @@ static const GLuint rectanglePoints = 6;
     [self debugCheck];
     
     const GLchar *str = source;
-    const GLint len = strlen(source);
+    const GLint len = (GLint)strlen(source);
     glShaderSource(shader, 1, &str, &len);
     [self debugCheck];
     glCompileShader(shader);

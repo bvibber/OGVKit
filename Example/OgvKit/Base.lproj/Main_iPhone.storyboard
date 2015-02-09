@@ -31,6 +31,9 @@
                             <constraint firstItem="pz3-3A-vGf" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leadingMargin" id="pwo-Md-VQA"/>
                         </constraints>
                     </view>
+                    <connections>
+                        <outlet property="player" destination="pz3-3A-vGf" id="7YC-Gf-IGt"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="x5A-6p-PRh" sceneMemberID="firstResponder"/>
             </objects>
