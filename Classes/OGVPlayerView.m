@@ -235,7 +235,10 @@
 {
     if (self.sourceURL) {
         NSURLRequest *req = [NSURLRequest requestWithURL:self.sourceURL];
-        connection = [NSURLConnection connectionWithRequest:req delegate:self];
+        connection = [[NSURLConnection alloc] initWithRequest:req delegate:self startImmediately:NO];
+        [connection scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
+        [connection start];
+        
         playing = YES;
         doneDownloading = NO;
         waitingForData = YES;
