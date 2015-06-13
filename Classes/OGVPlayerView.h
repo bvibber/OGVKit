@@ -10,7 +10,7 @@
 
 @class OGVPlayerView;
 
-@protocol OGVPlayerDelegate<NSObject>
+@protocol OGVPlayerDelegate <NSObject>
 
 @optional
 -(void)ogvPlayerDidLoadMetadata:(OGVPlayerView *)sender;
@@ -24,7 +24,7 @@
 @end
 
 
-@interface OGVPlayerView : UIView
+@interface OGVPlayerView : UIView <OGVPlayerStateDelegate>
 
 @property (weak) id<OGVPlayerDelegate> delegate;
 @property (weak) OGVFrameView *frameView;

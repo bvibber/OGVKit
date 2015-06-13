@@ -16,4 +16,6 @@
 
 #import <OGVKit/OGVFrameView.h>
 #import <OGVKit/OGVAudioFeeder.h>
+
+#import <OGVKit/OGVPlayerState.h>
 #import <OGVKit/OGVPlayerView.h>
