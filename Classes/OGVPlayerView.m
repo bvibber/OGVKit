@@ -125,6 +125,9 @@
                 dispatch_time_t closeTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(timeLeft * NSEC_PER_SEC));
                 dispatch_after(closeTime, drawingQueue, ^{
                     [self stop];
+                    if ([self.delegate respondsToSelector:@selector(ogvPlayerDidEnd:)]) {
+                        [self.delegate ogvPlayerDidEnd:self];
+                    }
                 });
             } else {
                 // Ran out of buffered input
@@ -267,6 +270,15 @@
         audioFeeder = [[OGVAudioFeeder alloc] initWithSampleRate:decoder.audioRate
                                                         channels:decoder.audioChannels];
     }
+    
+    dispatch_async(drawingQueue, ^() {
+        if ([self.delegate respondsToSelector:@selector(ogvPlayerDidLoadMetadata:)]) {
+            [self.delegate ogvPlayerDidLoadMetadata:self];
+        }
+        if ([self.delegate respondsToSelector:@selector(ogvPlayerDidPlay:)]) {
+            [self.delegate ogvPlayerDidPlay:self];
+        }
+    });
 }
 
 #pragma mark Drawing methods

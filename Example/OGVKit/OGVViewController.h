@@ -9,7 +9,7 @@
 #import <UIKit/UIKit.h>
 #import <OGVKit/OGVKit.h>
 
-@interface OGVViewController : UIViewController <UITableViewDataSource, UITableViewDelegate>
+@interface OGVViewController : UIViewController <UITableViewDataSource, UITableViewDelegate, OGVPlayerDelegate>
 
 @property (weak, nonatomic) IBOutlet OGVPlayerView *player;
 @property (weak, nonatomic) IBOutlet UITableView *tableView;

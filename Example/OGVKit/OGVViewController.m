@@ -15,6 +15,7 @@
 @implementation OGVViewController
 {
     NSArray *sources;
+    NSInteger selectedSource;
 }
 
 - (void)viewDidLoad
@@ -35,14 +36,21 @@
                 //@{@"title": @"Bach (audio only)",
                 //  @"URL": @"https://upload.wikimedia.org/wikipedia/commons/e/ea/Bach_C_Major_Prelude_Werckmeister.ogg"}
                 ];
+    selectedSource = -1;
 
     [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"generic"];
+    
+    self.player.delegate = self;
 }
 
-- (void)selectSource:(NSUInteger)index
+- (void)selectSource:(NSInteger)index
 {
-    self.player.sourceURL = [NSURL URLWithString:sources[index][@"URL"]];
-    [self.player play];
+    selectedSource = index;
+    if (selectedSource >= 0) {
+        self.player.sourceURL = [NSURL URLWithString:sources[index][@"URL"]];
+        // @todo separate load & play...
+        [self.player play];
+    }
 }
 
 - (void)didReceiveMemoryWarning
@@ -93,6 +101,19 @@
 didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
     [self selectSource:indexPath.item];
+}
+
+#pragma mark - OGVPlayerDelegate methods
+
+- (void)ogvPlayerDidEnd:(OGVPlayerView *)sender
+{
+    NSInteger nextSource = selectedSource + 1;
+    if (nextSource < [sources count]) {
+        [self.tableView selectRowAtIndexPath:[NSIndexPath indexPathForItem:nextSource inSection:0]
+                                    animated:YES
+                              scrollPosition:UITableViewScrollPositionNone];
+        [self selectSource:nextSource];
+    }
 }
 
 @end

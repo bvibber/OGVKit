@@ -10,11 +10,15 @@
 
 @class OGVPlayerView;
 
-@protocol OGVPlayerDelegate
+@protocol OGVPlayerDelegate<NSObject>
 
+@optional
 -(void)ogvPlayerDidLoadMetadata:(OGVPlayerView *)sender;
+
+@optional
 -(void)ogvPlayerDidPlay:(OGVPlayerView *)sender;
--(void)ogvPlayerDidPause:(OGVPlayerView *)sender;
+
+@optional
 -(void)ogvPlayerDidEnd:(OGVPlayerView *)sender;
 
 @end
