@@ -39,6 +39,8 @@
     NSDate *lastStatsUpdate;
 }
 
+#pragma mark - Public methods
+
 -(instancetype)initWithFrame:(CGRect)frame
 {
     self = [super initWithFrame:frame];
@@ -67,12 +69,49 @@
     self.frameView.frame = CGRectMake(0, 0, self.frame.size.width, self.frame.size.height);
 }
 
+- (NSURL *)sourceURL
+{
+    return _sourceURL;
+}
+
+- (void)setSourceURL:(NSURL *)sourceURL
+{
+    if (_sourceURL) {
+        [self stop];
+    }
+    _sourceURL = [sourceURL copy];
+}
+
+
 -(void)play
 {
     if (!playing) {
         [self startDownload];
     }
 }
+
+- (void)stop
+{
+    if (playing) {
+        playing = NO;
+        
+        if (connection) {
+            [connection cancel];
+        }
+        connection = nil;
+
+        if (audioFeeder) {
+            [audioFeeder close];
+        }
+        audioFeeder = nil;
+
+        decoder = nil;
+    }
+}
+
+#pragma mark - Private methods
+
+#pragma mark - Decode thread methods
 
 - (void)startDownload
 {
@@ -87,26 +126,55 @@
     [self loadVideoSample];
 }
 
-- (void)stop
+
+- (void)loadVideoSample
 {
-    if (playing) {
-        playing = NO;
+    if (self.sourceURL) {
+        NSURLRequest *req = [NSURLRequest requestWithURL:self.sourceURL];
+        connection = [[NSURLConnection alloc] initWithRequest:req delegate:self startImmediately:NO];
+        [connection scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
+        [connection start];
         
-        if (!doneDownloading) {
-            [connection cancel];
-        }
-        connection = nil;
-
-        if (audioFeeder) {
-            [audioFeeder close];
-        }
-        audioFeeder = nil;
-
-        decoder = nil;
-        decodeQueue = nil;
+        playing = YES;
+        doneDownloading = NO;
+        waitingForData = YES;
+    } else {
+        NSLog(@"Nothing to play");
     }
 }
 
+- (void)initPlaybackState
+{
+    assert(decoder.dataReady);
+    
+    // Number of pixels per second we must decode and draw to keep up
+    pixelsPerFrame = decoder.frameWidth * decoder.frameHeight;
+    targetPixelRate = pixelsPerFrame * decoder.frameRate;
+    
+    pixelsProcessed = 0;
+    
+    decodingTime = 0;
+    averageDecodingRate = 0;
+    
+    drawingTime = 0;
+    averageDrawingRate = 0;
+    
+    frameEndTimestamp = 0.0f;
+    
+    if (decoder.hasAudio) {
+        audioFeeder = [[OGVAudioFeeder alloc] initWithSampleRate:decoder.audioRate
+                                                        channels:decoder.audioChannels];
+    }
+    
+    dispatch_async(drawingQueue, ^() {
+        if ([self.delegate respondsToSelector:@selector(ogvPlayerDidLoadMetadata:)]) {
+            [self.delegate ogvPlayerDidLoadMetadata:self];
+        }
+        if ([self.delegate respondsToSelector:@selector(ogvPlayerDidPlay:)]) {
+            [self.delegate ogvPlayerDidPlay:self];
+        }
+    });
+}
 
 - (void)processNextFrame
 {
@@ -138,7 +206,7 @@
             return;
         }
         
-        if (!(decoder.audioReady || decoder.frameReady)) {
+        if (!decoder.dataReady) {
             // Have to process some more pages to find data. Continue the loop.
             continue;
         }
@@ -232,56 +300,7 @@
     });
 }
 
-- (void)loadVideoSample
-{
-    if (self.sourceURL) {
-        NSURLRequest *req = [NSURLRequest requestWithURL:self.sourceURL];
-        connection = [[NSURLConnection alloc] initWithRequest:req delegate:self startImmediately:NO];
-        [connection scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
-        [connection start];
-        
-        playing = YES;
-        doneDownloading = NO;
-        waitingForData = YES;
-    } else {
-        NSLog(@"Nothing to play");
-    }
-}
-
-- (void)initPlaybackState
-{
-    assert(decoder.dataReady);
-    
-    // Number of pixels per second we must decode and draw to keep up
-    pixelsPerFrame = decoder.frameWidth * decoder.frameHeight;
-    targetPixelRate = pixelsPerFrame * decoder.frameRate;
-    
-    pixelsProcessed = 0;
-    
-    decodingTime = 0;
-    averageDecodingRate = 0;
-    
-    drawingTime = 0;
-    averageDrawingRate = 0;
-    
-    frameEndTimestamp = 0.0f;
-    
-    if (decoder.hasAudio) {
-        audioFeeder = [[OGVAudioFeeder alloc] initWithSampleRate:decoder.audioRate
-                                                        channels:decoder.audioChannels];
-    }
-    
-    dispatch_async(drawingQueue, ^() {
-        if ([self.delegate respondsToSelector:@selector(ogvPlayerDidLoadMetadata:)]) {
-            [self.delegate ogvPlayerDidLoadMetadata:self];
-        }
-        if ([self.delegate respondsToSelector:@selector(ogvPlayerDidPlay:)]) {
-            [self.delegate ogvPlayerDidPlay:self];
-        }
-    });
-}
-
-#pragma mark Drawing methods
+#pragma mark - Drawing thread methods
 
 -(void)drawFrame
 {
@@ -332,6 +351,8 @@
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
 {
     dispatch_async(decodeQueue, ^() {
+        // @todo save to temporary disk storage instead of buffering to memory!
+        
         //NSLog(@"receive input: %lu bytes", (unsigned long)data.length);
         [decoder receiveInput:data];
         if (!decoder.dataReady) {
@@ -360,19 +381,6 @@
         doneDownloading = YES;
         waitingForData = NO;
     });
-}
-
-- (NSURL *)sourceURL
-{
-    return _sourceURL;
-}
-
-- (void)setSourceURL:(NSURL *)sourceURL
-{
-    if (_sourceURL) {
-        [self stop];
-    }
-    _sourceURL = [sourceURL copy];
 }
 
 @end
