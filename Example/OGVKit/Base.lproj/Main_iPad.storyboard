@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="6254" systemVersion="14C109" targetRuntime="iOS.CocoaTouch.iPad" propertyAccessControl="none" useAutolayout="YES" initialViewController="BYZ-38-t0r">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="7706" systemVersion="14D136" targetRuntime="iOS.CocoaTouch.iPad" propertyAccessControl="none" useAutolayout="YES" initialViewController="BYZ-38-t0r">
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="6247"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="7703"/>
+        <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
     </dependencies>
     <scenes>
         <!--View Controller-->
@@ -18,20 +19,35 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Q57-ja-qHm" customClass="OGVPlayerView">
-                                <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
+                                <rect key="frame" x="0.0" y="0.0" width="768" height="432"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" secondItem="Q57-ja-qHm" secondAttribute="height" multiplier="16:9" id="msQ-zX-ZSk"/>
+                                </constraints>
                             </view>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="bTN-Av-o6n">
+                                <rect key="frame" x="0.0" y="432" width="768" height="592"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <connections>
+                                    <outlet property="dataSource" destination="BYZ-38-t0r" id="XBS-dA-7cw"/>
+                                    <outlet property="delegate" destination="BYZ-38-t0r" id="cxd-Km-UGG"/>
+                                </connections>
+                            </tableView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                         <constraints>
-                            <constraint firstItem="wfy-db-euE" firstAttribute="top" secondItem="Q57-ja-qHm" secondAttribute="bottom" id="H0f-R2-EVO"/>
                             <constraint firstItem="Q57-ja-qHm" firstAttribute="top" secondItem="8bC-Xf-vdC" secondAttribute="top" id="Ljw-q6-Gp6"/>
+                            <constraint firstAttribute="trailing" secondItem="bTN-Av-o6n" secondAttribute="trailing" id="OF3-GJ-S7D"/>
+                            <constraint firstItem="wfy-db-euE" firstAttribute="top" secondItem="bTN-Av-o6n" secondAttribute="bottom" id="RMx-6U-Sdq"/>
+                            <constraint firstItem="bTN-Av-o6n" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" id="Z2E-TF-YRC"/>
                             <constraint firstItem="Q57-ja-qHm" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" id="ZPc-Cp-Q2s"/>
                             <constraint firstAttribute="trailing" secondItem="Q57-ja-qHm" secondAttribute="trailing" id="m9R-VD-o5u"/>
+                            <constraint firstItem="bTN-Av-o6n" firstAttribute="top" secondItem="Q57-ja-qHm" secondAttribute="bottom" id="nZd-SV-fFp"/>
                         </constraints>
                     </view>
                     <connections>
                         <outlet property="player" destination="Q57-ja-qHm" id="35l-6k-IbA"/>
+                        <outlet property="tableView" destination="bTN-Av-o6n" id="Zsx-zp-dfA"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>

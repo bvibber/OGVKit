@@ -13,6 +13,7 @@
 {
     OGVDecoder *decoder;
     NSURLConnection *connection;
+    NSURL *_sourceURL;
     
     BOOL doneDownloading;
     BOOL waitingForData;
@@ -68,7 +69,9 @@
 
 -(void)play
 {
-    [self startDownload];
+    if (!playing) {
+        [self startDownload];
+    }
 }
 
 - (void)startDownload
@@ -84,7 +87,7 @@
     [self loadVideoSample];
 }
 
-- (void)stopWithBlock:(void (^)())completionBlock
+- (void)stop
 {
     if (playing) {
         playing = NO;
@@ -92,20 +95,15 @@
         if (!doneDownloading) {
             [connection cancel];
         }
-        
-        dispatch_async(decodeQueue, ^() {
-            decoder = nil;
-            dispatch_async(dispatch_get_main_queue(), ^() {
-                connection = nil;
-                
-                [audioFeeder close];
-                audioFeeder = nil;
-                
-                completionBlock();
-            });
-        });
-    } else {
-        dispatch_async(dispatch_get_main_queue(), completionBlock);
+        connection = nil;
+
+        if (audioFeeder) {
+            [audioFeeder close];
+        }
+        audioFeeder = nil;
+
+        decoder = nil;
+        decodeQueue = nil;
     }
 }
 
@@ -126,7 +124,7 @@
                 NSLog(@"out of data, closing in %f ms", timeLeft * 1000.0f);
                 dispatch_time_t closeTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(timeLeft * NSEC_PER_SEC));
                 dispatch_after(closeTime, drawingQueue, ^{
-                    [self stopWithBlock:^{}];
+                    [self stop];
                 });
             } else {
                 // Ran out of buffered input
@@ -350,6 +348,19 @@
         doneDownloading = YES;
         waitingForData = NO;
     });
+}
+
+- (NSURL *)sourceURL
+{
+    return _sourceURL;
+}
+
+- (void)setSourceURL:(NSURL *)sourceURL
+{
+    if (_sourceURL) {
+        [self stop];
+    }
+    _sourceURL = [sourceURL copy];
 }
 
 @end

@@ -13,12 +13,36 @@
 @end
 
 @implementation OGVViewController
+{
+    NSArray *sources;
+}
 
 - (void)viewDidLoad
 {
     [super viewDidLoad];
 
-    self.player.sourceURL = [NSURL URLWithString:@"https://upload.wikimedia.org/wikipedia/commons/transcoded/b/bd/Toyama_Chih%C5%8D_Railway_Main_Line_2014-11-27_15-47-05_Higashi-Shinj%C5%8D_Station_-_Shinjo_Tanaka_Station.webm/Toyama_Chih%C5%8D_Railway_Main_Line_2014-11-27_15-47-05_Higashi-Shinj%C5%8D_Station_-_Shinjo_Tanaka_Station.webm.360p.ogv"];
+    sources = @[
+                @{@"title": @"Wiki Makes Video (60fps)",
+                  @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/8/89/Wiki_Makes_Video_Intro_4_26.webm/Wiki_Makes_Video_Intro_4_26.webm.360p.ogv"},
+                @{@"title": @"Wikipedia Visual Editor",
+                  @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/c/c8/Sneak_Preview_-_Wikipedia_VisualEditor.webm/Sneak_Preview_-_Wikipedia_VisualEditor.webm.360p.ogv"},
+                @{@"title": @"Open Access",
+                  @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/b/b7/How_Open_Access_Empowered_a_16-Year-Old_to_Make_Cancer_Breakthrough.ogv/How_Open_Access_Empowered_a_16-Year-Old_to_Make_Cancer_Breakthrough.ogv.360p.ogv"},
+                @{@"title": @"Seven Minutes of Terror",
+                  @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/9/96/Curiosity%27s_Seven_Minutes_of_Terror.ogv/Curiosity%27s_Seven_Minutes_of_Terror.ogv.360p.ogv"},
+                
+                // Audio-only not yet supported
+                //@{@"title": @"Bach (audio only)",
+                //  @"URL": @"https://upload.wikimedia.org/wikipedia/commons/e/ea/Bach_C_Major_Prelude_Werckmeister.ogg"}
+                ];
+
+    [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"generic"];
+}
+
+- (void)selectSource:(NSUInteger)index
+{
+    self.player.sourceURL = [NSURL URLWithString:sources[index][@"URL"]];
+    [self.player play];
 }
 
 - (void)didReceiveMemoryWarning
@@ -30,14 +54,45 @@
 - (void)viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
-    [self.player play];
-    self.player.paused = NO;
+    
+    //[self.player play];
+    //self.player.paused = NO;
 }
 
 - (void)viewDidDisappear:(BOOL)animated
 {
     [super viewDidDisappear:animated];
     self.player.paused = YES;
+}
+
+#pragma mark - UITableViewDataSource methods
+
+- (UITableViewCell *)tableView:(UITableView *)tableView
+         cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"generic"];
+    NSDictionary *source = sources[indexPath.item];
+    cell.textLabel.text = source[@"title"];
+    return cell;
+}
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
+{
+    return 1;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView
+ numberOfRowsInSection:(NSInteger)section
+{
+    return [sources count];
+}
+
+#pragma mark - UITableViewDelegate methods
+
+- (void)tableView:(UITableView *)tableView
+didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    [self selectSource:indexPath.item];
 }
 
 @end
