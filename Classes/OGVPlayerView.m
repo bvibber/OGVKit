@@ -24,19 +24,6 @@
     
     OGVAudioFeeder *audioFeeder;
     float frameEndTimestamp;
-    
-    // Stats
-    double pixelsPerFrame;
-    double targetPixelRate;
-    double pixelsProcessed;
-    
-    NSTimeInterval decodingTime;
-    double averageDecodingRate;
-    
-    NSTimeInterval drawingTime;
-    double averageDrawingRate;
-    
-    NSDate *lastStatsUpdate;
 }
 
 #pragma mark - Public methods
@@ -111,8 +98,6 @@
 
 #pragma mark - Private methods
 
-#pragma mark - Decode thread methods
-
 - (void)startDownload
 {
     decoder = [[OGVDecoder alloc] init];
@@ -125,7 +110,6 @@
     
     [self loadVideoSample];
 }
-
 
 - (void)loadVideoSample
 {
@@ -143,21 +127,12 @@
     }
 }
 
+#pragma mark - Decode thread methods
+
+
 - (void)initPlaybackState
 {
     assert(decoder.dataReady);
-    
-    // Number of pixels per second we must decode and draw to keep up
-    pixelsPerFrame = decoder.frameWidth * decoder.frameHeight;
-    targetPixelRate = pixelsPerFrame * decoder.frameRate;
-    
-    pixelsProcessed = 0;
-    
-    decodingTime = 0;
-    averageDecodingRate = 0;
-    
-    drawingTime = 0;
-    averageDrawingRate = 0;
     
     frameEndTimestamp = 0.0f;
     
@@ -239,6 +214,9 @@
                 BOOL ok = [decoder decodeFrame];
                 if (ok) {
                     [self drawFrame];
+                    
+                    // End the processing loop, we'll ping again after drawing
+                    return;
                 } else {
                     NSLog(@"Bad video packet or something");
                 }
@@ -277,7 +255,7 @@
                 BOOL ok = [decoder decodeFrame];
                 if (ok) {
                     [self drawFrame];
-                    [self pingProcessing:(1.0f / decoder.frameRate)];
+                    // end the processing loop, we'll continue after drawing the frame
                 } else {
                     NSLog(@"Bad video packet or something");
                     [self pingProcessing:(1.0f / decoder.frameRate)];
@@ -294,66 +272,50 @@
 {
     //NSLog(@"ping after %f ms", delay * 1000.0);
     // ...
+    OGVDecoder *lastDecoder = decoder;
     dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delay * NSEC_PER_SEC));
     dispatch_after(popTime, decodeQueue, ^() {
-        [self processNextFrame];
+        if (decoder == lastDecoder) {
+            [self processNextFrame];
+        } else {
+            // from an old playback session; discard
+        }
     });
 }
 
 #pragma mark - Drawing thread methods
 
+/**
+ * Schedule a frame draw on the main thread, then return to the decoder
+ * when it's done drawing.
+ */
 -(void)drawFrame
 {
-    OGVFrameBuffer *buffer = [decoder frameBuffer];
-    [self drawBuffer:buffer];
-    frameEndTimestamp = buffer.timestamp;
-}
-
-// Incredibly inefficient \o/
-- (void)drawBuffer:(OGVFrameBuffer *)buffer
-{
+    OGVDecoder *lastDecoder = decoder;
     dispatch_async(drawingQueue, ^() {
-        NSDate *start = [NSDate date];
-        
-        [self.frameView drawFrame:buffer];
-        
-        NSTimeInterval delta = [[NSDate date] timeIntervalSinceDate:start];
-        drawingTime += delta;
-        
-        pixelsProcessed += pixelsPerFrame;
-        [self updateStats];
+        if (decoder == lastDecoder) {
+            OGVFrameBuffer *buffer = [decoder frameBuffer];
+            frameEndTimestamp = buffer.timestamp;
+            [self.frameView drawFrame:buffer];
+            [self pingProcessing:0];
+        } else {
+            // from an old playback session; discard
+        }
     });
-}
-
-- (void)updateStats
-{
-    /*
-     NSDate *now = [NSDate date];
-     if (lastStatsUpdate == nil || [now timeIntervalSinceDate:lastStatsUpdate] > 1.0) {
-     averageDecodingRate = pixelsProcessed / decodingTime;
-     averageDrawingRate = pixelsProcessed / drawingTime;
-     
-     double megapixel = 1000000.0;
-     NSString *statusLine = [NSString stringWithFormat:@"%0.2lf MP/s decoded, %0.2lf MP/s drawn, %0.2lf MP/s target",
-     averageDecodingRate / megapixel,
-     averageDrawingRate / megapixel,
-     targetPixelRate / megapixel];
-     
-     lastStatsUpdate = now;
-     [self showStatus:statusLine];
-     NSLog(@"%@", statusLine);
-     }
-     */
 }
 
 #pragma mark NSURLConnectionDataDelegate methods
 
-- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
+- (void)connection:(NSURLConnection *)sender didReceiveData:(NSData *)data
 {
     dispatch_async(decodeQueue, ^() {
+        if (sender != connection) {
+            // from a previous session! discard.
+            return;
+        }
+
         // @todo save to temporary disk storage instead of buffering to memory!
         
-        //NSLog(@"receive input: %lu bytes", (unsigned long)data.length);
         [decoder receiveInput:data];
         if (!decoder.dataReady) {
             // We need to process enough of the file that we can
@@ -374,12 +336,15 @@
     });
 }
 
-- (void)connectionDidFinishLoading:(NSURLConnection *)connection
+- (void)connectionDidFinishLoading:(NSURLConnection *)sender
 {
     dispatch_async(decodeQueue, ^() {
-        NSLog(@"done downloading");
-        doneDownloading = YES;
-        waitingForData = NO;
+        if (sender == connection) {
+            NSLog(@"done downloading");
+            doneDownloading = YES;
+            waitingForData = NO;
+            connection = nil;
+        }
     });
 }
 
