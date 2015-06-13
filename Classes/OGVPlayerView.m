@@ -59,7 +59,9 @@
     }
     _sourceURL = [sourceURL copy];
     if (_sourceURL) {
-        state = [[OGVPlayerState alloc] initWithPlayerView:self];
+        state = [[OGVPlayerState alloc] init];
+        state.delegate = self;
+        [state loadURL:_sourceURL];
     } else {
         state = nil;
     }

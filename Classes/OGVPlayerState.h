@@ -14,7 +14,7 @@
 -(void)ogvPlayerStateDidLoadMetadata:(OGVPlayerState *)state;
 
 @optional
--(void)ogvPlayerState:(OGVPlayerState *state) drawFrame:(OGVFrameBuffer *)buffer;
+-(void)ogvPlayerState:(OGVPlayerState *)state drawFrame:(OGVFrameBuffer *)buffer;
 
 @optional
 -(void)ogvPlayerStateDidEnd:(OGVPlayerState *)state;
@@ -24,7 +24,11 @@
 
 @interface OGVPlayerState : NSObject
 
--(instancetype)initWithURL:(NSURL *)URL delegate:(OGVPlayerDelegate *)delegate;
+@property (weak) id<OGVPlayerStateDelegate> delegate;
+
+-(void)loadURL:(NSURL *)URL;
+-(void)play;
+-(void)pause;
 -(void)cancel;
 
 @end
