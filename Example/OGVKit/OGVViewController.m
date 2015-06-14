@@ -33,8 +33,10 @@
                   @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/9/96/Curiosity%27s_Seven_Minutes_of_Terror.ogv/Curiosity%27s_Seven_Minutes_of_Terror.ogv.360p.ogv"},
                 
                 // Audio-only not yet supported
-                //@{@"title": @"Bach (audio only)",
-                //  @"URL": @"https://upload.wikimedia.org/wikipedia/commons/e/ea/Bach_C_Major_Prelude_Werckmeister.ogg"}
+                @{@"title": @"Myopa (video only)",
+                  @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/8/8b/Myopa_-_2015-05-02.webm/Myopa_-_2015-05-02.webm.360p.ogv"},
+                @{@"title": @"Bach (audio only)",
+                  @"URL": @"https://upload.wikimedia.org/wikipedia/commons/e/ea/Bach_C_Major_Prelude_Werckmeister.ogg"}
                 ];
     selectedSource = -1;
 
