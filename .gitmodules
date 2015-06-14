@@ -7,3 +7,6 @@
 [submodule "libtheora"]
 	path = libtheora
 	url = git://git.xiph.org/mirrors/theora.git
+[submodule "gas-preprocessor"]
+	path = gas-preprocessor
+	url = git://git.libav.org/gas-preprocessor.git
