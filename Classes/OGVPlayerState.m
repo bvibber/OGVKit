@@ -230,7 +230,9 @@
             }
         } else {
             // Drive on the video clock
+            // @fixme replace this with the audio code-path using an alternate clock provider?
             BOOL readyForFrame = YES; // check time?
+
             if (readyForFrame && decoder.frameReady) {
                 // it's time to draw
                 BOOL ok = [decoder decodeFrame];
@@ -241,6 +243,9 @@
                     NSLog(@"Bad video packet or something");
                     [self pingProcessing:(1.0f / decoder.frameRate)];
                 }
+            } else {
+                // Need more processing; continue the loop
+                continue;
             }
             
             // End the processing loop and wait for next ping.
