@@ -71,25 +71,6 @@ static const GLuint rectanglePoints = 6;
 
 #pragma mark GLKView method overrides
 
-- (id)initWithFrame:(CGRect)frame
-{
-    self = [super initWithFrame:frame];
-    if (self) {
-        // Initialization code
-        self.context = [self createGLContext];
-    }
-    return self;
-}
-
-- (id)initWithCoder:(NSCoder *)coder
-{
-    self = [super initWithCoder:coder];
-    if (self) {
-        self.context = [self createGLContext];
-    }
-    return self;
-}
-
 - (void)drawRect:(CGRect)rect
 {
     [self setupGLStuff];
@@ -136,6 +117,9 @@ static const GLuint rectanglePoints = 6;
 - (void)drawFrame:(OGVFrameBuffer *)buffer
 {
     // Initialize GL context if we haven't already
+    if (!self.context) {
+        self.context = [self createGLContext];
+    }
     [EAGLContext setCurrentContext:self.context];
     [self setupGLStuff];
 
@@ -170,9 +154,13 @@ static const GLuint rectanglePoints = 6;
 
 #pragma mark Private methods
 
+
 -(EAGLContext *)createGLContext
 {
-    EAGLContext *context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3];
+    EAGLContext *context;
+    if (floor(NSFoundationVersionNumber) >= NSFoundationVersionNumber_iOS_7_0) {
+        context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3];
+    }
     if (context == nil) {
         context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
     }

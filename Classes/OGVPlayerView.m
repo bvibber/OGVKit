@@ -23,9 +23,7 @@
 {
     self = [super initWithFrame:frame];
     if (self) {
-        OGVFrameView *frameView = [[OGVFrameView alloc] initWithFrame:CGRectMake(0, 0, frame.size.width, frame.size.height)];
-        [self addSubview:frameView];
-        self.frameView = frameView;
+        [self createFrameViewWithSize:frame.size];
     }
     return self;
 }
@@ -34,9 +32,7 @@
 {
     self = [super initWithCoder:aDecoder];
     if (self) {
-        OGVFrameView *frameView = [[OGVFrameView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, self.frame.size.height)];
-        [self addSubview:frameView];
-        self.frameView = frameView;
+        [self createFrameViewWithSize:self.frame.size];
     }
     return self;
 }
@@ -81,6 +77,15 @@
         [state cancel];
         state = nil;
     }
+}
+
+#pragma mark - private methods
+
+-(void)createFrameViewWithSize:(CGSize)size
+{
+    OGVFrameView *frameView = [[OGVFrameView alloc] initWithFrame:CGRectMake(0, 0, size.width, size.height)];
+    [self addSubview:frameView];
+    self.frameView = frameView;
 }
 
 #pragma mark - OGVPlayerStateDelegate methods
