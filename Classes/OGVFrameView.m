@@ -367,17 +367,17 @@ static const GLuint rectanglePoints = 6;
 
 -(void)debugCheck
 {
-    if (NO) {
-        GLenum err = glGetError();
-        if (err != GL_NO_ERROR) {
-            NSString *str = [self stringForGLError:err];
-            NSLog(@"GL error: %d %@", (int)err, str);
-            @throw [NSException exceptionWithName:@"OGVFrameViewException"
-                                           reason:str
-                                         userInfo:@{@"glError": @((int)err),
-                                                    @"glErrorString": str}];
-        }
+#if 0
+    GLenum err = glGetError();
+    if (err != GL_NO_ERROR) {
+        NSString *str = [self stringForGLError:err];
+        NSLog(@"GL error: %d %@", (int)err, str);
+        @throw [NSException exceptionWithName:@"OGVFrameViewException"
+                                       reason:str
+                                     userInfo:@{@"glError": @((int)err),
+                                                @"glErrorString": str}];
     }
+#endif
 }
 
 -(NSString *)stringForGLError:(GLenum)err

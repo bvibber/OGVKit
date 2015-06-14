@@ -32,6 +32,8 @@ Pod::Spec.new do |s|
   end
 
   s.subspec "ogg" do |sogg|
+    sogg.compiler_flags = "-O3",
+                          "-Wno-conversion"
     sogg.source_files = "libogg/src",
                         "libogg/include/**/*.h"
     sogg.public_header_files = "libogg/includes/**/*.h"
@@ -39,6 +41,10 @@ Pod::Spec.new do |s|
   end
   
   s.subspec "vorbis" do |svorbis|
+    svorbis.compiler_flags = "-O3",
+                             "-Wno-conversion",
+                             "-Wno-unused-variable",
+                             "-Wno-unused-function"
     svorbis.source_files = "libvorbis/lib",
                            "libvorbis/include/**/*.h"
     svorbis.exclude_files = "libvorbis/lib/psytune.c", # dead code that doesn't compile
@@ -49,6 +55,10 @@ Pod::Spec.new do |s|
   end
   
   s.subspec "theora" do |stheora|
+    stheora.compiler_flags = "-O3",
+                             "-Wno-conversion",
+                             "-Wno-tautological-compare",
+                             "-Wno-absolute-value"
     stheora.source_files = "libtheora/lib",
                            "libtheora/include/**/*.h"
     stheora.public_header_files = "libtheora/include/**/*.h"
