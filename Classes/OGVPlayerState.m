@@ -15,7 +15,9 @@
     NSURLConnection *connection;
     OGVAudioFeeder *audioFeeder;
     OGVDecoder *decoder;
-    
+
+    NSMutableArray *inputDataQueue;
+
     float frameEndTimestamp;
     
     BOOL doneDownloading;
@@ -107,6 +109,7 @@
     playing = YES;
     doneDownloading = NO;
     waitingForData = YES;
+    inputDataQueue = [[NSMutableArray alloc] init];
 }
 
 #pragma mark - Private decode thread methods
@@ -140,31 +143,49 @@
     BOOL more;
     
     while (true) {
+        BOOL wasDataReady = decoder.dataReady;
+
         more = [decoder process];
         if (!more) {
-            if (doneDownloading) {
-                // @todo wait for audio to run out!
-                float timeLeft = [audioFeeder secondsQueued];
-                NSLog(@"out of data, closing in %f ms", timeLeft * 1000.0f);
-                dispatch_time_t closeTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(timeLeft * NSEC_PER_SEC));
-                dispatch_after(closeTime, drawingQueue, ^{
-                    [self cancel];
-                    if ([delegate respondsToSelector:@selector(ogvPlayerStateDidEnd:)]) {
-                        [delegate ogvPlayerStateDidEnd:self];
-                    }
-                });
+            // Decoder wants more data
+
+            if ([inputDataQueue count] > 0) {
+                NSData *inputData = inputDataQueue[0];
+                [inputDataQueue removeObjectAtIndex:0];
+                [decoder receiveInput:inputData];
+
+                // Try again and see if we get packets out!
+                continue;
             } else {
-                // Ran out of buffered input
-                // Wait for more bytes
-                waitingForData = YES;
+                if (doneDownloading) {
+                    // Wait for audio to run out, then close up shop!
+                    float timeLeft = [audioFeeder secondsQueued];
+                    dispatch_time_t closeTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(timeLeft * NSEC_PER_SEC));
+                    dispatch_after(closeTime, drawingQueue, ^{
+                        [self cancel];
+                        if ([delegate respondsToSelector:@selector(ogvPlayerStateDidEnd:)]) {
+                            [delegate ogvPlayerStateDidEnd:self];
+                        }
+                    });
+                } else {
+                    // Ran out of buffered input
+                    // Wait for more bytes
+                    waitingForData = YES;
+                }
+
+                // End the processing loop and wait for next ping.
+                return;
             }
-            // End the processing loop and wait for next ping.
-            return;
         }
         
-        if (!decoder.dataReady) {
-            // Have to process some more pages to find data. Continue the loop.
-            continue;
+        if (!wasDataReady) {
+            if (decoder.dataReady) {
+                // We flipped over to get data; set up audio etc!
+                [self initPlaybackState];
+            } else {
+                // Still processing header data...
+                continue;
+            }
         }
         
         if (decoder.hasAudio) {
@@ -289,20 +310,8 @@
         }
         
         // @todo save to temporary disk storage instead of buffering to memory!
-        
-        [decoder receiveInput:data];
-        if (!decoder.dataReady) {
-            // We need to process enough of the file that we can
-            // start a timer based on the frame rate...
-            while (!decoder.dataReady && [decoder process]) {
-                // whee!
-            }
-            if (decoder.dataReady) {
-                NSLog(@"Initializing playback!");
-                [self initPlaybackState];
-                [self processNextFrame];
-            }
-        }
+
+        [inputDataQueue addObject:data];
         if (waitingForData) {
             waitingForData = NO;
             [self processNextFrame];
