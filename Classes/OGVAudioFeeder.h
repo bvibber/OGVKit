@@ -45,6 +45,11 @@
 -(float)playbackPosition;
 
 /**
+ * Get the future playback position at which current audio will run out
+ */
+@property (readonly) float bufferTailPosition;
+
+/**
  * Have we started?
  */
 -(BOOL)isStarted;

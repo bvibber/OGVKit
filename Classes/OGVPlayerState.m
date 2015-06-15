@@ -19,6 +19,7 @@
     NSMutableArray *inputDataQueue;
 
     float frameEndTimestamp;
+    float initialAudioTimestamp;
     
     BOOL doneDownloading;
     BOOL waitingForData;
@@ -58,7 +59,9 @@
                 playing = NO;
             } else {
                 playing = YES;
-                // @todo start audio etc
+                if (decoder.hasAudio) {
+                    [self startAudio];
+                }
                 [self pingProcessing:0];
             }
         } else {
@@ -70,8 +73,13 @@
 -(void)pause
 {
     dispatch_async(decodeQueue, ^() {
-        playing = NO;
-        // @todo stop audio etc
+        if (playing) {
+            playing = NO;
+        }
+
+        if (audioFeeder) {
+            [self stopAudio];
+        }
     });
 }
 
@@ -81,24 +89,29 @@
         if (playing) {
             playing = NO;
         }
+        
+        if (audioFeeder) {
+            [self stopAudio];
+        }
 
         if (connection) {
             [connection cancel];
         }
         connection = nil;
 
-        if (audioFeeder) {
-            [audioFeeder close];
-        }
-        audioFeeder = nil;
-
         decoder = nil;
     });
 }
 
--(BOOL)playing
+-(BOOL)paused
 {
-    return playing;
+    return !playing;
+}
+
+-(float)playbackPosition
+{
+    // @todo use alternate clock provider for video-only files
+    return audioFeeder.playbackPosition + initialAudioTimestamp;
 }
 
 #pragma mark - Private methods on main thread
@@ -125,8 +138,7 @@
     frameEndTimestamp = 0.0f;
     
     if (decoder.hasAudio) {
-        audioFeeder = [[OGVAudioFeeder alloc] initWithSampleRate:decoder.audioRate
-                                                        channels:decoder.audioChannels];
+        [self startAudio];
     }
     
     dispatch_async(drawingQueue, ^() {
@@ -137,6 +149,25 @@
             [delegate ogvPlayerStateDidPlay:self];
         }
     });
+}
+
+-(void)startAudio
+{
+    assert(decoder.hasAudio);
+    assert(!audioFeeder);
+    audioFeeder = [[OGVAudioFeeder alloc] initWithSampleRate:decoder.audioRate
+                                                    channels:decoder.audioChannels];
+    //NSLog(@"start: %f", initialAudioTimestamp);
+}
+
+-(void)stopAudio
+{
+    assert(decoder.hasAudio);
+    assert(audioFeeder);
+    initialAudioTimestamp = initialAudioTimestamp + audioFeeder.bufferTailPosition;
+    // @fixme let the already-queued audio play out when pausing?
+    [audioFeeder close];
+    audioFeeder = nil;
 }
 
 -(void)queueData:(NSData *)data
@@ -222,13 +253,13 @@
             const float bufferDuration = (float)bufferSize / (float)decoder.audioRate;
             
             float audioBufferedDuration = [audioFeeder secondsQueued];
-            //NSLog(@"%f ms audio queued", audioBufferedDuration * 1000);
-            BOOL readyForAudio = (audioBufferedDuration <= bufferDuration * 2) || ![audioFeeder isStarted];
+            BOOL readyForAudio = (audioBufferedDuration <= bufferDuration) || ![audioFeeder isStarted];
             
-            float frameDelay = (frameEndTimestamp - [audioFeeder playbackPosition]);
+            float frameDelay = (frameEndTimestamp - self.playbackPosition);
             BOOL readyForFrame = (frameDelay <= fudgeDelta);
             
             if (readyForAudio && decoder.audioReady) {
+                //NSLog(@"%f ms audio queued; buffering", audioBufferedDuration * 1000);
                 BOOL ok = [decoder decodeAudio];
                 if (ok) {
                     //NSLog(@"Buffering audio...");
@@ -240,6 +271,7 @@
             }
             
             if (readyForFrame && decoder.frameReady) {
+                //NSLog(@"%f ms frame delay", frameDelay * 1000);
                 BOOL ok = [decoder decodeFrame];
                 if (ok) {
                     [self drawFrame];
@@ -322,6 +354,7 @@
 {
     OGVFrameBuffer *buffer = [decoder frameBuffer];
     frameEndTimestamp = buffer.timestamp;
+    //NSLog(@"frame: %f %f", frameEndTimestamp, self.playbackPosition);
     dispatch_async(drawingQueue, ^() {
         [delegate ogvPlayerState:self drawFrame:buffer];
         [self pingProcessing:0];

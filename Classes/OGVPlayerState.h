@@ -26,11 +26,13 @@
 
 @interface OGVPlayerState : NSObject
 
-@property (readonly) BOOL playing;
-
 -(instancetype)initWithURL:(NSURL *)URL delegate:(id<OGVPlayerStateDelegate>)delegate;
+
 -(void)play;
 -(void)pause;
 -(void)cancel;
+
+@property (readonly) BOOL paused;
+@property (readonly) float playbackPosition;
 
 @end

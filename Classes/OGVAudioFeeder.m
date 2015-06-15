@@ -55,6 +55,8 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
 @implementation OGVAudioFeeder {
 
     NSMutableArray *inputBuffers;
+    int samplesQueued;
+    int samplesPlayed;
     
     AudioStreamBasicDescription formatDescription;
     AudioQueueRef queue;
@@ -82,6 +84,8 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
         silenceTime = 0.0f;
         
         inputBuffers = [[NSMutableArray alloc] init];
+        samplesQueued = 0;
+        samplesPlayed = 0;
         
         bufferSize = 8192;
         bufferByteSize = bufferSize * sizeof(Float32) * channels;
@@ -151,13 +155,9 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
 
 -(int)samplesQueued
 {
-    int total = 0;
     @synchronized (inputBuffers) {
-        for (OGVAudioBuffer *buffer in inputBuffers) {
-            total += buffer.samples;
-        }
+        return samplesQueued - samplesPlayed;
     }
-    return total;
 }
 
 -(float)secondsQueued
@@ -179,6 +179,13 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
         return timeInSeconds - silenceTime;
     } else {
         return 0.0f;
+    }
+}
+
+-(float)bufferTailPosition
+{
+    @synchronized (inputBuffers) {
+        return samplesQueued / (float)self.sampleRate;
     }
 }
 
@@ -291,6 +298,7 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
 {
     @synchronized (inputBuffers) {
         [inputBuffers addObject:buffer];
+        samplesQueued += buffer.samples;
     }
 }
 
@@ -300,6 +308,7 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
         if ([inputBuffers count] > 0) {
             OGVAudioBuffer *inputBuffer = inputBuffers[0];
             [inputBuffers removeObjectAtIndex:0];
+            samplesPlayed += inputBuffer.samples;
             return inputBuffer;
         } else {
             return nil;

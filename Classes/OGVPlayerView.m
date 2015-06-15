@@ -77,10 +77,10 @@
     }
 }
 
--(BOOL)playing
+-(BOOL)paused
 {
     if (state) {
-        return state.playing;
+        return state.paused;
     } else {
         return NO;
     }
@@ -88,7 +88,7 @@
 
 -(void)pause
 {
-    if (state && state.playing) {
+    if (state) {
         [state pause];
     }
 }
@@ -127,10 +127,10 @@
 -(void)onViewTapped:(UIGestureRecognizer *)gestureRecognizer
 {
     if (state) {
-        if (state.playing) {
-            [state pause];
-        } else {
+        if (state.paused) {
             [state play];
+        } else {
+            [state pause];
         }
     }
 }

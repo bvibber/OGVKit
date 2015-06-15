@@ -31,7 +31,7 @@
 
 @property (nonatomic) NSURL *sourceURL;
 
-@property (readonly) BOOL playing;
+@property (readonly) BOOL paused;
 
 -(void)play;
 -(void)pause;
