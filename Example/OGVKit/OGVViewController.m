@@ -61,20 +61,6 @@
     // Dispose of any resources that can be recreated.
 }
 
-- (void)viewDidAppear:(BOOL)animated
-{
-    [super viewDidAppear:animated];
-    
-    //[self.player play];
-    //self.player.paused = NO;
-}
-
-- (void)viewDidDisappear:(BOOL)animated
-{
-    [super viewDidDisappear:animated];
-    self.player.paused = YES;
-}
-
 #pragma mark - UITableViewDataSource methods
 
 - (UITableViewCell *)tableView:(UITableView *)tableView

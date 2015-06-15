@@ -96,6 +96,10 @@
     });
 }
 
+-(BOOL)playing
+{
+    return playing;
+}
 
 #pragma mark - Private methods on main thread
 

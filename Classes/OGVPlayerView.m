@@ -23,7 +23,7 @@
 {
     self = [super initWithFrame:frame];
     if (self) {
-        [self createFrameViewWithSize:frame.size];
+        [self setupWithSize:frame.size];
     }
     return self;
 }
@@ -32,7 +32,7 @@
 {
     self = [super initWithCoder:aDecoder];
     if (self) {
-        [self createFrameViewWithSize:self.frame.size];
+        [self setupWithSize:self.frame.size];
     }
     return self;
 }
@@ -67,26 +67,61 @@
     [state play];
 }
 
--(void)pause
+-(void)dealloc
 {
-    [state pause];
+    [[NSNotificationCenter defaultCenter] removeObserver:self
+                                                    name:UIApplicationDidEnterBackgroundNotification
+                                                  object:nil];
 }
 
-- (void)stop
+-(BOOL)playing
 {
     if (state) {
-        [state cancel];
-        state = nil;
+        return state.playing;
+    } else {
+        return NO;
+    }
+}
+
+-(void)pause
+{
+    if (state && state.playing) {
+        [state pause];
     }
 }
 
 #pragma mark - private methods
 
--(void)createFrameViewWithSize:(CGSize)size
+-(void)setupWithSize:(CGSize)size
 {
     OGVFrameView *frameView = [[OGVFrameView alloc] initWithFrame:CGRectMake(0, 0, size.width, size.height)];
     [self addSubview:frameView];
     self.frameView = frameView;
+    
+    UIGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self
+                                                                       action:@selector(onViewTapped:)];
+    [self addGestureRecognizer:tap];
+
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(appDidEnterBackground:)
+                                                 name:UIApplicationDidEnterBackgroundNotification
+                                               object:nil];
+}
+
+-(void)onViewTapped:(UIGestureRecognizer *)gestureRecognizer
+{
+    if (state) {
+        if (state.playing) {
+            [state pause];
+        } else {
+            [state play];
+        }
+    }
+}
+
+-(void)appDidEnterBackground:(id)obj
+{
+    [self pause];
 }
 
 #pragma mark - OGVPlayerStateDelegate methods

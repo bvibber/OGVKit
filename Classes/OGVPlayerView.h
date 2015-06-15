@@ -31,17 +31,9 @@
 
 @property (nonatomic) NSURL *sourceURL;
 
-@property (readonly) int videoWidth;
-@property (readonly) int videoHeight;
-
-@property (nonatomic) BOOL paused;
-@property (nonatomic) BOOL muted;
-@property (readonly) BOOL ended;
-@property (readonly) BOOL seeking;
-
-@property (nonatomic) double currentTime;
-@property (readonly) double duration;
+@property (readonly) BOOL playing;
 
 -(void)play;
+-(void)pause;
 
 @end
