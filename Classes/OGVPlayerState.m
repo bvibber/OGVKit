@@ -139,6 +139,31 @@
     });
 }
 
+-(void)queueData:(NSData *)data
+{
+    [inputDataQueue addObject:data];
+}
+
+-(NSData *)dequeueData
+{
+    if ([inputDataQueue count] > 0) {
+        NSData *inputData = inputDataQueue[0];
+        [inputDataQueue removeObjectAtIndex:0];
+        return inputData;
+    } else {
+        return nil;
+    }
+}
+
+-(NSUInteger)queuedDataSize
+{
+    NSUInteger nbytes = 0;
+    for (NSData *data in inputDataQueue) {
+        nbytes += [data length];
+    }
+    return nbytes;
+}
+
 - (void)processNextFrame
 {
     if (!playing) {
@@ -152,10 +177,8 @@
         more = [decoder process];
         if (!more) {
             // Decoder wants more data
-
-            if ([inputDataQueue count] > 0) {
-                NSData *inputData = inputDataQueue[0];
-                [inputDataQueue removeObjectAtIndex:0];
+            NSData *inputData = [self dequeueData];
+            if (inputData) {
                 [decoder receiveInput:inputData];
 
                 // Try again and see if we get packets out!
@@ -303,19 +326,14 @@
     });
 }
 
-#pragma mark NSURLConnectionDataDelegate methods
+#pragma mark - NSURLConnectionDataDelegate methods
 
 - (void)connection:(NSURLConnection *)sender didReceiveData:(NSData *)data
 {
     dispatch_async(decodeQueue, ^() {
-        if (sender != connection) {
-            // from a previous session! discard.
-            return;
-        }
-        
         // @todo save to temporary disk storage instead of buffering to memory!
 
-        [inputDataQueue addObject:data];
+        [self queueData:data];
         if (waitingForData) {
             waitingForData = NO;
             [self processNextFrame];
@@ -326,11 +344,12 @@
 - (void)connectionDidFinishLoading:(NSURLConnection *)sender
 {
     dispatch_async(decodeQueue, ^() {
-        if (sender == connection) {
-            NSLog(@"done downloading");
-            doneDownloading = YES;
+        NSLog(@"done downloading");
+        doneDownloading = YES;
+        connection = nil;
+        if (waitingForData) {
             waitingForData = NO;
-            connection = nil;
+            [self processNextFrame];
         }
     });
 }
