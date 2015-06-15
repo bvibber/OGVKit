@@ -94,7 +94,8 @@
 
 -(void)setupWithSize:(CGSize)size
 {
-    OGVFrameView *frameView = [[OGVFrameView alloc] initWithFrame:CGRectMake(0, 0, size.width, size.height)];
+    OGVFrameView *frameView = [[OGVFrameView alloc] initWithFrame:CGRectMake(0, 0, size.width, size.height)
+                                                          context:[self createGLContext]];
     [self addSubview:frameView];
     self.frameView = frameView;
     
@@ -106,6 +107,18 @@
                                              selector:@selector(appDidEnterBackground:)
                                                  name:UIApplicationDidEnterBackgroundNotification
                                                object:nil];
+}
+
+-(EAGLContext *)createGLContext
+{
+    EAGLContext *context;
+    if (floor(NSFoundationVersionNumber) >= NSFoundationVersionNumber_iOS_7_0) {
+        context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3];
+    }
+    if (context == nil) {
+        context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
+    }
+    return context;
 }
 
 -(void)onViewTapped:(UIGestureRecognizer *)gestureRecognizer

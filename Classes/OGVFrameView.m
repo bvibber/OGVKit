@@ -117,9 +117,7 @@ static const GLuint rectanglePoints = 6;
 - (void)drawFrame:(OGVFrameBuffer *)buffer
 {
     // Initialize GL context if we haven't already
-    if (!self.context) {
-        self.context = [self createGLContext];
-    }
+    assert(self.context);
     [EAGLContext setCurrentContext:self.context];
     [self setupGLStuff];
 
@@ -158,19 +156,6 @@ static const GLuint rectanglePoints = 6;
 }
 
 #pragma mark Private methods
-
-
--(EAGLContext *)createGLContext
-{
-    EAGLContext *context;
-    if (floor(NSFoundationVersionNumber) >= NSFoundationVersionNumber_iOS_7_0) {
-        context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3];
-    }
-    if (context == nil) {
-        context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
-    }
-    return context;
-}
 
 -(void)setupGLStuff
 {
