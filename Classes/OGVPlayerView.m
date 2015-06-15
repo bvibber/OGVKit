@@ -72,6 +72,9 @@
     [[NSNotificationCenter defaultCenter] removeObserver:self
                                                     name:UIApplicationDidEnterBackgroundNotification
                                                   object:nil];
+    if (state) {
+        [state cancel];
+    }
 }
 
 -(BOOL)playing
