@@ -52,6 +52,7 @@
 {
     if (state) {
         [state cancel];
+        [self.frameView clearFrame];
     }
     _sourceURL = [sourceURL copy];
     if (_sourceURL) {

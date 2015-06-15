@@ -151,6 +151,11 @@ static const GLuint rectanglePoints = 6;
     [self setNeedsDisplay];
 }
 
+- (void)clearFrame
+{
+    nextFrame = nil;
+    [self setNeedsDisplay];
+}
 
 #pragma mark Private methods
 
