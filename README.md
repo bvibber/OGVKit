@@ -37,41 +37,16 @@ Now open OGVKit.xcworkspace -- the workspace NOT the project! And build.
 
 # Roadmap
 
-v0.1 basics:
-* fix audio-only files
-* fix video-only files
+See [milestones in issue tracker](https://github.com/brion/OGVKit/milestones) for details:
 
-v0.2 controls:
-* pause/continue buttons
-* volume control
-
-v0.3 i/o refactor:
-* OGVStreamFile and sync interface on top for the demuxer to use
-* buffer to temp storage instead of RAM
-* progress bar / seek scrubber
-* byte-range seeking
-* seeking with liboggz / libskeleton
-
-v0.4 formats:
-* WebM support with nestegg/vpx
-
-v1.0 cleanup:
-* clean up API, source for usage in Wikipedia app
-
-v1.1 extras:
-* fullscreen
-* HDMI/AirPlay output
-
-v1.2 perf:
-* recycle buffers
-* try to get ARM assembly bits for theora & vorbis working
-* try Metal for the YUV conversion?
-
-v2.0 internals and API refactor:
-* separate out libraries as their own pods?
-* replace custom buffer types with CMSampleBuffers for easier interop?
-* label for Swift usage?
-
-v3.0 transcoding:
-* add an encoder class!
-* transcode helper class for saving to H.264/AAC or producing ogv/webm from one
+* v0 development
+ * v0.1 basics
+ * v0.2 controls
+ * v0.3 i/o refactor & seeking
+ * v0.4 formats: WebM, Opus
+ * v0.5 initial CocoaPods release
+* v1 stable player API
+ * v1.1 extras: fullscreen, AirPlay, etc
+ * v1.2 performance
+* v2 internals and API refactor
+* v3 encoder & transcoding
