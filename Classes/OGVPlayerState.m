@@ -252,17 +252,19 @@
             }
             
             NSMutableArray *nextDelays = [[NSMutableArray alloc] init];
-            if (audioBufferedDuration <= bufferDuration * 2) {
-                // NEED MOAR BUFFERS
-            } else {
-                // Check in when the audio buffer runs low again...
-                [nextDelays addObject:@(bufferDuration / 2.0f)];
-                
-                if (decoder.hasVideo) {
-                    // Check in when the next frame is due
-                    // todo: Subtract time we already spent decoding
-                    [nextDelays addObject:@(frameDelay)];
+            if (decoder.hasAudio) {
+                if (audioBufferedDuration <= bufferDuration * 2) {
+                    // NEED MOAR BUFFERS
+                    [nextDelays addObject:@0];
+                } else {
+                    // Check in when the audio buffer runs low again...
+                    [nextDelays addObject:@(bufferDuration / 2.0f)];
                 }
+            }
+            if (decoder.hasVideo) {
+                // Check in when the next frame is due
+                // todo: Subtract time we already spent decoding
+                [nextDelays addObject:@(frameDelay)];
             }
             
             if ([nextDelays count]) {
