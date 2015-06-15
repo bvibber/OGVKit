@@ -16,7 +16,6 @@
 @optional
 -(void)ogvPlayerStateDidPlay:(OGVPlayerState *)state;
 
-@optional
 -(void)ogvPlayerState:(OGVPlayerState *)state drawFrame:(OGVFrameBuffer *)buffer;
 
 @optional
