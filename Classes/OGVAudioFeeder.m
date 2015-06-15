@@ -133,7 +133,7 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
         [self queueInput:buffer];
         //NSLog(@"buffer count: %d", [self buffersQueued]);
         if (!isStarting && !isRunning && [self buffersQueued] >= nBuffers) {
-            NSLog(@"Starting audio!");
+            //NSLog(@"Starting audio!");
             [self startAudio];
         }
     }
@@ -193,7 +193,7 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
     //NSLog(@"handleQueue...");
 
     if (isClosing) {
-        NSLog(@"Stopping queue");
+        //NSLog(@"Stopping queue");
         AudioQueueStop(queue, YES);
         return;
     }
@@ -246,7 +246,7 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
             return AudioQueueGetProperty(queue, prop, &_isRunning, &_size);
         });
         isRunning = (BOOL)_isRunning;
-        NSLog(@"isRunning is %d", (int)isRunning);
+        //NSLog(@"isRunning is %d", (int)isRunning);
     }
 }
 
