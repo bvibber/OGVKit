@@ -23,7 +23,7 @@
 {
     self = [super initWithFrame:frame];
     if (self) {
-        [self setupWithSize:frame.size];
+        [self setup];
     }
     return self;
 }
@@ -32,15 +32,9 @@
 {
     self = [super initWithCoder:aDecoder];
     if (self) {
-        [self setupWithSize:self.frame.size];
+        [self setup];
     }
     return self;
-}
-
--(void)layoutSubviews
-{
-    [super layoutSubviews];
-    self.frameView.frame = CGRectMake(0, 0, self.frame.size.width, self.frame.size.height);
 }
 
 - (NSURL *)sourceURL
@@ -95,13 +89,25 @@
 
 #pragma mark - private methods
 
--(void)setupWithSize:(CGSize)size
+-(void)setup
 {
+    CGSize size = self.frame.size;
     OGVFrameView *frameView = [[OGVFrameView alloc] initWithFrame:CGRectMake(0, 0, size.width, size.height)
                                                           context:[self createGLContext]];
+    frameView.translatesAutoresizingMaskIntoConstraints = NO;
     [self addSubview:frameView];
     self.frameView = frameView;
-    
+
+    NSDictionary *layoutViews = NSDictionaryOfVariableBindings(frameView);
+    [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[frameView]|"
+                                                                 options:0
+                                                                 metrics:nil
+                                                                   views:layoutViews]];
+    [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[frameView]|"
+                                                                 options:0
+                                                                 metrics:nil
+                                                                   views:layoutViews]];
+
     UIGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self
                                                                        action:@selector(onViewTapped:)];
     [self addGestureRecognizer:tap];
