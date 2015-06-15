@@ -221,10 +221,6 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
         }
         
         buffer->mAudioDataByteSize = packetSize;
-
-        throwIfError(^() {
-            return AudioQueueEnqueueBuffer(queue, buffer, 0, NULL);
-        });
     } else {
         NSLog(@"starved for audio?");
         
@@ -233,6 +229,10 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
         buffer->mAudioDataByteSize = bufferByteSize;
         memset(buffer->mAudioData, 0, bufferByteSize);
     }
+
+    throwIfError(^() {
+        return AudioQueueEnqueueBuffer(queue, buffer, 0, NULL);
+    });
 }
 
 -(void)handleQueue:(AudioQueueRef)_queue propChanged:(AudioQueuePropertyID)prop
