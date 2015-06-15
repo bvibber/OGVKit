@@ -340,6 +340,8 @@
             waitingForData = NO;
             [self processNextFrame];
         }
+
+        // @todo once moved to its own thread, throttle this connection!
     });
 }
 
@@ -349,10 +351,7 @@
         NSLog(@"done downloading");
         doneDownloading = YES;
         connection = nil;
-        if (waitingForData) {
-            waitingForData = NO;
-            [self processNextFrame];
-        }
+        [self processNextFrame];
     });
 }
 
