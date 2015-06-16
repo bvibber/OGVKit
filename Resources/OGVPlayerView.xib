@@ -29,30 +29,33 @@
                     <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                 </glkView>
                 <view opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="EsP-BZ-Yz6">
-                    <rect key="frame" x="0.0" y="560" width="600" height="40"/>
+                    <rect key="frame" x="0.0" y="552" width="600" height="48"/>
                     <subviews>
                         <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="C1P-af-wnM">
-                            <rect key="frame" x="8" y="0.0" width="30" height="40"/>
-                            <fontDescription key="fontDescription" name="github-octicons" family="github-octicons" pointSize="18"/>
+                            <rect key="frame" x="8" y="0.0" width="30" height="48"/>
+                            <fontDescription key="fontDescription" name="github-octicons" family="github-octicons" pointSize="32"/>
                             <state key="normal" title="">
-                                <color key="titleColor" red="0.022589172979798011" green="0.022589172979798011" blue="0.022589172979798011" alpha="1" colorSpace="calibratedRGB"/>
+                                <color key="titleColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
                                 <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                             </state>
+                            <connections>
+                                <action selector="togglePausePlay:" destination="-1" eventType="touchUpInside" id="Fy0-YV-N06"/>
+                            </connections>
                         </button>
                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="-:--" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="I5T-iC-1VI">
-                            <rect key="frame" x="558.5" y="8" width="33.5" height="24"/>
-                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                            <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                            <rect key="frame" x="46" y="8" width="25" height="32"/>
+                            <fontDescription key="fontDescription" type="system" pointSize="12"/>
+                            <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
                             <nil key="highlightedColor"/>
                         </label>
                     </subviews>
                     <color key="backgroundColor" white="1" alpha="0.5" colorSpace="calibratedWhite"/>
                     <constraints>
-                        <constraint firstAttribute="trailingMargin" secondItem="I5T-iC-1VI" secondAttribute="trailing" id="AZc-UV-vph"/>
+                        <constraint firstItem="I5T-iC-1VI" firstAttribute="leading" secondItem="C1P-af-wnM" secondAttribute="trailing" constant="8" id="4AX-L4-zMD"/>
                         <constraint firstAttribute="bottom" secondItem="C1P-af-wnM" secondAttribute="bottom" id="FMj-gr-rAm"/>
                         <constraint firstItem="I5T-iC-1VI" firstAttribute="top" secondItem="EsP-BZ-Yz6" secondAttribute="topMargin" id="HqM-S8-0oW"/>
                         <constraint firstAttribute="bottomMargin" secondItem="I5T-iC-1VI" secondAttribute="bottom" id="hal-cn-lrU"/>
-                        <constraint firstAttribute="height" constant="40" id="md1-UK-sKq"/>
+                        <constraint firstAttribute="height" constant="48" id="md1-UK-sKq"/>
                         <constraint firstItem="C1P-af-wnM" firstAttribute="leading" secondItem="EsP-BZ-Yz6" secondAttribute="leadingMargin" id="rhU-pQ-OkT"/>
                         <constraint firstItem="C1P-af-wnM" firstAttribute="top" secondItem="EsP-BZ-Yz6" secondAttribute="top" id="vLx-re-nl7"/>
                     </constraints>

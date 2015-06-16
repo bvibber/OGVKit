@@ -118,14 +118,13 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
     // @todo move this into OGVFrameView
     self.frameView.context = [self createGLContext];
 
+    // can this be set in the nib?
+    [self.pausePlayButton setTitleColor:[UIColor blackColor] forState:UIControlStateHighlighted];
+
+    // ok load that nib into our view \o/
     interface.frame = self.bounds;
     interface.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     [self addSubview:interface];
-
-    // Events
-    UIGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self
-                                                                       action:@selector(onViewTapped:)];
-    [self.frameView addGestureRecognizer:tap];
 
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(appDidEnterBackground:)
@@ -145,7 +144,7 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
     return context;
 }
 
--(void)onViewTapped:(UIGestureRecognizer *)gestureRecognizer
+- (IBAction)togglePausePlay:(id)sender
 {
     if (state) {
         if (state.paused) {
