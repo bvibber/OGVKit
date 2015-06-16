@@ -8,7 +8,7 @@
 
 @class OGVStreamFile;
 
-@protocol OGVStreamFileDelegate <NSObject>
+@protocol OGVStreamFileDelegate <NSURLConnectionDataDelegate>
 
 @optional
 -(void)ogvStreamFileDataAvailable:(OGVStreamFile *)sender;

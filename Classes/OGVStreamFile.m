@@ -24,9 +24,9 @@
 
     NSURLConnection *connection;
     NSMutableArray *inputDataQueue;
+    BOOL doneDownloading;
 
     dispatch_semaphore_t waitingForDataSemaphore;
-    NSRunLoop *downloadRunLoop;
 }
 
 #pragma mark - public methods
@@ -120,10 +120,8 @@
 
 -(void)start
 {
-    NSLog(@"STARTING DOWNLOAD REQUESTED");
     @synchronized (timeLock) {
         assert(!connection);
-        assert(!downloadRunLoop);
         
         [NSThread detachNewThreadSelector:@selector(startDownloadThread:)
                                  toTarget:self
@@ -142,6 +140,19 @@
     BOOL blockingWait = NO;
 
     @synchronized (timeLock) {
+        switch (self.state) {
+            case OGVStreamFileStateInit:
+            case OGVStreamFileStateConnecting:
+            case OGVStreamFileStateReading:
+                // We're ok.
+                break;
+            case OGVStreamFileStateDone:
+            case OGVStreamFileStateFailed:
+            case OGVStreamFileStateSeeking:
+                NSLog(@"OGVStreamFile reading in invalid state %d", (int)self.state);
+                return nil;
+        }
+
         NSUInteger bytesAvailable = self.bytesAvailable;
         if (bytesAvailable >= nBytes) {
             data = [self dequeueBytes:nBytes];
@@ -168,27 +179,21 @@
 
 -(void)startDownloadThread:(id)obj
 {
-    NSLog(@"download starting...");
+    NSRunLoop *downloadRunLoop = [NSRunLoop currentRunLoop];
 
     @synchronized (timeLock) {
-        downloadRunLoop = [NSRunLoop currentRunLoop];
-
         NSURLRequest *req = [NSURLRequest requestWithURL:self.URL];
         connection = [[NSURLConnection alloc] initWithRequest:req delegate:self startImmediately:NO];
         [connection scheduleInRunLoop:downloadRunLoop forMode:NSRunLoopCommonModes];
         [connection start];
 
         self.state = OGVStreamFileStateConnecting;
+        doneDownloading = NO;
     }
 
+    NSLog(@"foooo start");
     [downloadRunLoop run];
-
-    NSLog(@"download thread complete!");
-}
-
--(void)pingTimer:(id)obj
-{
-    NSLog(@"stupid timer");
+    NSLog(@"foooo done");
 }
 
 -(void)waitForBytesAvailable:(NSUInteger)nBytes
@@ -197,18 +202,17 @@
     waitingForDataSemaphore = dispatch_semaphore_create(0);
     while (YES) {
         @synchronized (timeLock) {
-            NSLog(@"%ld %ld", self.bytesAvailable, nBytes);
-            if (self.bytesAvailable >= nBytes) {
+            if (self.bytesAvailable >= nBytes ||
+                self.state == OGVStreamFileStateDone ||
+                self.state == OGVStreamFileStateFailed) {
                 waitingForDataSemaphore = nil;
                 break;
             }
         }
-        NSLog(@"waiting for data");
+
         dispatch_semaphore_wait(waitingForDataSemaphore,
-                                //dispatch_time(DISPATCH_TIME_NOW, NSEC_PER_SEC * 4)
-                                DISPATCH_TIME_FOREVER
-                                );
-        NSLog(@"post-wait");
+                                DISPATCH_TIME_FOREVER);
+
     }
 }
 
@@ -252,6 +256,11 @@
 {
     @synchronized (timeLock) {
         NSMutableData *outputData = [[NSMutableData alloc] initWithCapacity:nBytes];
+        
+        if (doneDownloading) {
+            nBytes = self.bytesAvailable;
+        }
+
         while ([outputData length] < nBytes) {
             NSData *inputData = [self peekData];
             if (inputData) {
@@ -269,10 +278,16 @@
                     [outputData appendData:dataHead];
                 }
             } else {
-                // Ran out of input data.
+                // Ran out of input data
                 break;
             }
         }
+
+        if (doneDownloading && self.bytesAvailable == 0) {
+            // Ran out of input data.
+            self.state = OGVStreamFileStateDone;
+        }
+
         return outputData;
     }
 }
@@ -292,7 +307,6 @@
 
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response
 {
-    NSLog(@"headers in");
     @synchronized (timeLock) {
         self.state = OGVStreamFileStateReading;
     }
@@ -300,7 +314,6 @@
 
 - (void)connection:(NSURLConnection *)sender didReceiveData:(NSData *)data
 {
-    NSLog(@"data in");
     @synchronized (timeLock) {
         [self queueData:data];
         self.dataAvailable = YES;
@@ -311,10 +324,24 @@
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)sender
 {
-    NSLog(@"data done");
     @synchronized (timeLock) {
-        self.state = OGVStreamFileStateDone;
+        doneDownloading = YES;
         self.dataAvailable = ([inputDataQueue count] > 0);
+
+        if (waitingForDataSemaphore) {
+            dispatch_semaphore_signal(waitingForDataSemaphore);
+        }
+    }
+}
+
+- (void)connection:(NSURLConnection *)sender didFailWithError:(NSError *)error
+{
+    @synchronized (timeLock) {
+        // @todo if we're in read state, let us read out the rest of data
+        // already fetched!
+        self.state = OGVStreamFileStateFailed;
+        self.dataAvailable = ([inputDataQueue count] > 0);
+
         if (waitingForDataSemaphore) {
             dispatch_semaphore_signal(waitingForDataSemaphore);
         }

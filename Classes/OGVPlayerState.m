@@ -205,6 +205,7 @@
             } else {
                 timeLeft = 0;
             }
+            NSLog(@"%f left then stop", timeLeft);
 
             dispatch_time_t closeTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(timeLeft * NSEC_PER_SEC));
             dispatch_after(closeTime, drawingQueue, ^{
