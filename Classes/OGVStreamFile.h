@@ -8,9 +8,13 @@
 
 @class OGVStreamFile;
 
-@protocol OGVStreamFileDelegate <NSObject>
+@protocol OGVStreamFileDelegate <NSURLConnectionDataDelegate>
 
+@optional
 -(void)ogvStreamFileDataAvailable:(OGVStreamFile *)sender;
+
+@optional
+-(void)ogvStreamFileStateChanged:(OGVStreamFile *)sender;
 
 @end
 
@@ -32,6 +36,7 @@ typedef NS_ENUM(NSUInteger, OGVStreamFileState) {
 @property (readonly) NSURL *URL;
 @property (readonly) OGVStreamFileState state;
 @property (readonly) BOOL dataAvailable;
+@property (readonly) NSUInteger bytesAvailable;
 
 -(instancetype)initWithURL:(NSURL *)URL;
 -(void)start;

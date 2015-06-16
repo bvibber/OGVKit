@@ -24,10 +24,19 @@
 
     NSURLConnection *connection;
     NSMutableArray *inputDataQueue;
-    
+    BOOL doneDownloading;
+
+    dispatch_semaphore_t waitingForDataSemaphore;
 }
 
 #pragma mark - public methods
+
+-(void)dealloc
+{
+    if (connection) {
+        [connection cancel];
+    }
+}
 
 -(NSURL *)URL
 {
@@ -49,7 +58,16 @@
 -(void)setState:(OGVStreamFileState)state
 {
     @synchronized (timeLock) {
+        OGVStreamFileState oldState = _state;
         _state = state;
+        
+        if (self.delegate && state != oldState) {
+            dispatch_async(dispatch_get_main_queue(), ^() {
+                if ([self.delegate respondsToSelector:@selector(ogvStreamFileStateChanged:)]) {
+                    [self.delegate ogvStreamFileStateChanged:self];
+                }
+            });
+        }
     }
 }
 
@@ -63,7 +81,26 @@
 -(void)setDataAvailable:(BOOL)dataAvailable
 {
     @synchronized (timeLock) {
+        BOOL wasAvailable = _dataAvailable;
         _dataAvailable = dataAvailable;
+        
+        if (waitingForDataSemaphore) {
+            dispatch_semaphore_signal(waitingForDataSemaphore);
+        }
+        if (self.delegate && !wasAvailable && dataAvailable) {
+            dispatch_async(dispatch_get_main_queue(), ^() {
+                if ([self.delegate respondsToSelector:@selector(ogvStreamFileDataAvailable:)]) {
+                    [self.delegate ogvStreamFileDataAvailable:self];
+                }
+            });
+        }
+    }
+}
+
+-(NSUInteger)bytesAvailable
+{
+    @synchronized (timeLock) {
+        return [self queuedDataSize];
     }
 }
 
@@ -84,11 +121,11 @@
 -(void)start
 {
     @synchronized (timeLock) {
-        NSURLRequest *req = [NSURLRequest requestWithURL:self.URL];
-        connection = [[NSURLConnection alloc] initWithRequest:req delegate:self startImmediately:NO];
-        [connection scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
-        [connection start];
-        self.state = OGVStreamFileStateConnecting;
+        assert(!connection);
+        
+        [NSThread detachNewThreadSelector:@selector(startDownloadThread:)
+                                 toTarget:self
+                               withObject:nil];
     }
 }
 
@@ -99,29 +136,83 @@
 
 -(NSData *)readBytes:(NSUInteger)nBytes blocking:(BOOL)blocking
 {
-    if (blocking) {
-        NSLog(@"blocking reads not yet implemented");
-        abort();
-    }
-    
+    NSData *data = nil;
+    BOOL blockingWait = NO;
+
     @synchronized (timeLock) {
-        NSData *buffer = [self peekData];
-        
-        NSUInteger bufferLen = [buffer length];
-        if (bufferLen <= nBytes) {
-            [self dequeueData];
-            return buffer;
+        switch (self.state) {
+            case OGVStreamFileStateInit:
+            case OGVStreamFileStateConnecting:
+            case OGVStreamFileStateReading:
+                // We're ok.
+                break;
+            case OGVStreamFileStateDone:
+            case OGVStreamFileStateFailed:
+            case OGVStreamFileStateSeeking:
+                NSLog(@"OGVStreamFile reading in invalid state %d", (int)self.state);
+                return nil;
+        }
+
+        NSUInteger bytesAvailable = self.bytesAvailable;
+        if (bytesAvailable >= nBytes) {
+            data = [self dequeueBytes:nBytes];
+        } else if (blocking) {
+            // ...
+            blockingWait = YES;
+        } else if (bytesAvailable) {
+            // Non-blocking, return as much data as we have.
+            data = [self dequeueBytes:bytesAvailable];
         } else {
-            // Split the buffer for convenience. Not super efficient. :)
-            NSData *dataHead = [buffer subdataWithRange:NSMakeRange(0, nBytes)];
-            NSData *dataTail = [buffer subdataWithRange:NSMakeRange(nBytes, bufferLen - nBytes)];
-            inputDataQueue[0] = dataTail;
-            return dataHead;
+            // Non-blocking, and there is no data.
+            data = nil;
         }
     }
+
+    if (blockingWait) {
+        [self waitForBytesAvailable:nBytes];
+        data = [self dequeueBytes:nBytes];
+    }
+    return data;
 }
 
 #pragma mark - private methods
+
+-(void)startDownloadThread:(id)obj
+{
+    NSRunLoop *downloadRunLoop = [NSRunLoop currentRunLoop];
+
+    @synchronized (timeLock) {
+        NSURLRequest *req = [NSURLRequest requestWithURL:self.URL];
+        connection = [[NSURLConnection alloc] initWithRequest:req delegate:self startImmediately:NO];
+        [connection scheduleInRunLoop:downloadRunLoop forMode:NSRunLoopCommonModes];
+        [connection start];
+
+        self.state = OGVStreamFileStateConnecting;
+        doneDownloading = NO;
+    }
+
+    [downloadRunLoop run];
+}
+
+-(void)waitForBytesAvailable:(NSUInteger)nBytes
+{
+    assert(waitingForDataSemaphore == NULL);
+    waitingForDataSemaphore = dispatch_semaphore_create(0);
+    while (YES) {
+        @synchronized (timeLock) {
+            if (self.bytesAvailable >= nBytes ||
+                self.state == OGVStreamFileStateDone ||
+                self.state == OGVStreamFileStateFailed) {
+                waitingForDataSemaphore = nil;
+                break;
+            }
+        }
+
+        dispatch_semaphore_wait(waitingForDataSemaphore,
+                                DISPATCH_TIME_FOREVER);
+
+    }
+}
 
 -(void)queueData:(NSData *)data
 {
@@ -159,6 +250,46 @@
     }
 }
 
+-(NSData *)dequeueBytes:(NSUInteger)nBytes
+{
+    @synchronized (timeLock) {
+        NSMutableData *outputData = [[NSMutableData alloc] initWithCapacity:nBytes];
+        
+        if (doneDownloading) {
+            nBytes = self.bytesAvailable;
+        }
+
+        while ([outputData length] < nBytes) {
+            NSData *inputData = [self peekData];
+            if (inputData) {
+                NSUInteger inputSize = [inputData length];
+                NSUInteger chunkSize = nBytes - [outputData length];
+
+                if (inputSize <= chunkSize) {
+                    [self dequeueData];
+                    [outputData appendData:inputData];
+                } else {
+                    // Split the buffer for convenience. Not super efficient. :)
+                    NSData *dataHead = [inputData subdataWithRange:NSMakeRange(0, chunkSize)];
+                    NSData *dataTail = [inputData subdataWithRange:NSMakeRange(chunkSize, inputSize - chunkSize)];
+                    inputDataQueue[0] = dataTail;
+                    [outputData appendData:dataHead];
+                }
+            } else {
+                // Ran out of input data
+                break;
+            }
+        }
+
+        if (doneDownloading && self.bytesAvailable == 0) {
+            // Ran out of input data.
+            self.state = OGVStreamFileStateDone;
+        }
+
+        return outputData;
+    }
+}
+
 -(NSUInteger)queuedDataSize
 {
     NSUInteger nbytes = 0;
@@ -181,27 +312,37 @@
 
 - (void)connection:(NSURLConnection *)sender didReceiveData:(NSData *)data
 {
-    BOOL pingDelegate = NO;
-
     @synchronized (timeLock) {
-        if (!self.dataAvailable) {
-            pingDelegate = YES;
-        }
         [self queueData:data];
+        self.dataAvailable = YES;
         
         // @todo once moved to its own thread, throttle this connection!
-    }
-
-    if (pingDelegate) {
-        [self.delegate ogvStreamFileDataAvailable:self];
     }
 }
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)sender
 {
     @synchronized (timeLock) {
-        self.state = OGVStreamFileStateDone;
-        connection = nil;
+        doneDownloading = YES;
+        self.dataAvailable = ([inputDataQueue count] > 0);
+
+        if (waitingForDataSemaphore) {
+            dispatch_semaphore_signal(waitingForDataSemaphore);
+        }
+    }
+}
+
+- (void)connection:(NSURLConnection *)sender didFailWithError:(NSError *)error
+{
+    @synchronized (timeLock) {
+        // @todo if we're in read state, let us read out the rest of data
+        // already fetched!
+        self.state = OGVStreamFileStateFailed;
+        self.dataAvailable = ([inputDataQueue count] > 0);
+
+        if (waitingForDataSemaphore) {
+            dispatch_semaphore_signal(waitingForDataSemaphore);
+        }
     }
 }
 
