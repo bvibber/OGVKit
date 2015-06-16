@@ -229,7 +229,7 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
         
         buffer->mAudioDataByteSize = packetSize;
     } else {
-        NSLog(@"starved for audio?");
+        //NSLog(@"starved for audio?");
         
         // Buy us some decode time with some blank audio
         silenceTime += ((float)bufferSize / (float)_sampleRate);

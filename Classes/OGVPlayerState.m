@@ -386,7 +386,7 @@
 - (void)connectionDidFinishLoading:(NSURLConnection *)sender
 {
     dispatch_async(decodeQueue, ^() {
-        NSLog(@"done downloading");
+        //NSLog(@"done downloading");
         doneDownloading = YES;
         connection = nil;
         [self processNextFrame];
