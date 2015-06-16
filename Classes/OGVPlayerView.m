@@ -123,8 +123,18 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
 
     // ok load that nib into our view \o/
     interface.frame = self.bounds;
-    interface.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    interface.translatesAutoresizingMaskIntoConstraints = NO;
     [self addSubview:interface];
+
+    NSDictionary *layoutViews = NSDictionaryOfVariableBindings(interface);
+    [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[interface]|"
+                                                                 options:0
+                                                                 metrics:nil
+                                                                   views:layoutViews]];
+    [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[interface]|"
+                                                                 options:0
+                                                                 metrics:nil
+                                                                   views:layoutViews]];
 
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(appDidEnterBackground:)
