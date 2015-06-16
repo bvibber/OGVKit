@@ -111,6 +111,15 @@ static const GLuint rectanglePoints = 6;
     
 }
 
+- (void)layoutSubviews
+{
+    [super layoutSubviews];
+
+    // Make sure we update the screen after resize,
+    // it doesn't seem to trigger otherwise.
+    [self setNeedsDisplay];
+}
+
 #pragma mark OGVFrameView methods
 
 // call me on the main thread
