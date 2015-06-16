@@ -299,7 +299,23 @@
     return nbytes;
 }
 
-
+-(void)sleepUntilBuffersLow
+{
+    while (YES) {
+        BOOL buffersAreLow;
+        @synchronized (timeLock) {
+            buffersAreLow = (self.bytesAvailable < self.bufferSize * 2);
+        }
+        if (buffersAreLow) {
+            // @todo estimate the speed or something and sleep adaptively
+            // sleep 50ms on the download thread
+            usleep(50 * 1000);
+            break; // hack
+        } else {
+            break;
+        }
+    }
+}
 
 #pragma mark - NSURLConnectionDataDelegate methods
 
@@ -315,9 +331,10 @@
     @synchronized (timeLock) {
         [self queueData:data];
         self.dataAvailable = YES;
-        
-        // @todo once moved to its own thread, throttle this connection!
     }
+
+    // Throttle the connection if it's running fast
+    [self sleepUntilBuffersLow];
 }
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)sender
