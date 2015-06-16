@@ -20,6 +20,7 @@
     float initialAudioTimestamp;
     
     BOOL playing;
+    BOOL playAfterLoad;
     
     dispatch_queue_t decodeQueue;
     dispatch_queue_t drawingQueue;
@@ -34,15 +35,24 @@
     if (self) {
         delegate = aDelegate;
 
-        decoder = [[OGVDecoder alloc] init];
-        
         // decode on background thread
         decodeQueue = dispatch_queue_create("OGVKit.Decoder", NULL);
-        
+
         // draw on UI thread
         drawingQueue = dispatch_get_main_queue();
-        
-        [self startDownload:URL];
+
+        stream = [[OGVStreamFile alloc] initWithURL:URL];
+        decoder = [[OGVDecoder alloc] init];
+        decoder.inputStream = stream;
+
+        playing = NO;
+        playAfterLoad = NO;
+
+        // Start loading the URL and processing header data
+        dispatch_async(decodeQueue, ^() {
+            [stream start];
+            [self processHeaders];
+        });
     }
     return self;
 }
@@ -50,21 +60,12 @@
 -(void)play
 {
     dispatch_async(decodeQueue, ^() {
-        if (decoder.dataReady) {
-            if (!playing) {
-                playing = YES;
-                if (decoder.hasAudio) {
-                    [self startAudio];
-                }
-                [self pingProcessing:0];
-                dispatch_async(drawingQueue, ^() {
-                    if ([delegate respondsToSelector:@selector(ogvPlayerStateDidPlay:)]) {
-                        [delegate ogvPlayerStateDidPlay:self];
-                    }
-                });
-            }
+        if (playing) {
+            // Already playing
+        } else if (decoder.dataReady) {
+            [self startPlayback];
         } else {
-            // @todo maybe set us up to play once loading is ready
+            playAfterLoad = YES;
         }
     });
 }
@@ -96,7 +97,6 @@
             [stream cancel];
         }
         stream = nil;
-
         decoder = nil;
     });
 }
@@ -109,21 +109,29 @@
 -(float)playbackPosition
 {
     // @todo use alternate clock provider for video-only files
-    return audioFeeder.playbackPosition + initialAudioTimestamp;
-}
-
-#pragma mark - Private methods on main thread
-
-- (void)startDownload:(NSURL *)sourceURL
-{
-    stream = [[OGVStreamFile alloc] initWithURL:sourceURL];
-    stream.delegate = self;
-    [stream start];
-
-    playing = YES;
+    if (playing) {
+        return audioFeeder.playbackPosition + initialAudioTimestamp;
+    } else {
+        return initialAudioTimestamp;
+    }
 }
 
 #pragma mark - Private decode thread methods
+
+- (void)startPlayback
+{
+    playing = YES;
+    if (decoder.hasAudio) {
+        [self startAudio];
+    }
+    [self initPlaybackState];
+    dispatch_async(drawingQueue, ^() {
+        if ([delegate respondsToSelector:@selector(ogvPlayerStateDidPlay:)]) {
+            [delegate ogvPlayerStateDidPlay:self];
+        }
+    });
+    [self pingProcessing:0];
+}
 
 - (void)initPlaybackState
 {
@@ -164,6 +172,25 @@
     audioFeeder = nil;
 }
 
+- (void)processHeaders
+{
+    BOOL ok = [decoder process];
+    if (ok) {
+        if (decoder.dataReady) {
+            if (playAfterLoad) {
+                playAfterLoad = NO;
+                [self startPlayback];
+            }
+        } else {
+            dispatch_async(decodeQueue, ^() {
+                [self processHeaders];
+            });
+        }
+    } else {
+        NSLog(@"Error processing header state. :(");
+    }
+}
+
 - (void)processNextFrame
 {
     if (!playing) {
@@ -172,49 +199,30 @@
     BOOL more;
     
     while (true) {
-        BOOL wasDataReady = decoder.dataReady;
-
         more = [decoder process];
         if (!more) {
-            // Decoder wants more data
-            NSData *inputData = [stream readBytes:stream.bufferSize blocking:NO];
-            if (inputData) {
-                [decoder receiveInput:inputData];
-                
-                // Try again and see if we get packets out!
-                continue;
+            // Wait for audio to run out, then close up shop!
+            float timeLeft;
+            if (audioFeeder) {
+                timeLeft = [audioFeeder secondsQueued];
             } else {
-                if (stream.state == OGVStreamFileStateDone || stream.state == OGVStreamFileStateFailed) {
-                    // Wait for audio to run out, then close up shop!
-                    float timeLeft = [audioFeeder secondsQueued];
-                    dispatch_time_t closeTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(timeLeft * NSEC_PER_SEC));
-                    dispatch_after(closeTime, drawingQueue, ^{
-                        [self cancel];
-                        if ([delegate respondsToSelector:@selector(ogvPlayerStateDidPause:)]) {
-                            [delegate ogvPlayerStateDidPause:self];
-                        }
-                        if ([delegate respondsToSelector:@selector(ogvPlayerStateDidEnd:)]) {
-                            [delegate ogvPlayerStateDidEnd:self];
-                        }
-                    });
-                } else {
-                    // Ran out of buffered input
-                    // Wait for more bytes
-                    return;
+                timeLeft = 0;
+            }
+
+            dispatch_time_t closeTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(timeLeft * NSEC_PER_SEC));
+            dispatch_after(closeTime, drawingQueue, ^{
+                [self cancel];
+                if ([delegate respondsToSelector:@selector(ogvPlayerStateDidPause:)]) {
+                    [delegate ogvPlayerStateDidPause:self];
                 }
-            }
+                if ([delegate respondsToSelector:@selector(ogvPlayerStateDidEnd:)]) {
+                    [delegate ogvPlayerStateDidEnd:self];
+                }
+            });
+
+            return;
         }
-        
-        if (!wasDataReady) {
-            if (decoder.dataReady) {
-                // We flipped over to get data; set up audio etc!
-                [self initPlaybackState];
-            } else {
-                // Still processing header data...
-                continue;
-            }
-        }
-        
+
         if (decoder.hasAudio) {
             // Drive on the audio clock!
             const float fudgeDelta = 0.001f;
@@ -313,8 +321,6 @@
     });
 }
 
-#pragma mark - Drawing thread methods
-
 /**
  * Schedule a frame draw on the main thread, then return to the decoder
  * when it's done drawing.
@@ -330,6 +336,7 @@
     });
 }
 
+/*
 #pragma mark - OGVStreamFileDelegate methods
 - (void)ogvStreamFileDataAvailable:(OGVStreamFile *)sender
 {
@@ -337,5 +344,6 @@
         [self processNextFrame];
     });
 }
+*/
 
 @end

@@ -12,11 +12,11 @@
 
 #import <OGVKit/OGVAudioBuffer.h>
 #import <OGVKit/OGVFrameBuffer.h>
+#import <OGVKit/OGVStreamFile.h>
 #import <OGVKit/OGVDecoder.h>
 
 #import <OGVKit/OGVFrameView.h>
 #import <OGVKit/OGVAudioFeeder.h>
-#import <OGVKit/OGVStreamFile.h>
 #import <OGVKit/OGVPlayerState.h>
 
 #import <OGVKit/OGVPlayerView.h>

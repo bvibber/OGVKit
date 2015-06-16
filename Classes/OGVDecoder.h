@@ -28,8 +28,9 @@
 @property BOOL audioReady;
 @property BOOL frameReady;
 
+@property OGVStreamFile *inputStream;
+
 - (id)init;
-- (void)receiveInput:(NSData *)data;
 - (BOOL)process;
 - (BOOL)decodeFrame;
 - (BOOL)decodeAudio;

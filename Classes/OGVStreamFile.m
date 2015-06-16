@@ -24,10 +24,19 @@
 
     NSURLConnection *connection;
     NSMutableArray *inputDataQueue;
+
     dispatch_semaphore_t waitingForDataSemaphore;
+    NSRunLoop *downloadRunLoop;
 }
 
 #pragma mark - public methods
+
+-(void)dealloc
+{
+    if (connection) {
+        [connection cancel];
+    }
+}
 
 -(NSURL *)URL
 {
@@ -111,12 +120,14 @@
 
 -(void)start
 {
+    NSLog(@"STARTING DOWNLOAD REQUESTED");
     @synchronized (timeLock) {
-        NSURLRequest *req = [NSURLRequest requestWithURL:self.URL];
-        connection = [[NSURLConnection alloc] initWithRequest:req delegate:self startImmediately:NO];
-        //[connection scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
-        [connection start];
-        self.state = OGVStreamFileStateConnecting;
+        assert(!connection);
+        assert(!downloadRunLoop);
+        
+        [NSThread detachNewThreadSelector:@selector(startDownloadThread:)
+                                 toTarget:self
+                               withObject:nil];
     }
 }
 
@@ -127,24 +138,48 @@
 
 -(NSData *)readBytes:(NSUInteger)nBytes blocking:(BOOL)blocking
 {
+    NSData *data = nil;
+    BOOL blockingWait = NO;
+
     @synchronized (timeLock) {
         NSUInteger bytesAvailable = self.bytesAvailable;
-        if (bytesAvailable <= nBytes) {
-            return [self dequeueBytes:nBytes];
+        if (bytesAvailable >= nBytes) {
+            data = [self dequeueBytes:nBytes];
         } else if (blocking) {
-            [self waitForBytesAvailable:nBytes];
-            return [self dequeueBytes:bytesAvailable];
+            // ...
+            blockingWait = YES;
         } else if (bytesAvailable) {
             // Non-blocking, return as much data as we have.
-            return [self dequeueBytes:bytesAvailable];
+            data = [self dequeueBytes:bytesAvailable];
         } else {
             // Non-blocking, and there is no data.
-            return nil;
+            data = nil;
         }
     }
+
+    if (blockingWait) {
+        [self waitForBytesAvailable:nBytes];
+        data = [self dequeueBytes:nBytes];
+    }
+    return data;
 }
 
 #pragma mark - private methods
+
+-(void)startDownloadThread:(id)obj
+{
+    NSLog(@"download starting...");
+    @synchronized (timeLock) {
+        downloadRunLoop = [NSRunLoop currentRunLoop];
+
+        NSURLRequest *req = [NSURLRequest requestWithURL:self.URL];
+        connection = [[NSURLConnection alloc] initWithRequest:req delegate:self startImmediately:NO];
+        [connection scheduleInRunLoop:downloadRunLoop forMode:NSRunLoopCommonModes];
+        [connection start];
+
+        self.state = OGVStreamFileStateConnecting;
+    }
+}
 
 -(void)waitForBytesAvailable:(NSUInteger)nBytes
 {
@@ -157,7 +192,9 @@
                 break;
             }
         }
+        NSLog(@"waiting for data");
         dispatch_semaphore_wait(waitingForDataSemaphore, DISPATCH_TIME_FOREVER);
+        NSLog(@"post-wait");
     }
 }
 
@@ -241,6 +278,7 @@
 
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response
 {
+    NSLog(@"headers in");
     @synchronized (timeLock) {
         self.state = OGVStreamFileStateReading;
     }
@@ -248,6 +286,7 @@
 
 - (void)connection:(NSURLConnection *)sender didReceiveData:(NSData *)data
 {
+    NSLog(@"data in");
     @synchronized (timeLock) {
         [self queueData:data];
         self.dataAvailable = YES;
@@ -258,6 +297,7 @@
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)sender
 {
+    NSLog(@"data done");
     @synchronized (timeLock) {
         self.state = OGVStreamFileStateDone;
         self.dataAvailable = ([inputDataQueue count] > 0);

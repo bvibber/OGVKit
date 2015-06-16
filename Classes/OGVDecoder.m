@@ -13,6 +13,8 @@
 #include <vorbis/vorbisfile.h>
 #include <theora/theoradec.h>
 
+static const NSUInteger kOGVDecoderReadBufferSize = 65536;
+
 @implementation OGVDecoder {
     /* Ogg and codec state for demux/decode */
     ogg_sync_state    oggSyncState;
@@ -362,6 +364,23 @@
 	}
 }
 
+- (BOOL)readFromInputStream
+{
+    if (self.inputStream) {
+        NSData *buffer = [self.inputStream readBytes:kOGVDecoderReadBufferSize blocking:YES];
+        if (buffer) {
+            [self receiveInput:buffer];
+
+            // Inform the troops we'll need to do more processing
+            // on this shiny new data.
+            return YES;
+        }
+    }
+
+    // Need more data and nobody gave it to us!
+    return NO;
+}
+
 - (BOOL)process
 {
     if (needData) {
@@ -374,7 +393,7 @@
             }
         } else {
             // Out of data!
-            return 0;
+            return [self readFromInputStream];
         }
     }
     if (appState == STATE_BEGIN) {
