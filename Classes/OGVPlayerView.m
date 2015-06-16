@@ -26,6 +26,7 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
     NSURL *_sourceURL;
     OGVPlayerState *state;
     NSTimer *timeTimer;
+    NSTimer *controlsTimeout;
 }
 
 #pragma mark - Public methods
@@ -136,6 +137,11 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
                                                                  metrics:nil
                                                                    views:layoutViews]];
 
+    // Events
+    UIGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self
+                                                                       action:@selector(onViewTapped:)];
+    [self addGestureRecognizer:tap];
+
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(appDidEnterBackground:)
                                                  name:UIApplicationDidEnterBackgroundNotification
@@ -162,6 +168,77 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
         } else {
             [state pause];
         }
+    }
+}
+
+-(void)onViewTapped:(id)obj
+{
+    if (state && !state.paused) {
+        if ([self controlsAreHidden]) {
+            [self showControls];
+        } else if ([self controlsAreVisible]) {
+            [self hideControls];
+        } else {
+            // controls are in transition; don't mess with them.
+        }
+    }
+}
+
+-(BOOL)controlsAreVisible
+{
+    return (self.controlBar.alpha == 1.0f);
+}
+
+-(BOOL)controlsAreHidden
+{
+    return (self.controlBar.alpha == 0.0f);
+}
+
+-(void)hideControls
+{
+    [UIView animateWithDuration:0.5f animations:^{
+        self.controlBar.alpha = 0.0001f;
+    } completion:^(BOOL finished) {
+        self.controlBar.alpha = 0.0f;
+    }];
+}
+
+-(void)showControls
+{
+    if (self.controlBar.alpha == 0.0f) {
+        self.controlBar.alpha = 0.0001f;
+    }
+    [UIView animateWithDuration:0.5f animations:^{
+        self.controlBar.alpha = 1.0f;
+    }];
+}
+
+-(void)stopControlsTimeout
+{
+    if (controlsTimeout) {
+        [controlsTimeout invalidate];
+        controlsTimeout = nil;
+    }
+}
+
+-(void)startControlsTimeout
+{
+    if (controlsTimeout) {
+        [self stopControlsTimeout];
+    }
+    if (!controlsTimeout) {
+        controlsTimeout = [NSTimer scheduledTimerWithTimeInterval:4.0f
+                                                           target:self
+                                                         selector:@selector(pingControlsTimeout:)
+                                                         userInfo:nil
+                                                          repeats:NO];
+    }
+}
+
+-(void)pingControlsTimeout:(NSTimer *)timer
+{
+    if ([self controlsAreVisible]) {
+        [self hideControls];
     }
 }
 
@@ -236,6 +313,11 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
         [self startTimeTimer];
         [self updateTimeLabel];
 
+        if (![self controlsAreVisible]) {
+            [self showControls];
+        }
+        [self startControlsTimeout];
+
         if ([self.delegate respondsToSelector:@selector(ogvPlayerDidPlay:)]) {
             [self.delegate ogvPlayerDidPlay:self];
         }
@@ -248,6 +330,12 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
         self.pausePlayButton.titleLabel.text = kOGVPlayerIconCharPlay;
         [self updateTimeLabel];
         [self stopTimeTimer];
+
+        if ([self controlsAreHidden]) {
+            [self showControls];
+        } else {
+            [self stopControlsTimeout];
+        }
 
         if ([self.delegate respondsToSelector:@selector(ogvPlayerDidPause:)]) {
             [self.delegate ogvPlayerDidPause:self];
