@@ -12,17 +12,13 @@
 {
     __weak id<OGVPlayerStateDelegate> delegate;
 
-    NSURLConnection *connection;
+    OGVStreamFile *stream;
     OGVAudioFeeder *audioFeeder;
     OGVDecoder *decoder;
-
-    NSMutableArray *inputDataQueue;
 
     float frameEndTimestamp;
     float initialAudioTimestamp;
     
-    BOOL doneDownloading;
-    BOOL waitingForData;
     BOOL playing;
     
     dispatch_queue_t decodeQueue;
@@ -96,10 +92,10 @@
     [self pause];
 
     dispatch_async(decodeQueue, ^() {
-        if (connection) {
-            [connection cancel];
+        if (stream) {
+            [stream cancel];
         }
-        connection = nil;
+        stream = nil;
 
         decoder = nil;
     });
@@ -120,15 +116,11 @@
 
 - (void)startDownload:(NSURL *)sourceURL
 {
-    NSURLRequest *req = [NSURLRequest requestWithURL:sourceURL];
-    connection = [[NSURLConnection alloc] initWithRequest:req delegate:self startImmediately:NO];
-    [connection scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
-    [connection start];
-    
+    stream = [[OGVStreamFile alloc] initWithURL:sourceURL];
+    stream.delegate = self;
+    [stream start];
+
     playing = YES;
-    doneDownloading = NO;
-    waitingForData = YES;
-    inputDataQueue = [[NSMutableArray alloc] init];
 }
 
 #pragma mark - Private decode thread methods
@@ -172,31 +164,6 @@
     audioFeeder = nil;
 }
 
--(void)queueData:(NSData *)data
-{
-    [inputDataQueue addObject:data];
-}
-
--(NSData *)dequeueData
-{
-    if ([inputDataQueue count] > 0) {
-        NSData *inputData = inputDataQueue[0];
-        [inputDataQueue removeObjectAtIndex:0];
-        return inputData;
-    } else {
-        return nil;
-    }
-}
-
--(NSUInteger)queuedDataSize
-{
-    NSUInteger nbytes = 0;
-    for (NSData *data in inputDataQueue) {
-        nbytes += [data length];
-    }
-    return nbytes;
-}
-
 - (void)processNextFrame
 {
     if (!playing) {
@@ -210,6 +177,7 @@
         more = [decoder process];
         if (!more) {
             // Decoder wants more data
+            /*
             NSData *inputData = [self dequeueData];
             if (inputData) {
                 [decoder receiveInput:inputData];
@@ -238,6 +206,33 @@
 
                 // End the processing loop and wait for next ping.
                 return;
+            }
+            */
+            NSData *inputData = [stream readBytes:stream.bufferSize blocking:NO];
+            if (inputData) {
+                [decoder receiveInput:inputData];
+                
+                // Try again and see if we get packets out!
+                continue;
+            } else {
+                if (stream.state == OGVStreamFileStateDone || stream.state == OGVStreamFileStateFailed) {
+                    // Wait for audio to run out, then close up shop!
+                    float timeLeft = [audioFeeder secondsQueued];
+                    dispatch_time_t closeTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(timeLeft * NSEC_PER_SEC));
+                    dispatch_after(closeTime, drawingQueue, ^{
+                        [self cancel];
+                        if ([delegate respondsToSelector:@selector(ogvPlayerStateDidPause:)]) {
+                            [delegate ogvPlayerStateDidPause:self];
+                        }
+                        if ([delegate respondsToSelector:@selector(ogvPlayerStateDidEnd:)]) {
+                            [delegate ogvPlayerStateDidEnd:self];
+                        }
+                    });
+                } else {
+                    // Ran out of buffered input
+                    // Wait for more bytes
+                    return;
+                }
             }
         }
         
@@ -366,29 +361,10 @@
     });
 }
 
-#pragma mark - NSURLConnectionDataDelegate methods
-
-- (void)connection:(NSURLConnection *)sender didReceiveData:(NSData *)data
+#pragma mark - OGVStreamFileDelegate methods
+- (void)ogvStreamFileDataAvailable:(OGVStreamFile *)sender
 {
     dispatch_async(decodeQueue, ^() {
-        // @todo save to temporary disk storage instead of buffering to memory!
-
-        [self queueData:data];
-        if (waitingForData) {
-            waitingForData = NO;
-            [self processNextFrame];
-        }
-
-        // @todo once moved to its own thread, throttle this connection!
-    });
-}
-
-- (void)connectionDidFinishLoading:(NSURLConnection *)sender
-{
-    dispatch_async(decodeQueue, ^() {
-        //NSLog(@"done downloading");
-        doneDownloading = YES;
-        connection = nil;
         [self processNextFrame];
     });
 }
