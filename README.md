@@ -39,14 +39,11 @@ Now open OGVKit.xcworkspace -- the workspace NOT the project! And build.
 
 See [milestones in issue tracker](https://github.com/brion/OGVKit/milestones) for details:
 
-* v0 development
- * v0.1 basics
- * v0.2 controls
- * v0.3 i/o refactor & seeking
- * v0.4 formats: WebM, Opus
- * v0.5 initial CocoaPods release
+* v0.3 i/o refactor & seeking
+* v0.4 formats: WebM, Opus
+* v0.5 initial CocoaPods release
 * v1 stable player API
- * v1.1 extras: fullscreen, AirPlay, etc
- * v1.2 performance
+* v1.1 extras: fullscreen, AirPlay, etc
+* v1.2 performance
 * v2 internals and API refactor
 * v3 encoder & transcoding
