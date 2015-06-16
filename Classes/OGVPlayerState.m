@@ -55,14 +55,17 @@
 {
     dispatch_async(decodeQueue, ^() {
         if (decoder.dataReady) {
-            if (playing) {
-                playing = NO;
-            } else {
+            if (!playing) {
                 playing = YES;
                 if (decoder.hasAudio) {
                     [self startAudio];
                 }
                 [self pingProcessing:0];
+                dispatch_async(drawingQueue, ^() {
+                    if ([delegate respondsToSelector:@selector(ogvPlayerStateDidPlay:)]) {
+                        [delegate ogvPlayerStateDidPlay:self];
+                    }
+                });
             }
         } else {
             // @todo maybe set us up to play once loading is ready
@@ -73,27 +76,26 @@
 -(void)pause
 {
     dispatch_async(decodeQueue, ^() {
-        if (playing) {
-            playing = NO;
-        }
-
         if (audioFeeder) {
             [self stopAudio];
+        }
+
+        if (playing) {
+            playing = NO;
+            dispatch_async(drawingQueue, ^() {
+                if ([delegate respondsToSelector:@selector(ogvPlayerStateDidPause:)]) {
+                    [delegate ogvPlayerStateDidPause:self];
+                }
+            });
         }
     });
 }
 
 -(void)cancel
 {
-    dispatch_async(decodeQueue, ^() {
-        if (playing) {
-            playing = NO;
-        }
-        
-        if (audioFeeder) {
-            [self stopAudio];
-        }
+    [self pause];
 
+    dispatch_async(decodeQueue, ^() {
         if (connection) {
             [connection cancel];
         }
@@ -221,6 +223,9 @@
                     dispatch_time_t closeTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(timeLeft * NSEC_PER_SEC));
                     dispatch_after(closeTime, drawingQueue, ^{
                         [self cancel];
+                        if ([delegate respondsToSelector:@selector(ogvPlayerStateDidPause:)]) {
+                            [delegate ogvPlayerStateDidPause:self];
+                        }
                         if ([delegate respondsToSelector:@selector(ogvPlayerStateDidEnd:)]) {
                             [delegate ogvPlayerStateDidEnd:self];
                         }

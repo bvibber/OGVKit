@@ -10,11 +10,22 @@
 
 #import "OGVPlayerState.h"
 
+@import CoreText;
+
+static NSString *kOGVPlayerTimeLabelEmpty = @"-:--";
+
+// Icons from github-octicons font
+static NSString *kOGVPlayerIconCharPlay = @"";
+static NSString *kOGVPlayerIconCharPause = @"";
+
+static BOOL OGVPlayerViewDidRegisterIconFont = NO;
+
 @implementation OGVPlayerView
 
 {
     NSURL *_sourceURL;
     OGVPlayerState *state;
+    NSTimer *timeTimer;
 }
 
 #pragma mark - Public methods
@@ -47,12 +58,12 @@
     if (state) {
         [state cancel];
         [self.frameView clearFrame];
+        state = nil;
     }
     _sourceURL = [sourceURL copy];
+    [self updateTimeLabel];
     if (_sourceURL) {
         state = [[OGVPlayerState alloc] initWithURL:_sourceURL delegate:self];
-    } else {
-        state = nil;
     }
 }
 
@@ -91,26 +102,30 @@
 
 -(void)setup
 {
-    CGSize size = self.frame.size;
-    OGVFrameView *frameView = [[OGVFrameView alloc] initWithFrame:CGRectMake(0, 0, size.width, size.height)
-                                                          context:[self createGLContext]];
-    frameView.translatesAutoresizingMaskIntoConstraints = NO;
-    [self addSubview:frameView];
-    self.frameView = frameView;
+    NSBundle *parentBundle = [NSBundle bundleForClass:[self class]];
+    NSString *bundlePath = [parentBundle pathForResource:@"OGVKit" ofType:@"bundle"];;
+    NSBundle *bundle = [NSBundle bundleWithPath:bundlePath];
 
-    NSDictionary *layoutViews = NSDictionaryOfVariableBindings(frameView);
-    [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[frameView]|"
-                                                                 options:0
-                                                                 metrics:nil
-                                                                   views:layoutViews]];
-    [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[frameView]|"
-                                                                 options:0
-                                                                 metrics:nil
-                                                                   views:layoutViews]];
+    if (!OGVPlayerViewDidRegisterIconFont) {
+        NSURL *fontURL = [bundle URLForResource:@"octicons-local" withExtension:@"ttf"];
+        CTFontManagerRegisterFontsForURL((__bridge CFURLRef)fontURL, kCTFontManagerScopeProcess, nil);
+        OGVPlayerViewDidRegisterIconFont = YES;
+    }
 
+    UINib *nib = [UINib nibWithNibName:@"OGVPlayerView" bundle:bundle];
+    UIView *interface = [nib instantiateWithOwner:self options:nil][0];
+
+    // @todo move this into OGVFrameView
+    self.frameView.context = [self createGLContext];
+
+    interface.frame = self.bounds;
+    interface.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    [self addSubview:interface];
+
+    // Events
     UIGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self
                                                                        action:@selector(onViewTapped:)];
-    [self addGestureRecognizer:tap];
+    [self.frameView addGestureRecognizer:tap];
 
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(appDidEnterBackground:)
@@ -146,7 +161,55 @@
     [self pause];
 }
 
+-(void)stopTimeTimer
+{
+    if (timeTimer) {
+        [timeTimer invalidate];
+        timeTimer = nil;
+    }
+}
+
+-(void)startTimeTimer
+{
+    if (!timeTimer) {
+        timeTimer = [NSTimer scheduledTimerWithTimeInterval:1.0f
+                                                     target:self
+                                                   selector:@selector(pingTimeTimer:)
+                                                   userInfo:nil
+                                                    repeats:YES];
+    }
+}
+
+-(void)pingTimeTimer:(NSTimer *)timer
+{
+    [self updateTimeLabel];
+}
+
+-(void)updateTimeLabel
+{
+    if (state) {
+        self.timeLabel.text = [self formatTime:state.playbackPosition];
+    } else {
+        self.timeLabel.text = kOGVPlayerTimeLabelEmpty;
+    }
+}
+
+-(NSString *)formatTime:(float)seconds
+{
+    int rounded = (int)roundf(seconds);
+    int min = rounded / 60;
+    int sec = rounded % 60;
+    return [NSString stringWithFormat:@"%d:%02d", min, sec];
+}
+
 #pragma mark - OGVPlayerStateDelegate methods
+
+- (void)ogvPlayerState:(OGVPlayerState *)sender drawFrame:(OGVFrameBuffer *)buffer
+{
+    if (sender == state) {
+        [self.frameView drawFrame:buffer];
+    }
+}
 
 - (void)ogvPlayerStateDidLoadMetadata:(OGVPlayerState *)sender
 {
@@ -160,19 +223,28 @@
 - (void)ogvPlayerStateDidPlay:(OGVPlayerState *)sender
 {
     if (sender == state) {
+        self.pausePlayButton.titleLabel.text = kOGVPlayerIconCharPause;
+        [self startTimeTimer];
+        [self updateTimeLabel];
+
         if ([self.delegate respondsToSelector:@selector(ogvPlayerDidPlay:)]) {
             [self.delegate ogvPlayerDidPlay:self];
         }
     }
 }
 
-- (void)ogvPlayerState:(OGVPlayerState *)sender drawFrame:(OGVFrameBuffer *)buffer
+- (void)ogvPlayerStateDidPause:(OGVPlayerState *)sender
 {
     if (sender == state) {
-        [self.frameView drawFrame:buffer];
+        self.pausePlayButton.titleLabel.text = kOGVPlayerIconCharPlay;
+        [self updateTimeLabel];
+        [self stopTimeTimer];
+
+        if ([self.delegate respondsToSelector:@selector(ogvPlayerDidPause:)]) {
+            [self.delegate ogvPlayerDidPause:self];
+        }
     }
 }
-
 
 - (void)ogvPlayerStateDidEnd:(OGVPlayerState *)sender
 {

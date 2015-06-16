@@ -25,6 +25,12 @@ Pod::Spec.new do |s|
   s.subspec "Player" do |skit|
     skit.requires_arc = true
     skit.source_files  = "Classes", "Classes/**/*.{h,m}"
+    skit.resource_bundle = {
+      'OGVKit' => [
+        'Resources/*.xib',
+        'octicons/octicons/octicons-local.ttf'
+      ]
+    }
 
     skit.dependency 'OGVKit/ogg'
     skit.dependency 'OGVKit/vorbis'

@@ -19,6 +19,9 @@
 -(void)ogvPlayerDidPlay:(OGVPlayerView *)sender;
 
 @optional
+-(void)ogvPlayerDidPause:(OGVPlayerView *)sender;
+
+@optional
 -(void)ogvPlayerDidEnd:(OGVPlayerView *)sender;
 
 @end
@@ -27,7 +30,11 @@
 @interface OGVPlayerView : UIView <OGVPlayerStateDelegate>
 
 @property (weak) id<OGVPlayerDelegate> delegate;
-@property (weak) OGVFrameView *frameView;
+
+@property (weak, nonatomic) IBOutlet OGVFrameView *frameView;
+@property (weak, nonatomic) IBOutlet UIView *controlBar;
+@property (weak, nonatomic) IBOutlet UIButton *pausePlayButton;
+@property (weak, nonatomic) IBOutlet UILabel *timeLabel;
 
 @property (nonatomic) NSURL *sourceURL;
 

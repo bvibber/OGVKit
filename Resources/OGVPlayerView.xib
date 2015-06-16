@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="7706" systemVersion="14D136" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES">
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="7703"/>
+        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
+    </dependencies>
+    <customFonts key="customFonts">
+        <mutableArray key="octicons-local.ttf">
+            <string>github-octicons</string>
+            <string>github-octicons</string>
+        </mutableArray>
+    </customFonts>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="OGVPlayerView">
+            <connections>
+                <outlet property="controlBar" destination="EsP-BZ-Yz6" id="kZr-a1-Teq"/>
+                <outlet property="frameView" destination="Gcs-fE-inA" id="mUz-Pm-SAA"/>
+                <outlet property="pausePlayButton" destination="C1P-af-wnM" id="11x-Mz-MjO"/>
+                <outlet property="timeLabel" destination="I5T-iC-1VI" id="3dW-cB-l7u"/>
+            </connections>
+        </placeholder>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view contentMode="scaleToFill" id="ATs-0k-oX4">
+            <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+            <subviews>
+                <glkView opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" translatesAutoresizingMaskIntoConstraints="NO" id="Gcs-fE-inA" customClass="OGVFrameView">
+                    <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+                </glkView>
+                <view opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="EsP-BZ-Yz6">
+                    <rect key="frame" x="0.0" y="560" width="600" height="40"/>
+                    <subviews>
+                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="C1P-af-wnM">
+                            <rect key="frame" x="8" y="0.0" width="30" height="40"/>
+                            <fontDescription key="fontDescription" name="github-octicons" family="github-octicons" pointSize="18"/>
+                            <state key="normal" title="">
+                                <color key="titleColor" red="0.022589172979798011" green="0.022589172979798011" blue="0.022589172979798011" alpha="1" colorSpace="calibratedRGB"/>
+                                <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                            </state>
+                        </button>
+                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="-:--" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="I5T-iC-1VI">
+                            <rect key="frame" x="558.5" y="8" width="33.5" height="24"/>
+                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                            <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                            <nil key="highlightedColor"/>
+                        </label>
+                    </subviews>
+                    <color key="backgroundColor" white="1" alpha="0.5" colorSpace="calibratedWhite"/>
+                    <constraints>
+                        <constraint firstAttribute="trailingMargin" secondItem="I5T-iC-1VI" secondAttribute="trailing" id="AZc-UV-vph"/>
+                        <constraint firstAttribute="bottom" secondItem="C1P-af-wnM" secondAttribute="bottom" id="FMj-gr-rAm"/>
+                        <constraint firstItem="I5T-iC-1VI" firstAttribute="top" secondItem="EsP-BZ-Yz6" secondAttribute="topMargin" id="HqM-S8-0oW"/>
+                        <constraint firstAttribute="bottomMargin" secondItem="I5T-iC-1VI" secondAttribute="bottom" id="hal-cn-lrU"/>
+                        <constraint firstAttribute="height" constant="40" id="md1-UK-sKq"/>
+                        <constraint firstItem="C1P-af-wnM" firstAttribute="leading" secondItem="EsP-BZ-Yz6" secondAttribute="leadingMargin" id="rhU-pQ-OkT"/>
+                        <constraint firstItem="C1P-af-wnM" firstAttribute="top" secondItem="EsP-BZ-Yz6" secondAttribute="top" id="vLx-re-nl7"/>
+                    </constraints>
+                </view>
+            </subviews>
+            <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+            <constraints>
+                <constraint firstItem="Gcs-fE-inA" firstAttribute="leading" secondItem="ATs-0k-oX4" secondAttribute="leading" id="2Nd-AA-nnT"/>
+                <constraint firstItem="Gcs-fE-inA" firstAttribute="top" secondItem="ATs-0k-oX4" secondAttribute="top" id="GKb-Ni-0kD"/>
+                <constraint firstAttribute="trailing" secondItem="EsP-BZ-Yz6" secondAttribute="trailing" id="Qei-3a-XbC"/>
+                <constraint firstAttribute="trailing" secondItem="Gcs-fE-inA" secondAttribute="trailing" id="kXj-HG-yYM"/>
+                <constraint firstAttribute="bottom" secondItem="EsP-BZ-Yz6" secondAttribute="bottom" id="rtE-Lg-gjo"/>
+                <constraint firstAttribute="bottom" secondItem="Gcs-fE-inA" secondAttribute="bottom" id="wWB-WW-gnz"/>
+                <constraint firstItem="EsP-BZ-Yz6" firstAttribute="leading" secondItem="ATs-0k-oX4" secondAttribute="leading" id="zBP-b5-g2W"/>
+            </constraints>
+        </view>
+        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="5B2-uA-kEz">
+            <rect key="frame" x="0.0" y="0.0" width="30" height="40"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+            <fontDescription key="fontDescription" name="github-octicons" family="github-octicons" pointSize="18"/>
+            <state key="normal" title="">
+                <color key="titleColor" red="0.022589172979999999" green="0.022589172979999999" blue="0.022589172979999999" alpha="1" colorSpace="calibratedRGB"/>
+                <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+            </state>
+        </button>
+    </objects>
+</document>
