@@ -169,6 +169,7 @@
 -(void)startDownloadThread:(id)obj
 {
     NSLog(@"download starting...");
+
     @synchronized (timeLock) {
         downloadRunLoop = [NSRunLoop currentRunLoop];
 
@@ -179,6 +180,15 @@
 
         self.state = OGVStreamFileStateConnecting;
     }
+
+    [downloadRunLoop run];
+
+    NSLog(@"download thread complete!");
+}
+
+-(void)pingTimer:(id)obj
+{
+    NSLog(@"stupid timer");
 }
 
 -(void)waitForBytesAvailable:(NSUInteger)nBytes
@@ -187,13 +197,17 @@
     waitingForDataSemaphore = dispatch_semaphore_create(0);
     while (YES) {
         @synchronized (timeLock) {
+            NSLog(@"%ld %ld", self.bytesAvailable, nBytes);
             if (self.bytesAvailable >= nBytes) {
                 waitingForDataSemaphore = nil;
                 break;
             }
         }
         NSLog(@"waiting for data");
-        dispatch_semaphore_wait(waitingForDataSemaphore, DISPATCH_TIME_FOREVER);
+        dispatch_semaphore_wait(waitingForDataSemaphore,
+                                //dispatch_time(DISPATCH_TIME_NOW, NSEC_PER_SEC * 4)
+                                DISPATCH_TIME_FOREVER
+                                );
         NSLog(@"post-wait");
     }
 }

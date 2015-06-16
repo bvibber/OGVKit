@@ -125,6 +125,7 @@
         [self startAudio];
     }
     [self initPlaybackState];
+
     dispatch_async(drawingQueue, ^() {
         if ([delegate respondsToSelector:@selector(ogvPlayerStateDidPlay:)]) {
             [delegate ogvPlayerStateDidPlay:self];
@@ -139,14 +140,7 @@
     
     frameEndTimestamp = 0.0f;
     
-    if (decoder.hasAudio) {
-        [self startAudio];
-    }
-    
     dispatch_async(drawingQueue, ^() {
-        if ([delegate respondsToSelector:@selector(ogvPlayerStateDidLoadMetadata:)]) {
-            [delegate ogvPlayerStateDidLoadMetadata:self];
-        }
         if ([delegate respondsToSelector:@selector(ogvPlayerStateDidPlay:)]) {
             [delegate ogvPlayerStateDidPlay:self];
         }
@@ -177,6 +171,9 @@
     BOOL ok = [decoder process];
     if (ok) {
         if (decoder.dataReady) {
+            if ([delegate respondsToSelector:@selector(ogvPlayerStateDidLoadMetadata:)]) {
+                [delegate ogvPlayerStateDidLoadMetadata:self];
+            }
             if (playAfterLoad) {
                 playAfterLoad = NO;
                 [self startPlayback];
