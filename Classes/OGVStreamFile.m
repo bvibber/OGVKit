@@ -24,7 +24,7 @@
 
     NSURLConnection *connection;
     NSMutableArray *inputDataQueue;
-    
+    dispatch_semaphore_t waitingForDataSemaphore;
 }
 
 #pragma mark - public methods
@@ -49,7 +49,16 @@
 -(void)setState:(OGVStreamFileState)state
 {
     @synchronized (timeLock) {
+        OGVStreamFileState oldState = _state;
         _state = state;
+        
+        if (self.delegate && state != oldState) {
+            dispatch_async(dispatch_get_main_queue(), ^() {
+                if ([self.delegate respondsToSelector:@selector(ogvStreamFileStateChanged:)]) {
+                    [self.delegate ogvStreamFileStateChanged:self];
+                }
+            });
+        }
     }
 }
 
@@ -63,7 +72,26 @@
 -(void)setDataAvailable:(BOOL)dataAvailable
 {
     @synchronized (timeLock) {
+        BOOL wasAvailable = _dataAvailable;
         _dataAvailable = dataAvailable;
+        
+        if (waitingForDataSemaphore) {
+            dispatch_semaphore_signal(waitingForDataSemaphore);
+        }
+        if (self.delegate && !wasAvailable && dataAvailable) {
+            dispatch_async(dispatch_get_main_queue(), ^() {
+                if ([self.delegate respondsToSelector:@selector(ogvStreamFileDataAvailable:)]) {
+                    [self.delegate ogvStreamFileDataAvailable:self];
+                }
+            });
+        }
+    }
+}
+
+-(NSUInteger)bytesAvailable
+{
+    @synchronized (timeLock) {
+        return [self queuedDataSize];
     }
 }
 
@@ -86,7 +114,7 @@
     @synchronized (timeLock) {
         NSURLRequest *req = [NSURLRequest requestWithURL:self.URL];
         connection = [[NSURLConnection alloc] initWithRequest:req delegate:self startImmediately:NO];
-        [connection scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
+        //[connection scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
         [connection start];
         self.state = OGVStreamFileStateConnecting;
     }
@@ -99,29 +127,39 @@
 
 -(NSData *)readBytes:(NSUInteger)nBytes blocking:(BOOL)blocking
 {
-    if (blocking) {
-        NSLog(@"blocking reads not yet implemented");
-        abort();
-    }
-    
     @synchronized (timeLock) {
-        NSData *buffer = [self peekData];
-        
-        NSUInteger bufferLen = [buffer length];
-        if (bufferLen <= nBytes) {
-            [self dequeueData];
-            return buffer;
+        NSUInteger bytesAvailable = self.bytesAvailable;
+        if (bytesAvailable <= nBytes) {
+            return [self dequeueBytes:nBytes];
+        } else if (blocking) {
+            [self waitForBytesAvailable:nBytes];
+            return [self dequeueBytes:bytesAvailable];
+        } else if (bytesAvailable) {
+            // Non-blocking, return as much data as we have.
+            return [self dequeueBytes:bytesAvailable];
         } else {
-            // Split the buffer for convenience. Not super efficient. :)
-            NSData *dataHead = [buffer subdataWithRange:NSMakeRange(0, nBytes)];
-            NSData *dataTail = [buffer subdataWithRange:NSMakeRange(nBytes, bufferLen - nBytes)];
-            inputDataQueue[0] = dataTail;
-            return dataHead;
+            // Non-blocking, and there is no data.
+            return nil;
         }
     }
 }
 
 #pragma mark - private methods
+
+-(void)waitForBytesAvailable:(NSUInteger)nBytes
+{
+    assert(waitingForDataSemaphore == NULL);
+    waitingForDataSemaphore = dispatch_semaphore_create(0);
+    while (YES) {
+        @synchronized (timeLock) {
+            if (self.bytesAvailable >= nBytes) {
+                waitingForDataSemaphore = nil;
+                break;
+            }
+        }
+        dispatch_semaphore_wait(waitingForDataSemaphore, DISPATCH_TIME_FOREVER);
+    }
+}
 
 -(void)queueData:(NSData *)data
 {
@@ -159,6 +197,35 @@
     }
 }
 
+-(NSData *)dequeueBytes:(NSUInteger)nBytes
+{
+    @synchronized (timeLock) {
+        NSMutableData *outputData = [[NSMutableData alloc] initWithCapacity:nBytes];
+        while ([outputData length] < nBytes) {
+            NSData *inputData = [self peekData];
+            if (inputData) {
+                NSUInteger inputSize = [inputData length];
+                NSUInteger chunkSize = nBytes - [outputData length];
+
+                if (inputSize <= chunkSize) {
+                    [self dequeueData];
+                    [outputData appendData:inputData];
+                } else {
+                    // Split the buffer for convenience. Not super efficient. :)
+                    NSData *dataHead = [inputData subdataWithRange:NSMakeRange(0, chunkSize)];
+                    NSData *dataTail = [inputData subdataWithRange:NSMakeRange(chunkSize, inputSize - chunkSize)];
+                    inputDataQueue[0] = dataTail;
+                    [outputData appendData:dataHead];
+                }
+            } else {
+                // Ran out of input data.
+                break;
+            }
+        }
+        return outputData;
+    }
+}
+
 -(NSUInteger)queuedDataSize
 {
     NSUInteger nbytes = 0;
@@ -181,19 +248,11 @@
 
 - (void)connection:(NSURLConnection *)sender didReceiveData:(NSData *)data
 {
-    BOOL pingDelegate = NO;
-
     @synchronized (timeLock) {
-        if (!self.dataAvailable) {
-            pingDelegate = YES;
-        }
         [self queueData:data];
+        self.dataAvailable = YES;
         
         // @todo once moved to its own thread, throttle this connection!
-    }
-
-    if (pingDelegate) {
-        [self.delegate ogvStreamFileDataAvailable:self];
     }
 }
 
@@ -201,7 +260,10 @@
 {
     @synchronized (timeLock) {
         self.state = OGVStreamFileStateDone;
-        connection = nil;
+        self.dataAvailable = ([inputDataQueue count] > 0);
+        if (waitingForDataSemaphore) {
+            dispatch_semaphore_signal(waitingForDataSemaphore);
+        }
     }
 }
 

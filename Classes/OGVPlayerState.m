@@ -177,37 +177,6 @@
         more = [decoder process];
         if (!more) {
             // Decoder wants more data
-            /*
-            NSData *inputData = [self dequeueData];
-            if (inputData) {
-                [decoder receiveInput:inputData];
-
-                // Try again and see if we get packets out!
-                continue;
-            } else {
-                if (doneDownloading) {
-                    // Wait for audio to run out, then close up shop!
-                    float timeLeft = [audioFeeder secondsQueued];
-                    dispatch_time_t closeTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(timeLeft * NSEC_PER_SEC));
-                    dispatch_after(closeTime, drawingQueue, ^{
-                        [self cancel];
-                        if ([delegate respondsToSelector:@selector(ogvPlayerStateDidPause:)]) {
-                            [delegate ogvPlayerStateDidPause:self];
-                        }
-                        if ([delegate respondsToSelector:@selector(ogvPlayerStateDidEnd:)]) {
-                            [delegate ogvPlayerStateDidEnd:self];
-                        }
-                    });
-                } else {
-                    // Ran out of buffered input
-                    // Wait for more bytes
-                    waitingForData = YES;
-                }
-
-                // End the processing loop and wait for next ping.
-                return;
-            }
-            */
             NSData *inputData = [stream readBytes:stream.bufferSize blocking:NO];
             if (inputData) {
                 [decoder receiveInput:inputData];
