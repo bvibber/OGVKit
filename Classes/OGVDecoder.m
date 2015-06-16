@@ -366,7 +366,10 @@ static const NSUInteger kOGVDecoderReadBufferSize = 65536;
 
 - (BOOL)readFromInputStream
 {
-    if (self.inputStream) {
+    if (self.inputStream.state == OGVStreamFileStateDone) {
+        // No more data.
+        return NO;
+    } else {
         NSData *buffer = [self.inputStream readBytes:kOGVDecoderReadBufferSize blocking:YES];
         if (buffer) {
             [self receiveInput:buffer];

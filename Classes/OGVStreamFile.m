@@ -191,9 +191,7 @@
         doneDownloading = NO;
     }
 
-    NSLog(@"foooo start");
     [downloadRunLoop run];
-    NSLog(@"foooo done");
 }
 
 -(void)waitForBytesAvailable:(NSUInteger)nBytes
