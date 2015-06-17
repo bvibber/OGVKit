@@ -35,6 +35,7 @@ Pod::Spec.new do |s|
     skit.dependency 'OGVKit/ogg'
     skit.dependency 'OGVKit/vorbis'
     skit.dependency 'OGVKit/theora'
+    skit.dependency 'OGVKit/VPX'
   end
 
   s.subspec "ogg" do |sogg|
@@ -70,6 +71,14 @@ Pod::Spec.new do |s|
     stheora.public_header_files = "libtheora/include/**/*.h"
     stheora.header_dir = "theora"
     stheora.dependency 'OGVKit/ogg'
+  end
+
+  s.subspec "VPX" do |svpx|
+    svpx.source = "https://github.com/brion/VPX-iOS/releases/download/1.4.0-snapshot-20150617/VPX.framework.zip"
+    svpx.vendored_frameworks = "VPX.framework"
+    
+    # hack for https://github.com/CocoaPods/CocoaPods/issues/1824
+    svpx.source_files = "VPX.framework/Headers/**/*.h"
   end
 
 end

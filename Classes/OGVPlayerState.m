@@ -42,7 +42,7 @@
         drawingQueue = dispatch_get_main_queue();
 
         stream = [[OGVStreamFile alloc] initWithURL:URL];
-        decoder = [[OGVDecoder alloc] init];
+        decoder = [[OGVDecoderOgg alloc] init];
         decoder.inputStream = stream;
 
         playing = NO;
