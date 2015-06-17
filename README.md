@@ -8,30 +8,31 @@ Roadmap section below for more detailed plans.
 
 # Status
 
-* Containers
- * Ogg
-  * playback: yes
-  * duration: not yet
-  * seeking: not yet
- * WebM
-  * playback: yes
-  * duration: not yet
-  * seeking: not yet
-* Codecs
- * Video
-  * Theora (ogg only)
-   * decode: yes
-   * encode: not yet
-  * VP8 (WebM only)
-   * decode: yes
-   * encode: not yet
- * Audio
-  * Vorbis
-   * decode: yes
-   * encode: not yet
-  * Opus
-   * decode: not yet
-   * encode: not yet
+Containers:
+* Ogg
+ * playback: yes
+ * duration: not yet
+ * seeking: not yet
+* WebM
+ * playback: yes
+ * duration: not yet
+ * seeking: not yet
+
+Video:
+* Theora (ogg only)
+ * decode: yes
+ * encode: not yet
+* VP8 (WebM only)
+ * decode: yes
+ * encode: not yet
+
+Audio:
+* Vorbis
+ * decode: yes
+ * encode: not yet
+* Opus
+ * decode: not yet
+ * encode: not yet
 
 
 # Install CocoaPods
