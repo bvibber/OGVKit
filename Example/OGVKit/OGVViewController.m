@@ -22,19 +22,23 @@
 {
     [super viewDidLoad];
 
+    NSString *target = @".360p.ogv";
+    NSString *targetWebM = @".360p.webm";
     sources = @[
                 @{@"title": @"Wiki Makes Video (60fps)",
-                  @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/8/89/Wiki_Makes_Video_Intro_4_26.webm/Wiki_Makes_Video_Intro_4_26.webm.360p.ogv"},
-                @{@"title": @"Wikipedia Visual Editor",
-                  @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/c/c8/Sneak_Preview_-_Wikipedia_VisualEditor.webm/Sneak_Preview_-_Wikipedia_VisualEditor.webm.360p.ogv"},
+                  @"URL": [@"https://upload.wikimedia.org/wikipedia/commons/transcoded/8/89/Wiki_Makes_Video_Intro_4_26.webm/Wiki_Makes_Video_Intro_4_26.webm" stringByAppendingString:target]},
+                @{@"title": @"Wikipedia Visual Editor (Ogg)",
+                  @"URL": [@"https://upload.wikimedia.org/wikipedia/commons/transcoded/c/c8/Sneak_Preview_-_Wikipedia_VisualEditor.webm/Sneak_Preview_-_Wikipedia_VisualEditor.webm" stringByAppendingString:target]},
+                @{@"title": @"Wikipedia Visual Editor (WebM)",
+                  @"URL": [@"https://upload.wikimedia.org/wikipedia/commons/transcoded/c/c8/Sneak_Preview_-_Wikipedia_VisualEditor.webm/Sneak_Preview_-_Wikipedia_VisualEditor.webm" stringByAppendingString:targetWebM]},
                 @{@"title": @"Open Access",
-                  @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/b/b7/How_Open_Access_Empowered_a_16-Year-Old_to_Make_Cancer_Breakthrough.ogv/How_Open_Access_Empowered_a_16-Year-Old_to_Make_Cancer_Breakthrough.ogv.360p.ogv"},
+                  @"URL": [@"https://upload.wikimedia.org/wikipedia/commons/transcoded/b/b7/How_Open_Access_Empowered_a_16-Year-Old_to_Make_Cancer_Breakthrough.ogv/How_Open_Access_Empowered_a_16-Year-Old_to_Make_Cancer_Breakthrough.ogv" stringByAppendingString:target]},
                 @{@"title": @"Seven Minutes of Terror",
-                  @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/9/96/Curiosity%27s_Seven_Minutes_of_Terror.ogv/Curiosity%27s_Seven_Minutes_of_Terror.ogv.360p.ogv"},
+                  @"URL": [@"https://upload.wikimedia.org/wikipedia/commons/transcoded/9/96/Curiosity%27s_Seven_Minutes_of_Terror.ogv/Curiosity%27s_Seven_Minutes_of_Terror.ogv" stringByAppendingString:target]},
                 @{@"title": @"Pumpjack (short)",
-                  @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/d/d6/Pumpjack.webm/Pumpjack.webm.360p.ogv"},
+                  @"URL": [@"https://upload.wikimedia.org/wikipedia/commons/transcoded/d/d6/Pumpjack.webm/Pumpjack.webm" stringByAppendingString:target]},
                 @{@"title": @"Myopa (video only)",
-                  @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/8/8b/Myopa_-_2015-05-02.webm/Myopa_-_2015-05-02.webm.360p.ogv"},
+                  @"URL": [@"https://upload.wikimedia.org/wikipedia/commons/transcoded/8/8b/Myopa_-_2015-05-02.webm/Myopa_-_2015-05-02.webm" stringByAppendingString:target]},
                 @{@"title": @"Bach (audio only)",
                   @"URL": @"https://upload.wikimedia.org/wikipedia/commons/e/ea/Bach_C_Major_Prelude_Werckmeister.ogg"}
                 ];

@@ -42,7 +42,12 @@
         drawingQueue = dispatch_get_main_queue();
 
         stream = [[OGVStreamFile alloc] initWithURL:URL];
-        decoder = [[OGVDecoderOgg alloc] init];
+        // hack! fixme
+        if ([[URL pathExtension] isEqualToString:@"webm"]) {
+            decoder = [[OGVDecoderWebM alloc] init];
+        } else {
+            decoder = [[OGVDecoderOgg alloc] init];
+        }
         decoder.inputStream = stream;
 
         playing = NO;
