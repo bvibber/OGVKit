@@ -36,7 +36,7 @@
                   @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/d/d6/Pumpjack.webm/Pumpjack.webm" },
                 @{@"title": @"Myopa (video only)",
                   @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/8/8b/Myopa_-_2015-05-02.webm/Myopa_-_2015-05-02.webm" },
-                @{@"title": @"Bach (audio only)",
+                @{@"title": @"Bach (Ogg audio only)",
                   @"URL": @"https://upload.wikimedia.org/wikipedia/commons/e/ea/Bach_C_Major_Prelude_Werckmeister.ogg",
                   @"audioOnly": @(YES)}
                 ];
