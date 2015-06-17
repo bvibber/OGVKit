@@ -477,19 +477,21 @@ enum AppState {
         if (vorbisHeaders) {
             int ret = vorbis_synthesis(&vorbisBlock, &audioPacket);
             if (ret == 0) {
-                foundSome = 1;
                 vorbis_synthesis_blockin(&vorbisDspState, &vorbisBlock);
                 
                 float **pcm;
                 int sampleCount = vorbis_synthesis_pcmout(&vorbisDspState, &pcm);
-                if (audiobufGranulepos != -1) {
-                    // keep track of how much time we've decodec
-                    audiobufGranulepos += sampleCount;
-                    audiobufTime = (double)audiobufGranulepos / audioSampleRate;
+                if (sampleCount > 0) {
+                    foundSome = 1;
+                    queuedAudio = [[OGVAudioBuffer alloc] initWithPCM:pcm channels:self.audioChannels samples:sampleCount];
+                    
+                    vorbis_synthesis_read(&vorbisDspState, sampleCount);
+                    if (audiobufGranulepos != -1) {
+                        // keep track of how much time we've decodec
+                        audiobufGranulepos += sampleCount;
+                        audiobufTime = (double)audiobufGranulepos / audioSampleRate;
+                    }
                 }
-                queuedAudio = [[OGVAudioBuffer alloc] initWithPCM:pcm channels:self.audioChannels samples:sampleCount];
-                
-                vorbis_synthesis_read(&vorbisDspState, sampleCount);
             } else {
                 printf("Vorbis decoder failed mysteriously? %d", ret);
             }
