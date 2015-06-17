@@ -1,11 +1,12 @@
 Pod::Spec.new do |s|
   s.name         = "OGVKit"
   s.version      = "0.2"
-  s.summary      = "Ogg Vorbis/Theora media playback widget for iOS."
+  s.summary      = "Ogg Vorbis/Theora and WebM media playback widget for iOS."
 
   s.description  = <<-DESC
-                   Ogg Vorbis/Theora media playback widget for iOS. Packages Xiph.org's
-                   libogg, libvorbis, and libtheora along with a UIView subclass
+                   Ogg Vorbis/Theora and WebM media playback widget for iOS.
+                   Packages Xiph.org's libogg, libvorbis, and libtheora, and
+                   uses Google's VPX library, along with a UIView subclass
                    to play a video or audio file from a URL.
                    DESC
 
@@ -19,7 +20,7 @@ Pod::Spec.new do |s|
   s.platform     = :ios, "6.0"
 
   s.source       = { :git => "https://github.com/brion/OGVKit.git",
-                     :tag => "0.2",
+                     :tag => "0.3",
                      :submodules => true }
 
   s.subspec "Player" do |skit|

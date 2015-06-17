@@ -1,11 +1,37 @@
-Lightweight iOS media player widget for free Ogg Theora/Vorbis codecs.
+Lightweight iOS media player widget for free Ogg Theora/Vorbis and WebM VP8/VP9 codecs.
 
 Currently provides a very primitive high-level player widget (OGVPlayerView).
 
-Will continue to improve this interface, add support for Opus audio codec,
-WebM container and VP8/VP9 video, and add lower-level interfaces suitable for
-transcoding to/from AVFoundation formats. See the Roadmap section below for more
-detailed plans.
+Will continue to improve this interface, add support for Opus audio codec, and add
+lower-level interfaces suitable for transcoding to/from AVFoundation formats. See the
+Roadmap section below for more detailed plans.
+
+# Status
+
+* Containers
+ * Ogg
+  * playback: yes
+  * duration: not yet
+  * seeking: not yet
+ * WebM
+  * playback: yes
+  * duration: not yet
+  * seeking: not yet
+* Codecs
+ * Video
+  * Theora (ogg only)
+   * decode: yes
+   * encode: not yet
+  * VP8 (WebM only)
+   * decode: yes
+   * encode: not yet
+ * Audio
+  * Vorbis
+   * decode: yes
+   * encode: not yet
+  * Opus
+   * decode: not yet
+   * encode: not yet
 
 
 # Install CocoaPods
@@ -39,8 +65,7 @@ Now open OGVKit.xcworkspace -- the workspace NOT the project! And build.
 
 See [milestones in issue tracker](https://github.com/brion/OGVKit/milestones) for details:
 
-* v0.3 i/o refactor & seeking
-* v0.4 formats: WebM, Opus
+* v0.4 seeking
 * v0.5 initial CocoaPods release
 * v1 stable player API
 * v1.1 extras: fullscreen, AirPlay, etc
