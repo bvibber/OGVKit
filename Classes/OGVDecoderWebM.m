@@ -147,6 +147,8 @@ static void ne_packet_to_ogg_packet(nestegg_packet *src, ogg_packet *dest)
     vorbis_comment    vorbisComment;
     
     BOOL needData;
+    OGVAudioBuffer *queuedAudio;
+    OGVFrameBuffer *queuedFrame;
 }
 
 enum AppState {
@@ -220,13 +222,16 @@ enum AppState {
             }
             vpx_codec_dec_init(&vpxContext, vpxDecoder, NULL, 0);
             
-            codecjs_callback_init_video(videoParams.width, videoParams.height,
-                                        1, 1, // @todo assuming 4:2:0
-                                        30.0, // @todo get fps
-                                        videoParams.display_width, videoParams.display_height,
-                                        videoParams.crop_left, videoParams.crop_top,
-                                        1, 1); // @todo get pixel aspect ratio
-            
+            self.hasVideo = YES;
+            self.frameWidth = videoParams.width;
+            self.frameHeight = videoParams.height;
+            self.frameRate = 30; // @todo replace this, can't get it reliably in webm
+            self.pictureWidth = videoParams.display_width;
+            self.pictureHeight = videoParams.display_height;
+            self.pictureOffsetX = videoParams.crop_left;
+            self.pictureOffsetY = videoParams.crop_top;
+            self.hDecimation = 1; // @todo vp9 can do 4:4:4 too
+            self.vDecimation = 1; // @todo vp9 can do 4:4:4 too
         }
     }
     
@@ -307,12 +312,15 @@ enum AppState {
             //        vorbisStreamState.serialno, vorbisInfo.channels, vorbisInfo.rate);
             
             audioSampleRate = vorbisInfo.rate;
-            codecjs_callback_init_audio(vorbisInfo.channels, audioSampleRate);
+            
+            self.hasAudio = YES;
+            self.audioRate = audioSampleRate;
+            self.audioChannels = vorbisInfo.channels;
         }
     
     appState = STATE_DECODING;
     printf("Done with headers step\n");
-    codecjs_callback_loaded_metadata();
+    self.dataReady = YES;
 }
 
 -(void)processDecoding
@@ -322,16 +330,18 @@ enum AppState {
     if (hasVideo && !videobufReady) {
         if (videoPacketCount) {
             // @fixme implement or kill the buffer/keyframe times
-            codecjs_callback_frame_ready(videobufTime, keyframeTime);
+            //codecjs_callback_frame_ready(videobufTime, keyframeTime);
+            self.frameReady = YES;
         } else {
             needData = 1;
         }
     }
-    
+
     if (hasAudio && !audiobufReady) {
         if (audioPacketCount) {
             // @fixme implement or kill the buffer times
-            codecjs_callback_audio_ready(audiobufTime);
+            //codecjs_callback_audio_ready(audiobufTime);
+            self.audioReady = YES;
         } else {
             needData = 1;
         }
@@ -373,13 +383,34 @@ enum AppState {
                 continue;
             }
             foundImage = true;
-            codecjs_callback_frame(image->planes[0], image->stride[0],
-                                   image->planes[1], image->stride[1],
-                                   image->planes[2], image->stride[2],
-                                   image->w, image->d_h,
-                                   1, 1, // @todo pixel format
-                                   videobufTime, videobufTime);
+
+            OGVFrameBuffer *buffer = [[OGVFrameBuffer alloc] init];
+            
+            buffer.frameWidth = self.frameWidth;
+            buffer.frameHeight = self.frameHeight;
+            buffer.pictureWidth = self.pictureWidth;
+            buffer.pictureHeight = self.pictureHeight;
+            buffer.pictureOffsetX = self.pictureOffsetX;
+            buffer.pictureOffsetY = self.pictureOffsetY;
+            buffer.hDecimation = self.hDecimation;
+            buffer.vDecimation = self.vDecimation;
+            
+            buffer.strideY = image->stride[0];
+            buffer.strideCb = image->stride[1];
+            buffer.strideCr = image->stride[2];
+            
+            size_t lengthY = buffer.strideY * self.frameHeight;
+            size_t lengthCb = buffer.strideCb * (self.frameHeight >> self.vDecimation);
+            size_t lengthCr = buffer.strideCr * (self.frameHeight >> self.vDecimation);
+            
+            buffer.dataY = [NSData dataWithBytesNoCopy:image->planes[0] length:lengthY freeWhenDone:NO];
+            buffer.dataCb = [NSData dataWithBytesNoCopy:image->planes[1] length:lengthCb freeWhenDone:NO];
+            buffer.dataCr = [NSData dataWithBytesNoCopy:image->planes[2] length:lengthCr freeWhenDone:NO];
+            
+            buffer.timestamp = videobufTime;
             // @todo is keyframe timestamp still needed?
+            
+            queuedFrame = buffer;
         }
         
         nestegg_free_packet(packet);
@@ -459,7 +490,7 @@ enum AppState {
                     audiobufGranulepos += sampleCount;
                     audiobufTime = (double)audiobufGranulepos / audioSampleRate;
                 }
-                codecjs_callback_audio(pcm, vorbisInfo.channels, sampleCount);
+                queuedAudio = [[OGVAudioBuffer alloc] initWithPCM:pcm channels:self.audioChannels samples:sampleCount];
                 
                 vorbis_synthesis_read(&vorbisDspState, sampleCount);
             } else {
@@ -511,6 +542,39 @@ enum AppState {
         printf("Invalid appState in codecjs_process\n");
     }
     return 1;
+}
+
+
+- (OGVFrameBuffer *)frameBuffer
+{
+    if (self.frameReady) {
+        OGVFrameBuffer *buffer = queuedFrame;
+        queuedFrame = nil;
+        self.frameReady = NO;
+        videobufReady = NO;
+        return buffer;
+    } else {
+        @throw [NSException
+                exceptionWithName:@"OGVDecoderFrameNotReadyException"
+                reason:@"Tried to read frame when none available"
+                userInfo:nil];
+    }
+}
+
+- (OGVAudioBuffer *)audioBuffer
+{
+    if (self.audioReady) {
+        OGVAudioBuffer *buffer = queuedAudio;
+        queuedAudio = nil;
+        self.audioReady = NO;
+        audiobufReady = NO;
+        return buffer;
+    } else {
+        @throw [NSException
+                exceptionWithName:@"OGVDecoderAudioNotReadyException"
+                reason:@"Tried to read audio buffer when none available"
+                userInfo:nil];
+    }
 }
 
 -(void)dealloc
