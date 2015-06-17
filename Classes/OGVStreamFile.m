@@ -25,6 +25,7 @@
     NSURLConnection *connection;
     NSMutableArray *inputDataQueue;
     BOOL doneDownloading;
+    NSUInteger bytePosition;
 
     dispatch_semaphore_t waitingForDataSemaphore;
 }
@@ -104,6 +105,13 @@
     }
 }
 
+-(NSUInteger)bytePosition
+{
+    @synchronized (timeLock) {
+        return bytePosition;
+    }
+}
+
 -(instancetype)initWithURL:(NSURL *)URL
 {
     self = [super init];
@@ -171,6 +179,10 @@
     if (blockingWait) {
         [self waitForBytesAvailable:nBytes];
         data = [self dequeueBytes:nBytes];
+    }
+    
+    if (data) {
+        bytePosition += [data length];
     }
     return data;
 }

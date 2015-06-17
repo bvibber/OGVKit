@@ -22,7 +22,8 @@
 
 static void logCallback(nestegg *context, unsigned int severity, char const * format, ...)
 {
-    if (severity >= NESTEGG_LOG_INFO) {
+    //if (severity >= NESTEGG_LOG_INFO) {
+    if (severity >= NESTEGG_LOG_DEBUG) {
         va_list args;
         va_start(args, format);
         vprintf(format, args);
@@ -53,17 +54,10 @@ static int seekCallback(int64_t offset, int whence, void * userdata)
 
 static int64_t tellCallback(void * userdata)
 {
-    // @todo implement on OGVStreamFile
-    abort();
-    return -1;
+    OGVDecoderWebM *decoder = (__bridge OGVDecoderWebM *)userdata;
+    OGVStreamFile *stream = decoder.inputStream;
+    return (int64_t)stream.bytePosition;
 }
-
-static nestegg_io ioCallbacks = {
-    readCallback,
-    seekCallback,
-    tellCallback,
-    NULL
-};
 
 static nestegg_packet *packet_queue_shift(nestegg_packet **queue, unsigned int *count)
 {
@@ -103,6 +97,7 @@ static void ne_packet_to_ogg_packet(nestegg_packet *src, ogg_packet *dest)
 @implementation OGVDecoderWebM
 {
     nestegg        *demuxContext;
+    nestegg_io      ioCallbacks;
     char           *bufferQueue;
     size_t          bufferSize;
     uint64_t        bufferBytesRead;
@@ -164,6 +159,11 @@ enum AppState {
         appState = STATE_BEGIN;
         videoCodec = -1;
         audioCodec = -1;
+
+        ioCallbacks.read = readCallback;
+        ioCallbacks.seek = seekCallback;
+        ioCallbacks.tell = tellCallback;
+        ioCallbacks.userdata = (__bridge void *)self;
         
         /* init supporting Vorbis structures needed in header parsing */
         vorbis_info_init(&vorbisInfo);
@@ -174,9 +174,6 @@ enum AppState {
 
 -(void)processBegin
 {
-    // This will read through headers, hopefully we have enough data
-    // or else it may fail and explode.
-    // @todo rework all this to faux sync or else full async
     printf("nestegg_init starting...\n");
     if (nestegg_init(&demuxContext, ioCallbacks, logCallback, -1) < 0) {
         printf("nestegg_init failed\n");
