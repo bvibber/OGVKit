@@ -30,7 +30,6 @@
 
 @property OGVStreamFile *inputStream;
 
-- (id)init;
 - (BOOL)process;
 - (BOOL)decodeFrame;
 - (BOOL)decodeAudio;

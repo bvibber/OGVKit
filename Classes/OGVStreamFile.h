@@ -37,6 +37,7 @@ typedef NS_ENUM(NSUInteger, OGVStreamFileState) {
 @property (readonly) OGVStreamFileState state;
 @property (readonly) BOOL dataAvailable;
 @property (readonly) NSUInteger bytesAvailable;
+@property (readonly) NSUInteger bytePosition;
 
 -(instancetype)initWithURL:(NSURL *)URL;
 -(void)start;

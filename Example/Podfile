@@ -1,5 +1,8 @@
 source 'https://github.com/CocoaPods/Specs.git'
 
+# temp hack
+source 'https://github.com/brion/OGVKit-Specs.git'
+
 target 'OGVKit', :exclusive => true do
   pod "OGVKit", :path => "../"
 end

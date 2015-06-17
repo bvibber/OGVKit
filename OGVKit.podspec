@@ -35,6 +35,9 @@ Pod::Spec.new do |s|
     skit.dependency 'OGVKit/ogg'
     skit.dependency 'OGVKit/vorbis'
     skit.dependency 'OGVKit/theora'
+
+    skit.dependency 'VPX'
+    skit.dependency 'nestegg'
   end
 
   s.subspec "ogg" do |sogg|

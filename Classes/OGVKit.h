@@ -13,7 +13,10 @@
 #import <OGVKit/OGVAudioBuffer.h>
 #import <OGVKit/OGVFrameBuffer.h>
 #import <OGVKit/OGVStreamFile.h>
+
 #import <OGVKit/OGVDecoder.h>
+#import <OGVKit/OGVDecoderOgg.h>
+#import <OGVKit/OGVDecoderWebM.h>
 
 #import <OGVKit/OGVFrameView.h>
 #import <OGVKit/OGVAudioFeeder.h>
