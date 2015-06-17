@@ -25,8 +25,29 @@
                                     <constraint firstAttribute="width" secondItem="pz3-3A-vGf" secondAttribute="height" multiplier="16:9" id="814-bq-h23"/>
                                 </constraints>
                             </view>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="RfG-07-jlb">
+                                <rect key="frame" x="0.0" y="358" width="600" height="40"/>
+                                <subviews>
+                                    <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="xBv-uU-ejx">
+                                        <rect key="frame" x="215" y="6" width="171" height="29"/>
+                                        <segments>
+                                            <segment title="Ogg Theora"/>
+                                            <segment title="WebM"/>
+                                        </segments>
+                                        <connections>
+                                            <action selector="selectFormat:" destination="vXZ-lx-hvc" eventType="valueChanged" id="ayR-fD-jfK"/>
+                                        </connections>
+                                    </segmentedControl>
+                                </subviews>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <constraints>
+                                    <constraint firstAttribute="centerX" secondItem="xBv-uU-ejx" secondAttribute="centerX" id="ALM-oe-9HK"/>
+                                    <constraint firstAttribute="centerY" secondItem="xBv-uU-ejx" secondAttribute="centerY" id="C4d-LK-ael"/>
+                                    <constraint firstAttribute="height" constant="40" id="acE-4t-roi"/>
+                                </constraints>
+                            </view>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="vtU-tW-5R5">
-                                <rect key="frame" x="0.0" y="357" width="600" height="242.5"/>
+                                <rect key="frame" x="0.0" y="398" width="600" height="202"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <connections>
                                     <outlet property="dataSource" destination="vXZ-lx-hvc" id="j90-xl-Irk"/>
@@ -37,22 +58,32 @@
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                         <constraints>
                             <constraint firstItem="pz3-3A-vGf" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leading" id="7uU-tf-YDs"/>
+                            <constraint firstItem="RfG-07-jlb" firstAttribute="top" secondItem="pz3-3A-vGf" secondAttribute="bottom" constant="0.5" id="A5q-LR-ACd"/>
+                            <constraint firstItem="RfG-07-jlb" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leading" id="DDT-CO-Ess"/>
                             <constraint firstItem="vtU-tW-5R5" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leading" id="EeT-qn-d6Y"/>
-                            <constraint firstItem="2fi-mo-0CV" firstAttribute="top" secondItem="vtU-tW-5R5" secondAttribute="bottom" id="EtQ-6r-v35"/>
+                            <constraint firstAttribute="trailing" secondItem="RfG-07-jlb" secondAttribute="trailing" id="LNh-FZ-txx"/>
+                            <constraint firstItem="2fi-mo-0CV" firstAttribute="top" secondItem="vtU-tW-5R5" secondAttribute="bottom" id="QXb-1g-ezG"/>
                             <constraint firstItem="pz3-3A-vGf" firstAttribute="top" secondItem="jyV-Pf-zRb" secondAttribute="bottom" id="VL2-fm-tpB"/>
                             <constraint firstAttribute="trailing" secondItem="vtU-tW-5R5" secondAttribute="trailing" id="eyX-3S-X1T"/>
+                            <constraint firstItem="vtU-tW-5R5" firstAttribute="top" secondItem="RfG-07-jlb" secondAttribute="bottom" id="qAC-tE-rBX"/>
                             <constraint firstItem="vtU-tW-5R5" firstAttribute="top" secondItem="pz3-3A-vGf" secondAttribute="bottom" id="xgP-WO-9jl"/>
                             <constraint firstAttribute="trailing" secondItem="pz3-3A-vGf" secondAttribute="trailing" id="zj4-ee-UnR"/>
                         </constraints>
+                        <variation key="default">
+                            <mask key="constraints">
+                                <exclude reference="xgP-WO-9jl"/>
+                            </mask>
+                        </variation>
                     </view>
                     <connections>
+                        <outlet property="formatSelector" destination="xBv-uU-ejx" id="ZwM-x2-LhU"/>
                         <outlet property="player" destination="pz3-3A-vGf" id="7YC-Gf-IGt"/>
                         <outlet property="tableView" destination="vtU-tW-5R5" id="rjN-HK-kme"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="x5A-6p-PRh" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="459.375" y="240.8450704225352"/>
+            <point key="canvasLocation" x="459" y="240"/>
         </scene>
     </scenes>
 </document>
