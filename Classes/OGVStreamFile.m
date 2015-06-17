@@ -267,7 +267,7 @@
     @synchronized (timeLock) {
         NSMutableData *outputData = [[NSMutableData alloc] initWithCapacity:nBytes];
         
-        if (doneDownloading) {
+        if (doneDownloading && nBytes > self.bytesAvailable) {
             nBytes = self.bytesAvailable;
         }
 
