@@ -22,8 +22,7 @@
 
 static void logCallback(nestegg *context, unsigned int severity, char const * format, ...)
 {
-    //if (severity >= NESTEGG_LOG_INFO) {
-    if (severity >= NESTEGG_LOG_DEBUG) {
+    if (severity >= NESTEGG_LOG_INFO) {
         va_list args;
         va_start(args, format);
         vprintf(format, args);
