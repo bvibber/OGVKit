@@ -262,26 +262,28 @@
                 }
             }
             
-            NSMutableArray *nextDelays = [[NSMutableArray alloc] init];
+            float nextDelay = INFINITY;
             if (decoder.hasAudio) {
-                if (audioBufferedDuration <= bufferDuration * 2) {
+                if (audioBufferedDuration <= bufferDuration) {
                     // NEED MOAR BUFFERS
-                    [nextDelays addObject:@0];
+                    nextDelay = 0;
                 } else {
                     // Check in when the audio buffer runs low again...
-                    [nextDelays addObject:@(bufferDuration / 2.0f)];
+                    nextDelay = fminf(nextDelay, bufferDuration / 2.0f);
                 }
             }
             if (decoder.hasVideo) {
                 // Check in when the next frame is due
                 // todo: Subtract time we already spent decoding
-                [nextDelays addObject:@(frameDelay)];
+                // todo: remove that / 2 hack
+                nextDelay = fminf(nextDelay, frameDelay / 2);
             }
             
-            if ([nextDelays count]) {
-                NSArray *sortedDelays = [nextDelays sortedArrayUsingSelector:@selector(compare:)];
-                NSNumber *nextDelay = sortedDelays[0];
-                [self pingProcessing:[nextDelay floatValue]];
+            if (nextDelay < INFINITY) {
+                if (nextDelay > 0.1) {
+                    NSLog(@"%f ms delay!", nextDelay * 1000);
+                }
+                [self pingProcessing:nextDelay];
                 
                 // End the processing loop and wait for next ping.
                 return;
