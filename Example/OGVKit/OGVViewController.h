@@ -14,5 +14,6 @@
 @property (weak, nonatomic) IBOutlet OGVPlayerView *player;
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
 @property (weak, nonatomic) IBOutlet UISegmentedControl *formatSelector;
+@property (weak, nonatomic) IBOutlet UISegmentedControl *resolutionSelector;
 
 @end

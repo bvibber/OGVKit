@@ -176,7 +176,8 @@ enum AppState {
     printf("nestegg_init starting...\n");
     if (nestegg_init(&demuxContext, ioCallbacks, logCallback, -1) < 0) {
         printf("nestegg_init failed\n");
-        abort();
+        // @fixme report error back somehow
+        return;
     }
     
     // Look through the tracks finding our video and audio

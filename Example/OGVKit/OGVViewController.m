@@ -15,8 +15,10 @@
 @implementation OGVViewController
 {
     NSArray *sources;
+    NSArray *resolutions;
     NSInteger selectedSource;
     BOOL useWebM;
+    int resolution;
 }
 
 - (void)viewDidLoad
@@ -24,15 +26,19 @@
     [super viewDidLoad];
 
     useWebM = YES;
+    resolution = 360;
+    [self updateResolutions];
     sources = @[
-                @{@"title": @"Wiki Makes Video (60fps)",
-                  @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/8/89/Wiki_Makes_Video_Intro_4_26.webm/Wiki_Makes_Video_Intro_4_26.webm"},
                 @{@"title": @"Wikipedia Visual Editor",
                   @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/c/c8/Sneak_Preview_-_Wikipedia_VisualEditor.webm/Sneak_Preview_-_Wikipedia_VisualEditor.webm" },
                 @{@"title": @"Open Access",
                   @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/b/b7/How_Open_Access_Empowered_a_16-Year-Old_to_Make_Cancer_Breakthrough.ogv/How_Open_Access_Empowered_a_16-Year-Old_to_Make_Cancer_Breakthrough.ogv" },
-                @{@"title": @"Seven Minutes of Terror",
-                  @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/9/96/Curiosity%27s_Seven_Minutes_of_Terror.ogv/Curiosity%27s_Seven_Minutes_of_Terror.ogv" },
+                @{@"title": @"Curiosity (720p)",
+                  @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/9/96/Curiosity%27s_Seven_Minutes_of_Terror.ogv/Curiosity%27s_Seven_Minutes_of_Terror.ogv",
+                  @"resolution": @(720)},
+                @{@"title": @"Wiki Makes Video (720p60)",
+                  @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/8/89/Wiki_Makes_Video_Intro_4_26.webm/Wiki_Makes_Video_Intro_4_26.webm",
+                  @"resolution": @(720)},
                 @{@"title": @"Pumpjack (short)",
                   @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/d/d6/Pumpjack.webm/Pumpjack.webm" },
                 @{@"title": @"Myopa (video only)",
@@ -52,15 +58,25 @@
 {
     selectedSource = index;
     if (selectedSource >= 0) {
-        NSString *target;
-        if (useWebM) {
-            target = @"360p.webm";
-        } else {
-            target = @"360p.ogv";
-        }
+        NSDictionary *source = sources[index];
 
-        NSString *str = sources[index][@"URL"];
-        if (!sources[index][@"audioOnly"]) {
+        NSString *format;
+        if (useWebM) {
+            format = @"webm";
+        } else {
+            format = @"ogv";
+        }
+        if (source[@"resolution"]) {
+            int max = [source[@"resolution"] intValue];
+            if (resolution > max) {
+                resolution = max;
+                [self updateResolutions];
+            }
+        }
+        NSString *target = [NSString stringWithFormat:@"%dp.%@", resolution, format];
+
+        NSString *str = source[@"URL"];
+        if (!source[@"audioOnly"]) {
             str = [NSString stringWithFormat:@"%@.%@", str, target];
         }
 
@@ -76,6 +92,45 @@
     BOOL wasWebM = useWebM;
     useWebM = (self.formatSelector.selectedSegmentIndex == 0);
     if (wasWebM != useWebM) {
+        [self updateResolutions];
+        [self selectSource:selectedSource];
+    }
+}
+
+- (void)updateResolutions
+{
+    // @todo get this info from mediawiki :)
+    if (useWebM) {
+        resolutions = @[@(360), @(480), @(720), @(1080)];
+        if (resolution < 360) {
+            resolution = 360
+            ;
+        }
+    } else {
+        resolutions = @[@(160), @(360), @(480)];
+        if (resolution > 480) {
+            resolution = 480;
+        }
+    }
+    
+    [self.resolutionSelector removeAllSegments];
+    for (int i = 0; i < [resolutions count]; i++) {
+        int res = [resolutions[i] intValue];
+        NSString *title = [NSString stringWithFormat:@"%dp", res];
+        [self.resolutionSelector insertSegmentWithTitle:title
+                                                atIndex:i
+                                               animated:NO];
+        if (resolution == res) {
+            self.resolutionSelector.selectedSegmentIndex = i;
+        }
+    }
+}
+
+- (IBAction)resolutionSelected:(id)sender {
+    int oldResolution = resolution;
+    resolution = [resolutions[self.resolutionSelector.selectedSegmentIndex] intValue];
+
+    if (resolution != oldResolution) {
         [self selectSource:selectedSource];
     }
 }
