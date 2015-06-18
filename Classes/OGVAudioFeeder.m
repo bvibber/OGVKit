@@ -241,7 +241,7 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
             
             // Buy us some decode time with some blank audio
             int silence = bufferSize;
-            silence = 128;
+            silence = 1024; // ????
             samplesOfSilence += silence;
             buffer->mAudioDataByteSize = silence * sampleSize * self.channels;
             memset(buffer->mAudioData, 0, buffer->mAudioDataByteSize);
