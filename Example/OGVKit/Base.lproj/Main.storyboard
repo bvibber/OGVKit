@@ -28,11 +28,11 @@
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="RfG-07-jlb">
                                 <rect key="frame" x="0.0" y="358" width="600" height="40"/>
                                 <subviews>
-                                    <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="xBv-uU-ejx">
+                                    <segmentedControl opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="xBv-uU-ejx">
                                         <rect key="frame" x="215" y="6" width="171" height="29"/>
                                         <segments>
-                                            <segment title="Ogg Theora"/>
                                             <segment title="WebM"/>
+                                            <segment title="Ogg"/>
                                         </segments>
                                         <connections>
                                             <action selector="selectFormat:" destination="vXZ-lx-hvc" eventType="valueChanged" id="ayR-fD-jfK"/>

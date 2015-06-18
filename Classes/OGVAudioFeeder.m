@@ -54,50 +54,55 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
 
 @implementation OGVAudioFeeder {
 
+    NSObject *timeLock;
+
     NSMutableArray *inputBuffers;
     int samplesQueued;
     int samplesPlayed;
+    int samplesOfSilence;
     
     AudioStreamBasicDescription formatDescription;
     AudioQueueRef queue;
     AudioQueueBufferRef buffers[nBuffers];
     
+    UInt32 sampleSize;
     UInt32 bufferSize;
     UInt32 bufferByteSize;
 
     BOOL isStarting;
     BOOL isRunning;
     BOOL isClosing;
-    
-    float silenceTime;
 }
 
 -(id)initWithSampleRate:(int)sampleRate channels:(int)channels
 {
     self = [self init];
     if (self) {
+        timeLock = [[NSObject alloc] init];
+
         _sampleRate = sampleRate;
         _channels = channels;
         isStarting = NO;
         isRunning = NO;
         isClosing = NO;
-        silenceTime = 0.0f;
         
         inputBuffers = [[NSMutableArray alloc] init];
         samplesQueued = 0;
         samplesPlayed = 0;
+        samplesOfSilence = 0;
         
+        sampleSize = sizeof(Float32);
         bufferSize = 8192;
-        bufferByteSize = bufferSize * sizeof(Float32) * channels;
+        bufferByteSize = bufferSize * sampleSize * channels;
         
         formatDescription.mSampleRate = (Float32)sampleRate;
         formatDescription.mFormatID = kAudioFormatLinearPCM;
         formatDescription.mFormatFlags = kLinearPCMFormatFlagIsFloat;
-        formatDescription.mBytesPerPacket = sizeof(Float32) * channels;
+        formatDescription.mBytesPerPacket = sampleSize * channels;
         formatDescription.mFramesPerPacket = 1;
-        formatDescription.mBytesPerFrame = sizeof(Float32) * channels;
+        formatDescription.mBytesPerFrame = sampleSize * channels;
         formatDescription.mChannelsPerFrame = channels;
-        formatDescription.mBitsPerChannel = sizeof(Float32) * 8;
+        formatDescription.mBitsPerChannel = sampleSize * 8;
         formatDescription.mReserved = 0;
         
         throwIfError(^() {
@@ -130,32 +135,38 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
 
 -(void)bufferData:(OGVAudioBuffer *)buffer
 {
-    assert(buffer.samples <= bufferSize);
-    
-    //NSLog(@"queuing samples: %d", buffer.samples);
-    if (buffer.samples > 0) {
-        [self queueInput:buffer];
-        //NSLog(@"buffer count: %d", [self buffersQueued]);
-        if (!isStarting && !isRunning && [self buffersQueued] >= nBuffers) {
-            //NSLog(@"Starting audio!");
-            [self startAudio];
+    @synchronized (timeLock) {
+        assert(buffer.samples <= bufferSize);
+        
+        //NSLog(@"queuing samples: %d", buffer.samples);
+        if (buffer.samples > 0) {
+            [self queueInput:buffer];
+            //NSLog(@"buffer count: %d", [self buffersQueued]);
+            if (!isStarting && !isRunning && [self buffersQueued] >= nBuffers) {
+                //NSLog(@"Starting audio!");
+                [self startAudio];
+            }
         }
     }
 }
 
 -(BOOL)isStarted
 {
-    return isStarting || isRunning;
+    @synchronized (timeLock) {
+        return isStarting || isRunning;
+    }
 }
 
 -(void)close
 {
-    isClosing = YES;
+    @synchronized (timeLock) {
+        isClosing = YES;
+    }
 }
 
 -(int)samplesQueued
 {
-    @synchronized (inputBuffers) {
+    @synchronized (timeLock) {
         return samplesQueued - samplesPlayed;
     }
 }
@@ -167,24 +178,26 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
 
 -(float)playbackPosition
 {
-    if (isRunning) {
-        __block AudioTimeStamp ts;
-        
-        throwIfError(^() {
-            return AudioQueueGetCurrentTime(queue, NULL, &ts, NULL);
-        });
-        
-        float timeInSeconds = (float)(ts.mSampleTime) / (float)self.sampleRate;
-        //NSLog(@"PLAYBACK POSITION: %f", timeInSeconds);
-        return timeInSeconds - silenceTime;
-    } else {
-        return 0.0f;
+    @synchronized (timeLock) {
+        if (isRunning) {
+            __block AudioTimeStamp ts;
+            
+            throwIfError(^() {
+                return AudioQueueGetCurrentTime(queue, NULL, &ts, NULL);
+            });
+
+            float samplesOutput = ts.mSampleTime;
+            float samplesOutputWithoutSilence = samplesOutput - samplesOfSilence;
+            return samplesOutputWithoutSilence / (float)self.sampleRate;
+        } else {
+            return 0.0f;
+        }
     }
 }
 
 -(float)bufferTailPosition
 {
-    @synchronized (inputBuffers) {
+    @synchronized (timeLock) {
         return samplesQueued / (float)self.sampleRate;
     }
 }
@@ -193,110 +206,110 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
 
 -(void)handleQueue:(AudioQueueRef)_queue buffer:(AudioQueueBufferRef)buffer
 {
-    assert(_queue != NULL);
-    assert(buffer != NULL);
-    assert(queue == _queue);
-    
-    //NSLog(@"handleQueue...");
-
-    if (isClosing) {
-        //NSLog(@"Stopping queue");
-        AudioQueueStop(queue, YES);
-        return;
-    }
-    
-    OGVAudioBuffer *inputBuffer = [self nextInput];
-    
-    if (inputBuffer) {
-        //NSLog(@"handleQueue has data");
-        
-        int channelSize = inputBuffer.samples * sizeof(Float32);
-        int packetSize = channelSize * _channels;
-        //NSLog(@"channelSize %d | packetSize %d | samples %d", channelSize, packetSize, inputBuffer.samples);
-        
-        int sampleCount = inputBuffer.samples;
-        Float32 *dest = (Float32 *)buffer->mAudioData;
-
-        for (int channel = 0; channel < _channels; channel++) {
-            
-            const Float32 *source = [inputBuffer PCMForChannel:channel];
-            
-            for (int i = 0; i < sampleCount; i++) {
-                int j = i * _channels + channel;
-                dest[j] = source[i];
-            }
+    @synchronized (timeLock) {
+        if (isClosing) {
+            //NSLog(@"Stopping queue");
+            AudioQueueStop(queue, YES);
+            return;
         }
         
-        buffer->mAudioDataByteSize = packetSize;
-    } else {
-        //NSLog(@"starved for audio?");
+        OGVAudioBuffer *inputBuffer = [self nextInput];
         
-        // Buy us some decode time with some blank audio
-        silenceTime += ((float)bufferSize / (float)_sampleRate);
-        buffer->mAudioDataByteSize = bufferByteSize;
-        memset(buffer->mAudioData, 0, bufferByteSize);
+        if (inputBuffer) {
+            //NSLog(@"handleQueue has data");
+            
+            int channelSize = inputBuffer.samples * sampleSize;
+            int packetSize = channelSize * _channels;
+            //NSLog(@"channelSize %d | packetSize %d | samples %d", channelSize, packetSize, inputBuffer.samples);
+            
+            int sampleCount = inputBuffer.samples;
+            Float32 *dest = (Float32 *)buffer->mAudioData;
+            
+            for (int channel = 0; channel < _channels; channel++) {
+                
+                const Float32 *source = [inputBuffer PCMForChannel:channel];
+                
+                for (int i = 0; i < sampleCount; i++) {
+                    int j = i * _channels + channel;
+                    dest[j] = source[i];
+                }
+            }
+            
+            buffer->mAudioDataByteSize = packetSize;
+        } else {
+            //NSLog(@"starved for audio?");
+            
+            // Buy us some decode time with some blank audio
+            int silence = bufferSize;
+            silence = 128;
+            samplesOfSilence += silence;
+            buffer->mAudioDataByteSize = silence * sampleSize * self.channels;
+            memset(buffer->mAudioData, 0, buffer->mAudioDataByteSize);
+        }
+        
+        throwIfError(^() {
+            return AudioQueueEnqueueBuffer(queue, buffer, 0, NULL);
+        });
     }
-
-    throwIfError(^() {
-        return AudioQueueEnqueueBuffer(queue, buffer, 0, NULL);
-    });
 }
 
 -(void)handleQueue:(AudioQueueRef)_queue propChanged:(AudioQueuePropertyID)prop
 {
-    assert(_queue == queue);
-
-    if (prop == kAudioQueueProperty_IsRunning) {
-        __block UInt32 _isRunning = 0;
-        __block UInt32 _size = sizeof(_isRunning);
-        throwIfError(^(){
-            return AudioQueueGetProperty(queue, prop, &_isRunning, &_size);
-        });
-        isRunning = (BOOL)_isRunning;
-        //NSLog(@"isRunning is %d", (int)isRunning);
+    @synchronized (timeLock) {
+        if (prop == kAudioQueueProperty_IsRunning) {
+            __block UInt32 _isRunning = 0;
+            __block UInt32 _size = sizeof(_isRunning);
+            throwIfError(^(){
+                return AudioQueueGetProperty(queue, prop, &_isRunning, &_size);
+            });
+            isRunning = (BOOL)_isRunning;
+            //NSLog(@"isRunning is %d", (int)isRunning);
+        }
     }
 }
 
 -(void)startAudio
 {
-    if (isStarting) {
-        // This... probably shouldn't happen.
-        return;
+    @synchronized (timeLock) {
+        if (isStarting) {
+            // This... probably shouldn't happen.
+            return;
+        }
+        assert(!isRunning);
+        assert([inputBuffers count] >= nBuffers);
+
+        isStarting = YES;
+
+        [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback error:nil];
+        
+        // Prime the buffers!
+        for (int i = 0; i < nBuffers; i++) {
+            [self handleQueue:queue buffer:buffers[i]];
+        }
+
+        throwIfError(^(){
+            // Set a listener to update isRunning
+            return AudioQueueAddPropertyListener(queue,
+                                                 kAudioQueueProperty_IsRunning,
+                                                 OGVAudioFeederPropListener,
+                                                 (__bridge void *)self);
+        });
+        throwIfError(^() {
+            return AudioQueueStart(queue, NULL);
+        });
     }
-    assert(!isRunning);
-    assert([inputBuffers count] >= nBuffers);
-
-    isStarting = YES;
-
-    [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback error:nil];
-    
-    // Prime the buffers!
-    for (int i = 0; i < nBuffers; i++) {
-        [self handleQueue:queue buffer:buffers[i]];
-    }
-
-    throwIfError(^(){
-        // Set a listener to update isRunning
-        return AudioQueueAddPropertyListener(queue,
-                                             kAudioQueueProperty_IsRunning,
-                                             OGVAudioFeederPropListener,
-                                             (__bridge void *)self);
-    });
-    throwIfError(^() {
-        return AudioQueueStart(queue, NULL);
-    });
 }
 
 -(int)buffersQueued
 {
-    @synchronized (inputBuffers) {
+    @synchronized (timeLock) {
         return (int)[inputBuffers count];
     }
 }
 
 -(void)queueInput:(OGVAudioBuffer *)buffer
 {
-    @synchronized (inputBuffers) {
+    @synchronized (timeLock) {
         [inputBuffers addObject:buffer];
         samplesQueued += buffer.samples;
     }
@@ -304,7 +317,7 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
 
 -(OGVAudioBuffer *)nextInput
 {
-    @synchronized (inputBuffers) {
+    @synchronized (timeLock) {
         if ([inputBuffers count] > 0) {
             OGVAudioBuffer *inputBuffer = inputBuffers[0];
             [inputBuffers removeObjectAtIndex:0];
@@ -315,4 +328,5 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
         }
     }
 }
+
 @end

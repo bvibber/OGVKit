@@ -23,6 +23,7 @@
 {
     [super viewDidLoad];
 
+    useWebM = YES;
     sources = @[
                 @{@"title": @"Wiki Makes Video (60fps)",
                   @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/8/89/Wiki_Makes_Video_Intro_4_26.webm/Wiki_Makes_Video_Intro_4_26.webm"},
@@ -73,7 +74,7 @@
 
 - (IBAction)selectFormat:(id)sender {
     BOOL wasWebM = useWebM;
-    useWebM = (self.formatSelector.selectedSegmentIndex == 1);
+    useWebM = (self.formatSelector.selectedSegmentIndex == 0);
     if (wasWebM != useWebM) {
         [self selectSource:selectedSource];
     }

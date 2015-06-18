@@ -232,9 +232,12 @@
             const float bufferDuration = (float)bufferSize / (float)decoder.audioRate;
             
             float audioBufferedDuration = [audioFeeder secondsQueued];
-            BOOL readyForAudio = (audioBufferedDuration <= bufferDuration) || ![audioFeeder isStarted];
+            BOOL readyForAudio = (audioBufferedDuration <= bufferDuration * 4) || ![audioFeeder isStarted];
             
-            float frameDelay = (frameEndTimestamp - self.playbackPosition);
+            float playbackPosition = self.playbackPosition;
+            float frameDelay = (frameEndTimestamp - playbackPosition);
+            //NSLog(@"%f = %f - %f", frameDelay, frameEndTimestamp, playbackPosition);
+            
             BOOL readyForFrame = (frameDelay <= fudgeDelta);
             
             if (readyForAudio && decoder.audioReady) {
@@ -280,7 +283,7 @@
             }
             
             if (nextDelay < INFINITY) {
-                if (nextDelay > 0.1) {
+                if (nextDelay > 0.01) {
                     NSLog(@"%f ms delay!", nextDelay * 1000);
                 }
                 [self pingProcessing:nextDelay];
