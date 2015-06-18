@@ -26,6 +26,7 @@
     NSMutableArray *inputDataQueue;
     BOOL doneDownloading;
     NSUInteger bytePosition;
+    NSUInteger queuedDataSize;
 
     dispatch_semaphore_t waitingForDataSemaphore;
 }
@@ -101,7 +102,7 @@
 -(NSUInteger)bytesAvailable
 {
     @synchronized (timeLock) {
-        return [self queuedDataSize];
+        return queuedDataSize;
     }
 }
 
@@ -162,6 +163,7 @@
         }
 
         NSUInteger bytesAvailable = self.bytesAvailable;
+        //NSLog(@"nBytes: %ld; bytesAvailable: %ld", (long)nBytes, (long)bytesAvailable);
         if (bytesAvailable >= nBytes) {
             data = [self dequeueBytes:nBytes];
         } else if (blocking) {
@@ -230,6 +232,8 @@
 {
     @synchronized (timeLock) {
         [inputDataQueue addObject:data];
+        queuedDataSize += [data length];
+
         if ([inputDataQueue count] == 1) {
             self.dataAvailable = YES;
         }
@@ -254,6 +258,7 @@
         NSData *inputData = [self peekData];
         if (inputData) {
             [inputDataQueue removeObjectAtIndex:0];
+            queuedDataSize -= [inputData length];
         }
         if ([inputDataQueue count] == 0) {
             self.dataAvailable = NO;
@@ -285,6 +290,7 @@
                     NSData *dataHead = [inputData subdataWithRange:NSMakeRange(0, chunkSize)];
                     NSData *dataTail = [inputData subdataWithRange:NSMakeRange(chunkSize, inputSize - chunkSize)];
                     inputDataQueue[0] = dataTail;
+                    queuedDataSize -= [dataHead length];
                     [outputData appendData:dataHead];
                 }
             } else {
@@ -301,16 +307,6 @@
         return outputData;
     }
 }
-
--(NSUInteger)queuedDataSize
-{
-    NSUInteger nbytes = 0;
-    for (NSData *data in inputDataQueue) {
-        nbytes += [data length];
-    }
-    return nbytes;
-}
-
 
 
 #pragma mark - NSURLConnectionDataDelegate methods
