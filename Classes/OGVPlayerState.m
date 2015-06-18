@@ -283,9 +283,6 @@
             }
             
             if (nextDelay < INFINITY) {
-                if (nextDelay > 0.01) {
-                    NSLog(@"%f ms delay!", nextDelay * 1000);
-                }
                 [self pingProcessing:nextDelay];
                 
                 // End the processing loop and wait for next ping.
