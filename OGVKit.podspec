@@ -27,7 +27,7 @@ Pod::Spec.new do |s|
     skit.requires_arc = true
     skit.source_files  = "Classes", "Classes/**/*.{h,m}"
     skit.resource_bundle = {
-      'OGVKit' => [
+      'OGVPlayerResources' => [
         'Resources/*.xib',
         'octicons/octicons/octicons-local.ttf'
       ]

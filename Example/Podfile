@@ -6,3 +6,15 @@ source 'https://github.com/brion/OGVKit-Specs.git'
 target 'OGVKit', :exclusive => true do
   pod "OGVKit", :path => "../"
 end
+
+# hack for missing resource bundle on iPad build
+# https://github.com/CocoaPods/CocoaPods/issues/2292
+post_install do |installer|
+  installer.project.targets.each do |target|
+    if target.product_reference.name == 'OGVPlayerResources.bundle' then
+      target.build_configurations.each do |config|
+        config.build_settings['TARGETED_DEVICE_FAMILY'] = '1,2' # iPhone, iPad
+      end
+    end
+  end
+end
