@@ -32,7 +32,19 @@ static void throwIfError(OSStatusWrapperBlock wrappedBlock) {
         @throw [NSException
                 exceptionWithName:@"OGVAudioFeederAudioQueueException"
                 reason:[NSString stringWithFormat:@"err %d", (int)status]
-                userInfo:@{}];
+                userInfo:@{@"OSStatus": @(status)}];
+    }
+}
+
+typedef void (^NSErrorWrapperBlock)(NSError **err);
+
+static void throwIfNSError(NSErrorWrapperBlock wrappedBlock) {
+    NSError *error = nil;
+    wrappedBlock(&error);
+    if (error) {
+        @throw [NSException exceptionWithName:@"OGVAudioFeederAudioQueueException"
+                                       reason:[error localizedDescription]
+                                     userInfo:@{@"NSError": error}];
     }
 }
 
@@ -280,7 +292,9 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
 
         isStarting = YES;
 
-        [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback error:nil];
+        throwIfNSError(^(NSError **err) {
+            [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback error:err];
+        });
         
         // Prime the buffers!
         for (int i = 0; i < nBuffers; i++) {
@@ -294,6 +308,7 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
                                                  OGVAudioFeederPropListener,
                                                  (__bridge void *)self);
         });
+
         throwIfError(^() {
             return AudioQueueStart(queue, NULL);
         });
