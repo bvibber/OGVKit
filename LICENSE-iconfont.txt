@@ -1,0 +1,13 @@
+Font license info
+
+Subset of Font Awesome:
+
+## Font Awesome
+
+   Copyright (C) 2012 by Dave Gandy
+
+   Author:    Dave Gandy
+   License:   SIL (http://scripts.sil.org/OFL)
+   Homepage:  http://fortawesome.github.com/Font-Awesome/
+
+

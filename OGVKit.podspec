@@ -29,7 +29,7 @@ Pod::Spec.new do |s|
     skit.resource_bundle = {
       'OGVPlayerResources' => [
         'Resources/*.xib',
-        'octicons/octicons/octicons-local.ttf'
+        'Resources/*.ttf'
       ]
     }
 

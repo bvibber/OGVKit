@@ -14,9 +14,27 @@
 
 static NSString *kOGVPlayerTimeLabelEmpty = @"-:--";
 
-// Icons from github-octicons font
-static NSString *kOGVPlayerIconCharPlay = @"";
-static NSString *kOGVPlayerIconCharPause = @"";
+// Icons from Font Awesome custom subset
+static NSString *kOGVPlayerIconCharPlay = @"\ue800";
+static NSString *kOGVPlayerIconCharStop = @"\ue801";
+static NSString *kOGVPlayerIconCharPause = @"\ue802";
+static NSString *kOGVPlayerIconCharToEnd = @"\ue803";
+static NSString *kOGVPlayerIconCharToEndAlt = @"\ue804";
+static NSString *kOGVPlayerIconCharToStart = @"\ue805";
+static NSString *kOGVPlayerIconCharToStartAlt = @"\ue806";
+static NSString *kOGVPlayerIconCharFastFw = @"\ue807";
+static NSString *kOGVPlayerIconCharFastBw = @"\ue808";
+static NSString *kOGVPlayerIconCharEject = @"\ue809";
+static NSString *kOGVPlayerIconCharPlayCircled = @"\ue80a";
+static NSString *kOGVPlayerIconCharPlayCircled2 = @"\ue80b";
+static NSString *kOGVPlayerIconCharResizeFull = @"\ue80c";
+static NSString *kOGVPlayerIconCharResizeSmall = @"\ue80d";
+static NSString *kOGVPlayerIconCharVolumeOff = @"\ue810";
+static NSString *kOGVPlayerIconCharVolumeDown = @"\ue811";
+static NSString *kOGVPlayerIconCharVolumeUp = @"\ue812";
+static NSString *kOGVPlayerIconCharCog = @"\ue814";
+static NSString *kOGVPlayerIconCharExport = @"\ue817";
+static NSString *kOGVPlayerIconCharResizeVertical = @"\ue818";
 
 static BOOL OGVPlayerViewDidRegisterIconFont = NO;
 
@@ -108,7 +126,7 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
     NSBundle *bundle = [NSBundle bundleWithPath:bundlePath];
 
     if (!OGVPlayerViewDidRegisterIconFont) {
-        NSURL *fontURL = [bundle URLForResource:@"octicons-local" withExtension:@"ttf"];
+        NSURL *fontURL = [bundle URLForResource:@"ogvkit-iconfont" withExtension:@"ttf"];
         CTFontManagerRegisterFontsForURL((__bridge CFURLRef)fontURL, kCTFontManagerScopeProcess, nil);
         OGVPlayerViewDidRegisterIconFont = YES;
     }
@@ -309,7 +327,8 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
 - (void)ogvPlayerStateDidPlay:(OGVPlayerState *)sender
 {
     if (sender == state) {
-        self.pausePlayButton.titleLabel.text = kOGVPlayerIconCharPause;
+        [self.pausePlayButton setTitle:kOGVPlayerIconCharPause forState:UIControlStateNormal];
+        [self.pausePlayButton setTitle:kOGVPlayerIconCharPause forState:UIControlStateHighlighted];
         [self startTimeTimer];
         [self updateTimeLabel];
 
@@ -327,7 +346,8 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
 - (void)ogvPlayerStateDidPause:(OGVPlayerState *)sender
 {
     if (sender == state) {
-        self.pausePlayButton.titleLabel.text = kOGVPlayerIconCharPlay;
+        [self.pausePlayButton setTitle:kOGVPlayerIconCharPlay forState:UIControlStateNormal];
+        [self.pausePlayButton setTitle:kOGVPlayerIconCharPlay forState:UIControlStateHighlighted];
         [self updateTimeLabel];
         [self stopTimeTimer];
 

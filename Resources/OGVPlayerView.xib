@@ -1,14 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="7706" systemVersion="14D136" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="8121.17" systemVersion="14D136" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES">
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="7703"/>
-        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="8101.14"/>
     </dependencies>
     <customFonts key="customFonts">
-        <mutableArray key="octicons-local.ttf">
-            <string>github-octicons</string>
-            <string>github-octicons</string>
+        <mutableArray key="ogvkit-iconfont.ttf">
+            <string>ogvkit-iconfont</string>
         </mutableArray>
     </customFonts>
     <objects>
@@ -31,10 +29,20 @@
                 <view opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="EsP-BZ-Yz6">
                     <rect key="frame" x="0.0" y="552" width="600" height="48"/>
                     <subviews>
+                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="-:--" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="I5T-iC-1VI">
+                            <rect key="frame" x="56" y="17" width="21" height="14.5"/>
+                            <fontDescription key="fontDescription" type="system" pointSize="12"/>
+                            <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
+                            <nil key="highlightedColor"/>
+                        </label>
                         <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="C1P-af-wnM">
-                            <rect key="frame" x="8" y="0.0" width="30" height="48"/>
-                            <fontDescription key="fontDescription" name="github-octicons" family="github-octicons" pointSize="32"/>
-                            <state key="normal" title="">
+                            <rect key="frame" x="0.0" y="0.0" width="48" height="48"/>
+                            <constraints>
+                                <constraint firstAttribute="width" constant="48" id="3xs-0d-39a"/>
+                                <constraint firstAttribute="height" constant="48" id="tAA-q9-DT1"/>
+                            </constraints>
+                            <fontDescription key="fontDescription" name="ogvkit-iconfont" family="ogvkit-iconfont" pointSize="28"/>
+                            <state key="normal" title="">
                                 <color key="titleColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
                                 <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                             </state>
@@ -42,22 +50,14 @@
                                 <action selector="togglePausePlay:" destination="-1" eventType="touchUpInside" id="Fy0-YV-N06"/>
                             </connections>
                         </button>
-                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="-:--" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="I5T-iC-1VI">
-                            <rect key="frame" x="46" y="8" width="18.5" height="32"/>
-                            <fontDescription key="fontDescription" type="system" pointSize="12"/>
-                            <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
-                            <nil key="highlightedColor"/>
-                        </label>
                     </subviews>
                     <color key="backgroundColor" white="1" alpha="0.5" colorSpace="calibratedWhite"/>
                     <constraints>
                         <constraint firstItem="I5T-iC-1VI" firstAttribute="leading" secondItem="C1P-af-wnM" secondAttribute="trailing" constant="8" id="4AX-L4-zMD"/>
-                        <constraint firstAttribute="bottom" secondItem="C1P-af-wnM" secondAttribute="bottom" id="FMj-gr-rAm"/>
-                        <constraint firstItem="I5T-iC-1VI" firstAttribute="top" secondItem="EsP-BZ-Yz6" secondAttribute="topMargin" id="HqM-S8-0oW"/>
-                        <constraint firstAttribute="bottomMargin" secondItem="I5T-iC-1VI" secondAttribute="bottom" id="hal-cn-lrU"/>
+                        <constraint firstItem="C1P-af-wnM" firstAttribute="centerY" secondItem="EsP-BZ-Yz6" secondAttribute="centerY" id="6vi-ZW-vWx"/>
+                        <constraint firstItem="C1P-af-wnM" firstAttribute="leading" secondItem="EsP-BZ-Yz6" secondAttribute="leading" id="CMh-Fs-IRX"/>
+                        <constraint firstItem="I5T-iC-1VI" firstAttribute="centerY" secondItem="EsP-BZ-Yz6" secondAttribute="centerY" id="YiX-cx-QCr"/>
                         <constraint firstAttribute="height" constant="48" id="md1-UK-sKq"/>
-                        <constraint firstItem="C1P-af-wnM" firstAttribute="leading" secondItem="EsP-BZ-Yz6" secondAttribute="leadingMargin" id="rhU-pQ-OkT"/>
-                        <constraint firstItem="C1P-af-wnM" firstAttribute="top" secondItem="EsP-BZ-Yz6" secondAttribute="top" id="vLx-re-nl7"/>
                     </constraints>
                 </view>
             </subviews>
@@ -72,14 +72,5 @@
                 <constraint firstItem="EsP-BZ-Yz6" firstAttribute="leading" secondItem="ATs-0k-oX4" secondAttribute="leading" id="zBP-b5-g2W"/>
             </constraints>
         </view>
-        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="5B2-uA-kEz">
-            <rect key="frame" x="0.0" y="0.0" width="30" height="40"/>
-            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-            <fontDescription key="fontDescription" name="github-octicons" family="github-octicons" pointSize="18"/>
-            <state key="normal" title="">
-                <color key="titleColor" red="0.022589172979999999" green="0.022589172979999999" blue="0.022589172979999999" alpha="1" colorSpace="calibratedRGB"/>
-                <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-            </state>
-        </button>
     </objects>
 </document>
