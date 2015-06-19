@@ -8,6 +8,9 @@
 
 #import "OGVViewController.h"
 
+@import AVFoundation;
+@import AVKit;
+
 @interface OGVViewController ()
 
 @end
@@ -36,6 +39,12 @@
                 @{@"title": @"Curiosity (720p)",
                   @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/9/96/Curiosity%27s_Seven_Minutes_of_Terror.ogv/Curiosity%27s_Seven_Minutes_of_Terror.ogv",
                   @"resolution": @(720)},
+                @{@"title": @"Curiosity (H.264 480p)",
+                  @"URL": @"https://brionv.com/misc/OGVKit/Curiosity.480p.mp4",
+                  @"original": @(YES)},
+                @{@"title": @"Curiosity (H.264 720p)",
+                  @"URL": @"https://brionv.com/misc/OGVKit/Curiosity.720p.mp4",
+                  @"original": @(YES)},
                 @{@"title": @"Wiki Makes Video (720p60)",
                   @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/8/89/Wiki_Makes_Video_Intro_4_26.webm/Wiki_Makes_Video_Intro_4_26.webm",
                   @"resolution": @(720)},
@@ -45,7 +54,7 @@
                   @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/8/8b/Myopa_-_2015-05-02.webm/Myopa_-_2015-05-02.webm" },
                 @{@"title": @"Bach (Ogg audio only)",
                   @"URL": @"https://upload.wikimedia.org/wikipedia/commons/e/ea/Bach_C_Major_Prelude_Werckmeister.ogg",
-                  @"audioOnly": @(YES)}
+                  @"original": @(YES)}
                 ];
     selectedSource = -1;
 
@@ -76,15 +85,28 @@
         NSString *target = [NSString stringWithFormat:@"%dp.%@", resolution, format];
 
         NSString *str = source[@"URL"];
-        if (!source[@"audioOnly"]) {
+        if (!source[@"original"]) {
             str = [NSString stringWithFormat:@"%@.%@", str, target];
         }
 
         NSLog(@"%@", str);
+        NSURL *url = [NSURL URLWithString:str];
 
-        self.player.sourceURL = [NSURL URLWithString:str];
-        // @todo separate load & play...
-        [self.player play];
+        if ([str hasSuffix:@".mp4"]) {
+            // whee
+            AVPlayer *mp4Player = [AVPlayer playerWithURL:url];
+            AVPlayerViewController *mp4Controller = [[AVPlayerViewController alloc] init];
+
+            mp4Controller.view.frame = self.player.frame;
+            mp4Controller.player = mp4Player;
+            [self.view addSubview:mp4Controller.view];
+
+            [mp4Player play];
+        } else {
+            self.player.sourceURL = url;
+            // @todo separate load & play...
+            [self.player play];
+        }
     }
 }
 
