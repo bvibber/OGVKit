@@ -6,9 +6,7 @@
 //  Copyright (c) 2015 Brion Vibber. All rights reserved.
 //
 
-#import <OGVKit/OGVKit.h>
-
-#import "OGVPlayerState.h"
+#import "OGVKit.h"
 
 @import CoreText;
 

@@ -10,16 +10,14 @@
 #import <UIKit/UIKit.h>
 #import <GLKit/GLKit.h>
 
-#import <OGVKit/OGVAudioBuffer.h>
-#import <OGVKit/OGVFrameBuffer.h>
-#import <OGVKit/OGVStreamFile.h>
+#import "OGVAudioBuffer.h"
+#import "OGVFrameBuffer.h"
 
-#import <OGVKit/OGVDecoder.h>
-#import <OGVKit/OGVDecoderOgg.h>
-#import <OGVKit/OGVDecoderWebM.h>
+#import "OGVStreamFile.h"
+#import "OGVDecoder.h"
 
-#import <OGVKit/OGVFrameView.h>
-#import <OGVKit/OGVAudioFeeder.h>
-#import <OGVKit/OGVPlayerState.h>
+#import "OGVFrameView.h"
+#import "OGVAudioFeeder.h"
+#import "OGVPlayerState.h"
 
-#import <OGVKit/OGVPlayerView.h>
+#import "OGVPlayerView.h"

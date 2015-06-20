@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = "OGVKit"
-  s.version      = "0.2"
+  s.version      = "0.3"
   s.summary      = "Ogg Vorbis/Theora and WebM media playback widget for iOS."
 
   s.description  = <<-DESC
@@ -20,60 +20,102 @@ Pod::Spec.new do |s|
   s.platform     = :ios, "6.0"
 
   s.source       = { :git => "https://github.com/brion/OGVKit.git",
-                     :tag => "0.3",
-                     :submodules => true }
+                     :tag => "0.3" }
 
-  s.subspec "Player" do |skit|
-    skit.requires_arc = true
-    skit.source_files  = "Classes", "Classes/**/*.{h,m}"
-    skit.resource_bundle = {
-      'OGVPlayerResources' => [
-        'Resources/*.xib',
-        'Resources/*.ttf'
-      ]
-    }
+  s.source_files = "Classes/OGVKit.h",
+                   "Classes/OGVAudioBuffer.{h,m}",
+                   "Classes/OGVFrameBuffer.{h,m}",
+                   "Classes/OGVFrameView.{h,m}",
+                   "Classes/OGVAudioFeeder.{h,m}",
+                   "Classes/OGVPlayerState.{h,m}",
+                   "Classes/OGVPlayerView.{h,m}"
 
-    skit.dependency 'OGVKit/ogg'
-    skit.dependency 'OGVKit/vorbis'
-    skit.dependency 'OGVKit/theora'
+  s.public_header_files = "Classes/OGVKit.h",
+                          "Classes/OGVAudioBuffer.h",
+                          "Classes/OGVFrameBuffer.h",
+                          "Classes/OGVFrameView.h",
+                          "Classes/OGVAudioFeeder.h",
+                          "Classes/OGVPlayerState.h",
+                          "Classes/OGVPlayerView.h"
 
-    skit.dependency 'VPX'
-    skit.dependency 'nestegg'
+  s.header_dir = 'OGVKit'
+
+  s.resource_bundle = {
+    'OGVPlayerResources' => [
+      'Resources/*.xib',
+      'Resources/*.ttf'
+    ]
+  }
+
+  s.subspec "Decoder" do |subspec|
+    subspec.xcconfig = { 'OTHER_CFLAGS' => '$(inherited) -DOGVKIT_HAVE_DECODER' }
+
+    subspec.subspec "Ogg" do |subsubspec|
+      subsubspec.dependency 'OGVKit/Demuxer/Ogg'
+
+      subsubspec.subspec "Theora" do |subsubsubspec|
+        subsubsubspec.dependency 'OGVKit/Decoder/Theora'
+        subsubsubspec.dependency 'OGVKit/Decoder/Vorbis'
+      end
+
+      subsubspec.subspec "Vorbis" do |subsubsubspec|
+        subsubsubspec.dependency 'OGVKit/Decoder/Vorbis'
+      end
+    end
+
+    subspec.subspec "WebM" do |subsubspec|
+      subsubspec.dependency 'OGVKit/Demuxer/WebM'
+
+      subsubspec.subspec "VP8" do |subsubsubspec|
+        subsubsubspec.dependency 'OGVKit/Decoder/VP8'
+        subsubsubspec.dependency 'OGVKit/Decoder/Vorbis'
+      end
+
+      subsubspec.subspec "Vorbis" do |subsubsubspec|
+        subsubsubspec.dependency 'OGVKit/Decoder/Vorbis'
+      end
+    end
+
+    subspec.subspec "Vorbis" do |subsubspec|
+      subsubspec.xcconfig = { 'OTHER_CFLAGS' => '$(inherited) -DOGVKIT_HAVE_DECODER_VORBIS' }
+      subsubspec.dependency 'libvorbis'
+    end
+
+    subspec.subspec "Theora" do |subsubspec|
+      subsubspec.xcconfig = { 'OTHER_CFLAGS' => '$(inherited) -DOGVKIT_HAVE_DECODER_THEORA' }
+      subsubspec.dependency 'libtheora'
+    end
+
+    subspec.subspec "VP8" do |subsubspec|
+      subsubspec.xcconfig = { 'OTHER_CFLAGS' => '$(inherited) -DOGVKIT_HAVE_DECODER_VP8' }
+      subsubspec.dependency 'libvpx', '~>1.4.0-snapshot-20150619'
+    end
   end
 
-  s.subspec "ogg" do |sogg|
-    sogg.compiler_flags = "-O3",
-                          "-Wno-conversion"
-    sogg.source_files = "libogg/src",
-                        "libogg/include/**/*.h"
-    sogg.public_header_files = "libogg/includes/**/*.h"
-    sogg.header_dir = "ogg"
-  end
-  
-  s.subspec "vorbis" do |svorbis|
-    svorbis.compiler_flags = "-O3",
-                             "-Wno-conversion",
-                             "-Wno-unused-variable",
-                             "-Wno-unused-function"
-    svorbis.source_files = "libvorbis/lib",
-                           "libvorbis/include/**/*.h"
-    svorbis.exclude_files = "libvorbis/lib/psytune.c", # dead code that doesn't compile
-                            "libvorbis/lib/vorbisenc.c" # don't need encoder
-    svorbis.public_header_files = "libvorbis/includes/**/*.h"
-    svorbis.header_dir = "vorbis"
-    svorbis.dependency 'OGVKit/ogg'
-  end
-  
-  s.subspec "theora" do |stheora|
-    stheora.compiler_flags = "-O3",
-                             "-Wno-conversion",
-                             "-Wno-tautological-compare",
-                             "-Wno-absolute-value"
-    stheora.source_files = "libtheora/lib",
-                           "libtheora/include/**/*.h"
-    stheora.public_header_files = "libtheora/include/**/*.h"
-    stheora.header_dir = "theora"
-    stheora.dependency 'OGVKit/ogg'
+  s.subspec "Demuxer" do |subspec|
+    subspec.xcconfig = { 'OTHER_CFLAGS' => '$(inherited) -DOGVKIT_HAVE_DEMUXER' }
+
+    # todo split demuxer from decoder
+    subspec.source_files = "Classes/OGVDecoder.{h,m}",
+                           "Classes/OGVStreamFile.{h,m}"
+    subspec.public_header_files = "Classes/OGVDecoder.h",
+                                  "Classes/OGVStreamFile.h"
+
+    subspec.subspec "Ogg" do |subsubspec|
+      subsubspec.xcconfig = { 'OTHER_CFLAGS' => '$(inherited) -DOGVKIT_HAVE_DEMUXER_OGG' }
+      subsubspec.source_files = "Classes/OGVDecoderOgg.{h,m}"
+      subsubspec.public_header_files = "Classes/OGVDecoderOgg.h"
+
+      subsubspec.dependency 'libogg'
+    end
+
+    subspec.subspec "WebM" do |subsubspec|
+      subsubspec.xcconfig = { 'OTHER_CFLAGS' => '$(inherited) -DOGVKIT_HAVE_DEMUXER_WEBM' }
+      subsubspec.source_files = "Classes/OGVDecoderWebM.{h,m}"
+      subsubspec.public_header_files = "Classes/OGVDecoderWebM.h"
+
+      subsubspec.dependency 'libnestegg'
+    end
   end
 
 end

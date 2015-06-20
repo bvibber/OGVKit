@@ -6,12 +6,19 @@
 //  Copyright (c) 2013 Brion Vibber. All rights reserved.
 //
 
-#import <OGVKit/OGVKit.h>
+#import "OGVKit.h"
+#import "OGVDecoderOgg.h"
 
 #define OV_EXCLUDE_STATIC_CALLBACKS
 #include <ogg/ogg.h>
+
+#ifdef OGVKIT_HAVE_DECODER_VORBIS
 #include <vorbis/vorbisfile.h>
+#endif
+
+#ifdef OGVKIT_HAVE_DECODER_THEORA
 #include <theora/theoradec.h>
+#endif
 
 static const NSUInteger kOGVDecoderReadBufferSize = 65536;
 
@@ -20,12 +27,14 @@ static const NSUInteger kOGVDecoderReadBufferSize = 65536;
     ogg_sync_state    oggSyncState;
     ogg_page          oggPage;
     
+#ifdef OGVKIT_HAVE_DECODER_THEORA
     /* Video decode state */
     ogg_stream_state  theoraStreamState;
     th_info           theoraInfo;
     th_comment        theoraComment;
     th_setup_info    *theoraSetupInfo;
     th_dec_ctx       *theoraDecoderContext;
+#endif
     
     int              theora_p;
     int              theora_processing_headers;
@@ -44,11 +53,13 @@ static const NSUInteger kOGVDecoderReadBufferSize = 65536;
     /* Audio decode state */
     int              vorbis_p;
     int              vorbis_processing_headers;
+#ifdef OGVKIT_HAVE_DECODER_VORBIS
     ogg_stream_state vo;
     vorbis_info      vi;
     vorbis_dsp_state vd;
     vorbis_block     vb;
     vorbis_comment   vc;
+#endif
     OGVAudioBuffer *queuedAudio;
     
     int          crop;
@@ -80,14 +91,18 @@ static const NSUInteger kOGVDecoderReadBufferSize = 65536;
         /* start up Ogg stream synchronization layer */
         ogg_sync_init(&oggSyncState);
         
+#ifdef OGVKIT_HAVE_DECODER_VORBIS
         /* init supporting Vorbis structures needed in header parsing */
         vorbis_info_init(&vi);
         vorbis_comment_init(&vc);
-        
+#endif
+
+#ifdef OGVKIT_HAVE_DECODER_THEORA
         /* init supporting Theora structures needed in header parsing */
         th_comment_init(&theoraComment);
         th_info_init(&theoraInfo);
-        
+#endif
+
         process_audio = 1;
         process_video = 1;
         
@@ -115,6 +130,7 @@ static const NSUInteger kOGVDecoderReadBufferSize = 65536;
         }
         
         /* identify the codec: try theora */
+#ifdef OGVKIT_HAVE_DECODER_THEORA
         if(process_video && !theora_p && (theora_processing_headers = th_decode_headerin(&theoraInfo,&theoraComment,&theoraSetupInfo,&oggPacket))>=0){
             
             /* it is theora -- save this stream state */
@@ -126,7 +142,12 @@ static const NSUInteger kOGVDecoderReadBufferSize = 65536;
             } else {
                 ogg_stream_packetout(&theoraStreamState, NULL);
             }
-        } else if (process_audio && !vorbis_p && (vorbis_processing_headers = vorbis_synthesis_headerin(&vi,&vc,&oggPacket)) == 0) {
+            return;
+        }
+#endif
+
+#ifdef OGVKIT_HAVE_DECODER_VORBIS
+        if (process_audio && !vorbis_p && (vorbis_processing_headers = vorbis_synthesis_headerin(&vi,&vc,&oggPacket)) == 0) {
             // it's vorbis!
             // save this as our audio stream...
             memcpy(&vo, &test, sizeof(test));
@@ -134,10 +155,12 @@ static const NSUInteger kOGVDecoderReadBufferSize = 65536;
             
             // ditch the processed packet...
             ogg_stream_packetout(&vo, NULL);
-        } else {
-            /* whatever it is, we don't care about it */
-            ogg_stream_clear(&test);
+            return;
         }
+#endif
+
+		/* whatever it is, we don't care about it */
+		ogg_stream_clear(&test);
     } else {
         // Not a bitstream start -- move on to header decoding...
         appState = STATE_HEADERS;
@@ -149,6 +172,7 @@ static const NSUInteger kOGVDecoderReadBufferSize = 65536;
     if ((theora_p && theora_processing_headers) || (vorbis_p && vorbis_p < 3)) {
         int ret;
         
+#ifdef OGVKIT_HAVE_DECODER_THEORA
         /* look for further theora headers */
         if (theora_p && theora_processing_headers) {
             ret = ogg_stream_packetpeek(&theoraStreamState, &oggPacket);
@@ -166,7 +190,9 @@ static const NSUInteger kOGVDecoderReadBufferSize = 65536;
                 }
             }
         }
-        
+#endif
+
+#ifdef OGVKIT_HAVE_DECODER_VORBIS
         if (vorbis_p && (vorbis_p < 3)) {
             ret = ogg_stream_packetpeek(&vo, &oggPacket);
             if (ret < 0) {
@@ -184,8 +210,11 @@ static const NSUInteger kOGVDecoderReadBufferSize = 65536;
                 ogg_stream_packetout(&vo, NULL);
             }
         }
+#endif
+
     } else {
         /* and now we have it all.  initialize decoders */
+#ifdef OGVKIT_HAVE_DECODER_THEORA
         if(theora_p){
             theoraDecoderContext=th_decode_alloc(&theoraInfo,theoraSetupInfo);
             
@@ -200,7 +229,9 @@ static const NSUInteger kOGVDecoderReadBufferSize = 65536;
             self.hDecimation = !(theoraInfo.pixel_fmt & 1);
             self.vDecimation = !(theoraInfo.pixel_fmt & 2);
         }
-        
+#endif
+
+#ifdef OGVKIT_HAVE_DECODER_VORBIS
         if (vorbis_p) {
             vorbis_synthesis_init(&vd,&vi);
             vorbis_block_init(&vd,&vb);
@@ -209,7 +240,8 @@ static const NSUInteger kOGVDecoderReadBufferSize = 65536;
             self.audioChannels = vi.channels;
             self.audioRate = (int)vi.rate;
         }
-        
+#endif
+
         appState = STATE_DECODING;
         self.dataReady = YES;
     }
@@ -218,6 +250,8 @@ static const NSUInteger kOGVDecoderReadBufferSize = 65536;
 - (void)processDecoding
 {
     needData = NO;
+
+#ifdef OGVKIT_HAVE_DECODER_THEORA
     if (theora_p && !videobuf_ready) {
         if (ogg_stream_packetpeek(&theoraStreamState, &theoraPacket) > 0) {
             videobuf_ready = 1;
@@ -226,7 +260,9 @@ static const NSUInteger kOGVDecoderReadBufferSize = 65536;
             needData = YES;
         }
     }
-    
+#endif
+
+#ifdef OGVKIT_HAVE_DECODER_VORBIS
     if (vorbis_p && !audiobuf_ready) {
         if (ogg_stream_packetpeek(&vo, &vorbisPacket) > 0) {
             audiobuf_ready = 1;
@@ -235,10 +271,12 @@ static const NSUInteger kOGVDecoderReadBufferSize = 65536;
             needData = YES;
         }
     }
+#endif
 }
 
 - (BOOL) decodeFrame
 {
+#ifdef OGVKIT_HAVE_DECODER_THEORA
     if (ogg_stream_packetout(&theoraStreamState, &theoraPacket) <= 0) {
         printf("Theora packet didn't come out of stream\n");
         return NO;
@@ -266,8 +304,12 @@ static const NSUInteger kOGVDecoderReadBufferSize = 65536;
         printf("Theora decoder failed mysteriously? %d\n", ret);
         return NO;
     }
+#else
+	return NO;
+#endif
 }
 
+#ifdef OGVKIT_HAVE_DECODER_THEORA
 -(void)doDecodeFrame
 {
     assert(queuedFrame == nil);
@@ -302,9 +344,11 @@ static const NSUInteger kOGVDecoderReadBufferSize = 65536;
     
     queuedFrame = buffer;
 }
+#endif
 
 - (BOOL)decodeAudio
 {
+#ifdef OGVKIT_HAVE_DECODER_VORBIS
     if (ogg_stream_packetout(&vo, &vorbisPacket) > 0) {
         if(vorbis_synthesis(&vb, &vorbisPacket) == 0) {
             vorbis_synthesis_blockin(&vd,&vb);
@@ -319,6 +363,9 @@ static const NSUInteger kOGVDecoderReadBufferSize = 65536;
         }
     }
     return YES;
+#else
+	return 0;
+#endif
 }
 
 - (OGVFrameBuffer *)frameBuffer
@@ -388,12 +435,16 @@ static const NSUInteger kOGVDecoderReadBufferSize = 65536;
 {
     if (needData) {
         if (ogg_sync_pageout(&oggSyncState, &oggPage) > 0) {
+#ifdef OGVKIT_HAVE_DECODER_THEORA
             if (theora_p) {
                 ogg_stream_pagein(&theoraStreamState, &oggPage);
             }
+#endif
+#ifdef OGVKIT_HAVE_DECODER_VORBIS
             if (vorbis_p) {
                 ogg_stream_pagein(&vo, &oggPage);
             }
+#endif
         } else {
             // Out of data!
             return [self readFromInputStream];
@@ -412,13 +463,16 @@ static const NSUInteger kOGVDecoderReadBufferSize = 65536;
 
 - (void)dealloc
 {
+#ifdef OGVKIT_HAVE_DECODER_THEORA
     if(theora_p){
         ogg_stream_clear(&theoraStreamState);
         th_decode_free(theoraDecoderContext);
     }
     th_comment_clear(&theoraComment);
     th_info_clear(&theoraInfo);
-    
+#endif
+
+#ifdef OGVKIT_HAVE_DECODER_VORBIS
     if (vorbis_p) {
         ogg_stream_clear(&vo);
         vorbis_dsp_clear(&vd);
@@ -426,7 +480,8 @@ static const NSUInteger kOGVDecoderReadBufferSize = 65536;
     }
     vorbis_comment_clear(&vc);
     vorbis_info_clear(&vi);
-    
+#endif
+
     ogg_sync_clear(&oggSyncState);
 }
 

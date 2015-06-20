@@ -6,7 +6,7 @@
 //  Copyright (c) 2015 Brion Vibber. All rights reserved.
 //
 
-#include "OGVKit/OGVKit.h"
+#import "OGVKit.h"
 
 @interface OGVStreamFile (Private)
 @property (nonatomic) NSURL *URL;

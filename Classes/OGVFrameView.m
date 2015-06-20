@@ -6,7 +6,7 @@
 //  Copyright (c) 2013 Brion Vibber. All rights reserved.
 //
 
-#import <OGVKit/OGVKit.h>
+#import "OGVKit.h"
 
 @interface OGVFrameView (Private)
 -(GLuint)setupTexturePosition:(NSString *)varname width:(int)texWidth height:(int)texHeight;

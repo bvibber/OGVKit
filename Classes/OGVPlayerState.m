@@ -6,7 +6,15 @@
 //
 //
 
-#import <OGVKit/OGVKit.h>
+#import "OGVKit.h"
+
+#ifdef OGVKIT_HAVE_DEMUXER_OGG
+#import "OGVDecoderOgg.h"
+#endif
+
+#ifdef OGVKIT_HAVE_DEMUXER_WEBM
+#import "OGVDecoderWebM.h"
+#endif
 
 @implementation OGVPlayerState
 {
@@ -44,9 +52,13 @@
         stream = [[OGVStreamFile alloc] initWithURL:URL];
         // hack! fixme
         if ([[URL pathExtension] isEqualToString:@"webm"]) {
+#ifdef OGVKIT_HAVE_DEMUXER_WEBM
             decoder = [[OGVDecoderWebM alloc] init];
+#endif
         } else {
+#ifdef OGVKIT_HAVE_DEMUXER_OGG
             decoder = [[OGVDecoderOgg alloc] init];
+#endif
         }
         decoder.inputStream = stream;
 
