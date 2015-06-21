@@ -8,7 +8,7 @@
 
 @class OGVStreamFile;
 
-@protocol OGVStreamFileDelegate <NSURLConnectionDataDelegate>
+@protocol OGVStreamFileDelegate <NSObject>
 
 @optional
 -(void)ogvStreamFileDataAvailable:(OGVStreamFile *)sender;
@@ -27,7 +27,7 @@ typedef NS_ENUM(NSUInteger, OGVStreamFileState) {
     OGVStreamFileStateSeeking = 5
 };
 
-@interface OGVStreamFile : NSObject
+@interface OGVStreamFile : NSObject <NSURLConnectionDataDelegate>
 
 @property (weak, nonatomic) id<OGVStreamFileDelegate> delegate;
 
@@ -35,6 +35,8 @@ typedef NS_ENUM(NSUInteger, OGVStreamFileState) {
 
 @property (readonly) NSURL *URL;
 @property (readonly) OGVStreamFileState state;
+@property (readonly) OGVMediaType *mediaType;
+
 @property (readonly) BOOL dataAvailable;
 @property (readonly) NSUInteger bytesAvailable;
 @property (readonly) NSUInteger bytePosition;

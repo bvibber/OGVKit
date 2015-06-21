@@ -315,6 +315,7 @@
 {
     @synchronized (timeLock) {
         self.state = OGVStreamFileStateReading;
+        _mediaType = [[OGVMediaType alloc] initWithString:response.MIMEType];
     }
 }
 

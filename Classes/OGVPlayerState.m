@@ -44,27 +44,14 @@
 
         stream = [[OGVStreamFile alloc] initWithURL:URL];
 
-        // hack! use actual content-type from stream
-        OGVMediaType *estimatedType;
-        if ([[URL pathExtension] isEqualToString:@"webm"]) {
-            estimatedType = [[OGVMediaType alloc] initWithString:@"video/webm"];
-        } else {
-            estimatedType = [[OGVMediaType alloc] initWithString:@"video/ogg"];
-        }
-        decoder = [[OGVKit singleton] decoderForType:estimatedType];
-        if (!decoder) {
-            NSLog(@"no decoder, this should not happen");
-            abort();
-        }
-        decoder.inputStream = stream;
-
         playing = NO;
         playAfterLoad = NO;
 
         // Start loading the URL and processing header data
         dispatch_async(decodeQueue, ^() {
+            // @todo set our own state to connecting!
+            stream.delegate = self;
             [stream start];
-            [self processHeaders];
         });
     }
     return self;
@@ -130,6 +117,20 @@
 }
 
 #pragma mark - Private decode thread methods
+
+- (void)startDecoder
+{
+    decoder = [[OGVKit singleton] decoderForType:stream.mediaType];
+    if (decoder) {
+        // Hand the stream off to the decoder and goooooo!
+        decoder.inputStream = stream;
+        [self processHeaders];
+    } else {
+        NSLog(@"no decoder, this should not happen");
+        abort();
+    }
+    // @fixme update our state
+}
 
 - (void)startPlayback
 {
@@ -348,14 +349,33 @@
     });
 }
 
-/*
 #pragma mark - OGVStreamFileDelegate methods
-- (void)ogvStreamFileDataAvailable:(OGVStreamFile *)sender
+
+-(void)ogvStreamFileStateChanged:(OGVStreamFile *)sender
 {
-    dispatch_async(decodeQueue, ^() {
-        [self processNextFrame];
-    });
+    switch (stream.state) {
+        case OGVStreamFileStateConnecting:
+            // Good... Good. Let the data flow through you!
+            break;
+
+        case OGVStreamFileStateReading:
+            stream.delegate = nil;
+            [self startDecoder];
+            break;
+
+        case OGVStreamFileStateFailed:
+            NSLog(@"Stream file failed.");
+            stream.delegate = nil;
+            [stream cancel];
+            stream = nil;
+            break;
+
+        default:
+            NSLog(@"Unexpected stream state change!");
+            stream.delegate = nil;
+            [stream cancel];
+            stream = nil;
+    }
 }
-*/
 
 @end
