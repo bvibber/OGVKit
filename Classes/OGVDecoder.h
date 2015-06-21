@@ -18,19 +18,10 @@
 @property BOOL dataReady;
 
 @property BOOL hasVideo;
-@property int frameWidth;
-@property int frameHeight;
-@property float frameRate;
-@property int pictureWidth;
-@property int pictureHeight;
-@property int pictureOffsetX;
-@property int pictureOffsetY;
-@property int hDecimation;
-@property int vDecimation;
+@property OGVVideoFormat *videoFormat;
 
 @property BOOL hasAudio;
-@property int audioChannels;
-@property int audioRate;
+@property OGVAudioFormat *audioFormat;
 
 @property BOOL audioReady;
 @property BOOL frameReady;

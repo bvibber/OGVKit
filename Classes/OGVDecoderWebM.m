@@ -135,7 +135,6 @@ static void ne_packet_to_ogg_packet(nestegg_packet *src, ogg_packet *dest)
     int               audiobufReady;
     int64_t           audiobufGranulepos; /* time position of last sample */
     double            audiobufTime;
-    double            audioSampleRate;
 
 #ifdef OGVKIT_HAVE_WEBM_VORBIS_DECODER
     /* Audio decode state */
@@ -235,15 +234,14 @@ enum AppState {
             vpx_codec_dec_init(&vpxContext, vpxDecoder, NULL, 0);
 
             self.hasVideo = YES;
-            self.frameWidth = videoParams.width;
-            self.frameHeight = videoParams.height;
-            self.frameRate = 30; // @todo replace this, can't get it reliably in webm
-            self.pictureWidth = videoParams.display_width;
-            self.pictureHeight = videoParams.display_height;
-            self.pictureOffsetX = videoParams.crop_left;
-            self.pictureOffsetY = videoParams.crop_top;
-            self.hDecimation = 1; // @todo vp9 can do 4:4:4 too
-            self.vDecimation = 1; // @todo vp9 can do 4:4:4 too
+            self.videoFormat = [[OGVVideoFormat alloc] init];
+            self.videoFormat.frameWidth = videoParams.width;
+            self.videoFormat.frameHeight = videoParams.height;
+            self.videoFormat.pictureWidth = videoParams.display_width;
+            self.videoFormat.pictureHeight = videoParams.display_height;
+            self.videoFormat.pictureOffsetX = videoParams.crop_left;
+            self.videoFormat.pictureOffsetY = videoParams.crop_top;
+            self.videoFormat.pixelFormat = OGVPixelFormatYCbCr420; // @todo vp9 can do other formats too
 #endif
         }
     }
@@ -292,14 +290,10 @@ enum AppState {
 	if (vorbisHeaders) {
 		vorbis_synthesis_init(&vorbisDspState, &vorbisInfo);
 		vorbis_block_init(&vorbisDspState, &vorbisBlock);
-		//printf("Ogg logical stream %lx is Vorbis %d channel %ld Hz audio.\n",
-		//        vorbisStreamState.serialno, vorbisInfo.channels, vorbisInfo.rate);
-		
-		audioSampleRate = vorbisInfo.rate;
 		
 		self.hasAudio = YES;
-		self.audioRate = audioSampleRate;
-		self.audioChannels = vorbisInfo.channels;
+        self.audioFormat = [[OGVAudioFormat alloc] initWithChannels:vorbisInfo.channels
+                                                         sampleRate:vorbisInfo.rate];
 	}
 #endif
 
@@ -371,23 +365,15 @@ enum AppState {
             foundImage = true;
 
             OGVFrameBuffer *buffer = [[OGVFrameBuffer alloc] init];
-            
-            buffer.frameWidth = self.frameWidth;
-            buffer.frameHeight = self.frameHeight;
-            buffer.pictureWidth = self.pictureWidth;
-            buffer.pictureHeight = self.pictureHeight;
-            buffer.pictureOffsetX = self.pictureOffsetX;
-            buffer.pictureOffsetY = self.pictureOffsetY;
-            buffer.hDecimation = self.hDecimation;
-            buffer.vDecimation = self.vDecimation;
+            buffer.format = self.videoFormat;
             
             buffer.strideY = image->stride[0];
             buffer.strideCb = image->stride[1];
             buffer.strideCr = image->stride[2];
             
-            size_t lengthY = buffer.strideY * self.frameHeight;
-            size_t lengthCb = buffer.strideCb * (self.frameHeight >> self.vDecimation);
-            size_t lengthCr = buffer.strideCr * (self.frameHeight >> self.vDecimation);
+            size_t lengthY = buffer.strideY * buffer.format.frameHeight;
+            size_t lengthCb = buffer.strideCb * (buffer.format.frameHeight >> buffer.format.vDecimation);
+            size_t lengthCr = buffer.strideCr * (buffer.format.frameHeight >> buffer.format.vDecimation);
             
             buffer.dataY = [NSData dataWithBytesNoCopy:image->planes[0] length:lengthY freeWhenDone:NO];
             buffer.dataCb = [NSData dataWithBytesNoCopy:image->planes[1] length:lengthCb freeWhenDone:NO];
@@ -426,13 +412,13 @@ enum AppState {
 			int sampleCount = vorbis_synthesis_pcmout(&vorbisDspState, &pcm);
 			if (sampleCount > 0) {
 				foundSome = 1;
-				queuedAudio = [[OGVAudioBuffer alloc] initWithPCM:pcm channels:self.audioChannels samples:sampleCount];
+                queuedAudio = [[OGVAudioBuffer alloc] initWithPCM:pcm samples:sampleCount format:self.audioFormat];
 				
 				vorbis_synthesis_read(&vorbisDspState, sampleCount);
 				if (audiobufGranulepos != -1) {
 					// keep track of how much time we've decodec
 					audiobufGranulepos += sampleCount;
-					audiobufTime = (double)audiobufGranulepos / audioSampleRate;
+					audiobufTime = (double)audiobufGranulepos / self.audioFormat.sampleRate;
 				}
 			}
 		} else {

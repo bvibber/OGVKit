@@ -86,14 +86,13 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
     BOOL isClosing;
 }
 
--(id)initWithSampleRate:(int)sampleRate channels:(int)channels
+-(id)initWithFormat:(OGVAudioFormat *)format
 {
     self = [self init];
     if (self) {
         timeLock = [[NSObject alloc] init];
 
-        _sampleRate = sampleRate;
-        _channels = channels;
+        _format = format;
         isStarting = NO;
         isRunning = NO;
         isClosing = NO;
@@ -105,15 +104,15 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
         
         sampleSize = sizeof(Float32);
         bufferSize = 8192;
-        bufferByteSize = bufferSize * sampleSize * channels;
+        bufferByteSize = bufferSize * sampleSize * format.channels;
         
-        formatDescription.mSampleRate = (Float32)sampleRate;
+        formatDescription.mSampleRate = format.sampleRate;
         formatDescription.mFormatID = kAudioFormatLinearPCM;
         formatDescription.mFormatFlags = kLinearPCMFormatFlagIsFloat;
-        formatDescription.mBytesPerPacket = sampleSize * channels;
+        formatDescription.mBytesPerPacket = sampleSize * format.channels;
         formatDescription.mFramesPerPacket = 1;
-        formatDescription.mBytesPerFrame = sampleSize * channels;
-        formatDescription.mChannelsPerFrame = channels;
+        formatDescription.mBytesPerFrame = sampleSize * format.channels;
+        formatDescription.mChannelsPerFrame = format.channels;
         formatDescription.mBitsPerChannel = sampleSize * 8;
         formatDescription.mReserved = 0;
         
@@ -185,7 +184,7 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
 
 -(float)secondsQueued
 {
-    return (float)[self samplesQueued] / (float)self.sampleRate;
+    return (float)[self samplesQueued] / self.format.sampleRate;
 }
 
 -(float)playbackPosition
@@ -200,7 +199,7 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
 
             float samplesOutput = ts.mSampleTime;
             float samplesOutputWithoutSilence = samplesOutput - samplesOfSilence;
-            return samplesOutputWithoutSilence / (float)self.sampleRate;
+            return samplesOutputWithoutSilence / self.format.sampleRate;
         } else {
             return 0.0f;
         }
@@ -210,7 +209,7 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
 -(float)bufferTailPosition
 {
     @synchronized (timeLock) {
-        return samplesQueued / (float)self.sampleRate;
+        return samplesQueued / self.format.sampleRate;
     }
 }
 
@@ -230,24 +229,25 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
         if (inputBuffer) {
             //NSLog(@"handleQueue has data");
             
-            int channelSize = inputBuffer.samples * sampleSize;
-            int packetSize = channelSize * _channels;
+            unsigned int channels = self.format.channels;
+            size_t channelSize = inputBuffer.samples * sampleSize;
+            size_t packetSize = channelSize * channels;
             //NSLog(@"channelSize %d | packetSize %d | samples %d", channelSize, packetSize, inputBuffer.samples);
             
-            int sampleCount = inputBuffer.samples;
+            unsigned int sampleCount = inputBuffer.samples;
             Float32 *dest = (Float32 *)buffer->mAudioData;
             
-            for (int channel = 0; channel < _channels; channel++) {
+            for (unsigned int channel = 0; channel < channels; channel++) {
                 
                 const Float32 *source = [inputBuffer PCMForChannel:channel];
                 
                 for (int i = 0; i < sampleCount; i++) {
-                    int j = i * _channels + channel;
+                    int j = i * channels + channel;
                     dest[j] = source[i];
                 }
             }
             
-            buffer->mAudioDataByteSize = packetSize;
+            buffer->mAudioDataByteSize = (UInt32)packetSize;
         } else {
             //NSLog(@"starved for audio?");
             
@@ -255,7 +255,7 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
             int silence = bufferSize;
             silence = 1024; // ????
             samplesOfSilence += silence;
-            buffer->mAudioDataByteSize = silence * sampleSize * self.channels;
+            buffer->mAudioDataByteSize = silence * sampleSize * self.format.channels;
             memset(buffer->mAudioData, 0, buffer->mAudioDataByteSize);
         }
         

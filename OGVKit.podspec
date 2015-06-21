@@ -23,7 +23,9 @@ Pod::Spec.new do |s|
                      :tag => "0.3" }
 
   s.source_files = "Classes/OGVKit.h",
+                   "Classes/OGVAudioFormat.{h,m}",
                    "Classes/OGVAudioBuffer.{h,m}",
+                   "Classes/OGVVideoFormat.{h,m}",
                    "Classes/OGVFrameBuffer.{h,m}",
                    "Classes/OGVStreamFile.{h,m}",
                    "Classes/OGVDecoder.{h,m}",
@@ -33,7 +35,9 @@ Pod::Spec.new do |s|
                    "Classes/OGVPlayerView.{h,m}"
 
   s.public_header_files = "Classes/OGVKit.h",
+                          "Classes/OGVAudioFormat.h",
                           "Classes/OGVAudioBuffer.h",
+                          "Classes/OGVVideoFormat.h",
                           "Classes/OGVFrameBuffer.h",
                           "Classes/OGVStreamFile.h",
                           "Classes/OGVDecoder.h",

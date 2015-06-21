@@ -9,27 +9,30 @@
 #import "OGVKit.h"
 
 @implementation OGVAudioBuffer
+{
+    NSArray *_pcm;
+}
 
-- (id)initWithPCM:(float **)pcm channels:(unsigned int)channels samples:(unsigned int)samples
+- (id)initWithPCM:(float **)pcm samples:(unsigned int )samples format:(OGVAudioFormat *)format
 {
     self = [super init];
     if (self) {
-        // todo fix all this, it's broken for some reason
+        _format = format;
+        _samples = samples;
+
         NSMutableArray *dataArr = [[NSMutableArray alloc] init];
-        for (unsigned int i = 0; i < channels; i++) {
+        for (unsigned int i = 0; i < format.channels; i++) {
             NSData *pcmData = [NSData dataWithBytes:pcm[i] length:(samples * sizeof(float))];
             [dataArr addObject:pcmData];
         }
-        self.pcm = [NSArray arrayWithArray:dataArr];
-        self.channels = channels;
-        self.samples = samples;
+        _pcm = [NSArray arrayWithArray:dataArr];
     }
     return self;
 }
 
 - (const float *)PCMForChannel:(unsigned int)channel
 {
-    NSData *pcmData = self.pcm[channel];
+    NSData *pcmData = _pcm[channel];
     return (const float *)pcmData.bytes;
 }
 

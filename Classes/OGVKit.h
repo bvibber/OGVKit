@@ -10,7 +10,10 @@
 #import <UIKit/UIKit.h>
 #import <GLKit/GLKit.h>
 
+#import "OGVAudioFormat.h"
 #import "OGVAudioBuffer.h"
+
+#import "OGVVideoFormat.h"
 #import "OGVFrameBuffer.h"
 
 #import "OGVStreamFile.h"

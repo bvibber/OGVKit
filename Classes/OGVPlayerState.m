@@ -163,8 +163,7 @@
 {
     assert(decoder.hasAudio);
     assert(!audioFeeder);
-    audioFeeder = [[OGVAudioFeeder alloc] initWithSampleRate:decoder.audioRate
-                                                    channels:decoder.audioChannels];
+    audioFeeder = [[OGVAudioFeeder alloc] initWithFormat:decoder.audioFormat];
     //NSLog(@"start: %f", initialAudioTimestamp);
 }
 
@@ -236,7 +235,7 @@
             // Drive on the audio clock!
             const float fudgeDelta = 0.001f;
             const int bufferSize = 8192;
-            const float bufferDuration = (float)bufferSize / (float)decoder.audioRate;
+            const float bufferDuration = (float)bufferSize / decoder.audioFormat.sampleRate;
             
             float audioBufferedDuration = [audioFeeder secondsQueued];
             BOOL readyForAudio = (audioBufferedDuration <= bufferDuration * 4) || ![audioFeeder isStarted];
@@ -311,7 +310,8 @@
                     // end the processing loop, we'll continue after drawing the frame
                 } else {
                     NSLog(@"Bad video packet or something");
-                    [self pingProcessing:(1.0f / decoder.frameRate)];
+                    // @todo finish replacing this path! we no longer record a frame rate
+                    [self pingProcessing:(1.0f / 30)];
                 }
             } else {
                 // Need more processing; continue the loop

@@ -8,13 +8,12 @@
 
 @interface OGVAudioFeeder : NSObject
 
-@property (readonly) int sampleRate;
-@property (readonly) int channels;
+@property (readonly) OGVAudioFormat *format;
 
 /**
  * Initializer!
  */
--(id)initWithSampleRate:(int)sampleRate channels:(int)channels;
+-(id)initWithFormat:(OGVAudioFormat *)format;
 
 
 /**

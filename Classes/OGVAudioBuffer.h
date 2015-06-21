@@ -8,11 +8,10 @@
 
 @interface OGVAudioBuffer : NSObject
 
-@property NSArray *pcm;
-@property unsigned int channels;
-@property unsigned int samples;
+@property (readonly) OGVAudioFormat *format;
+@property (readonly) unsigned int samples;
 
-- (id)initWithPCM:(float **)pcm channels:(unsigned int)channels samples:(unsigned int)samples;
+- (id)initWithPCM:(float **)pcm samples:(unsigned int)samples format:(OGVAudioFormat *)format;
 - (const float *)PCMForChannel:(unsigned int)channel;
 
 @end

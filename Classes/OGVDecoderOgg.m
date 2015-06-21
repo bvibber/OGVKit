@@ -219,15 +219,14 @@ static const NSUInteger kOGVDecoderReadBufferSize = 65536;
             theoraDecoderContext=th_decode_alloc(&theoraInfo,theoraSetupInfo);
             
             self.hasVideo = YES;
-            self.frameWidth = theoraInfo.frame_width;
-            self.frameHeight = theoraInfo.frame_height;
-            self.frameRate = (float)theoraInfo.fps_numerator / theoraInfo.fps_denominator;
-            self.pictureWidth = theoraInfo.pic_width;
-            self.pictureHeight = theoraInfo.pic_height;
-            self.pictureOffsetX = theoraInfo.pic_x;
-            self.pictureOffsetY = theoraInfo.pic_y;
-            self.hDecimation = !(theoraInfo.pixel_fmt & 1);
-            self.vDecimation = !(theoraInfo.pixel_fmt & 2);
+            self.videoFormat = [[OGVVideoFormat alloc] init];
+            self.videoFormat.frameWidth = theoraInfo.frame_width;
+            self.videoFormat.frameHeight = theoraInfo.frame_height;
+            self.videoFormat.pictureWidth = theoraInfo.pic_width;
+            self.videoFormat.pictureHeight = theoraInfo.pic_height;
+            self.videoFormat.pictureOffsetX = theoraInfo.pic_x;
+            self.videoFormat.pictureOffsetY = theoraInfo.pic_y;
+            self.videoFormat.pixelFormat = [self theoraPixelFormat:theoraInfo.pixel_fmt];
         }
 #endif
 
@@ -237,8 +236,8 @@ static const NSUInteger kOGVDecoderReadBufferSize = 65536;
             vorbis_block_init(&vd,&vb);
             
             self.hasAudio = YES;
-            self.audioChannels = vi.channels;
-            self.audioRate = (int)vi.rate;
+            self.audioFormat = [[OGVAudioFormat alloc] initWithChannels:vi.channels
+                                                             sampleRate:vi.rate];
         }
 #endif
 
@@ -246,6 +245,25 @@ static const NSUInteger kOGVDecoderReadBufferSize = 65536;
         self.dataReady = YES;
     }
 }
+
+#ifdef OGVKIT_HAVE_OGG_THEORA_DECODER
+- (OGVPixelFormat)theoraPixelFormat:(th_pixel_fmt)pixel_fmt
+{
+    switch (pixel_fmt) {
+        case TH_PF_420:
+            return OGVPixelFormatYCbCr420;
+        case TH_PF_422:
+            return OGVPixelFormatYCbCr422;
+        case TH_PF_444:
+            return OGVPixelFormatYCbCr444;
+        default:
+            NSLog(@"Invalid pixel format. whoops");
+            // @todo handle error state gracefully
+            abort();
+            return 0;
+    }
+}
+#endif
 
 - (void)processDecoding
 {
@@ -319,22 +337,15 @@ static const NSUInteger kOGVDecoderReadBufferSize = 65536;
     
     OGVFrameBuffer *buffer = [[OGVFrameBuffer alloc] init];
     
-    buffer.frameWidth = self.frameWidth;
-    buffer.frameHeight = self.frameHeight;
-    buffer.pictureWidth = self.pictureWidth;
-    buffer.pictureHeight = self.pictureHeight;
-    buffer.pictureOffsetX = self.pictureOffsetX;
-    buffer.pictureOffsetY = self.pictureOffsetY;
-    buffer.hDecimation = self.hDecimation;
-    buffer.vDecimation = self.vDecimation;
+    buffer.format = self.videoFormat;
     
     buffer.strideY = ycbcr[0].stride;
     buffer.strideCb = ycbcr[1].stride;
     buffer.strideCr = ycbcr[2].stride;
     
-    size_t lengthY = buffer.strideY * self.frameHeight;
-    size_t lengthCb = buffer.strideCb * (self.frameHeight >> self.vDecimation);
-    size_t lengthCr = buffer.strideCr * (self.frameHeight >> self.vDecimation);
+    size_t lengthY = buffer.strideY * buffer.format.frameHeight;
+    size_t lengthCb = buffer.strideCb * (buffer.format.frameHeight >> buffer.format.vDecimation);
+    size_t lengthCr = buffer.strideCr * (buffer.format.frameHeight >> buffer.format.vDecimation);
     
     buffer.dataY = [NSData dataWithBytesNoCopy:ycbcr[0].data length:lengthY freeWhenDone:NO];
     buffer.dataCb = [NSData dataWithBytesNoCopy:ycbcr[1].data length:lengthCb freeWhenDone:NO];
@@ -356,7 +367,7 @@ static const NSUInteger kOGVDecoderReadBufferSize = 65536;
             float **pcm;
             int sampleCount = vorbis_synthesis_pcmout(&vd, &pcm);
             if (sampleCount > 0) {
-                queuedAudio = [[OGVAudioBuffer alloc] initWithPCM:pcm channels:self.audioChannels samples:sampleCount];
+                queuedAudio = [[OGVAudioBuffer alloc] initWithPCM:pcm samples:sampleCount format:self.audioFormat];
                 vorbis_synthesis_read(&vd, sampleCount);
                 self.audioReady = YES;
             }

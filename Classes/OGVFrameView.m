@@ -89,10 +89,10 @@ static const GLuint rectanglePoints = 6;
         
         GLuint lumaPositionBuffer = [self setupTexturePosition:@"aLumaPosition"
                                                          width:nextFrame.strideY
-                                                        height:nextFrame.frameHeight];
+                                                        height:nextFrame.format.frameHeight];
         GLuint chromaPositionBuffer = [self setupTexturePosition:@"aChromaPosition"
-                                                           width:nextFrame.strideCb << nextFrame.hDecimation
-                                                          height:nextFrame.frameHeight];
+                                                           width:nextFrame.strideCb << nextFrame.format.hDecimation
+                                                          height:nextFrame.format.frameHeight];
 
         // Note: moved texture attachment out of here
         
@@ -138,21 +138,21 @@ static const GLuint rectanglePoints = 6;
                     reg:GL_TEXTURE0
                   index:0
                   width:nextFrame.strideY
-                 height:nextFrame.frameHeight
+                 height:nextFrame.format.frameHeight
                    data:nextFrame.dataY];
     
     [self attachTexture:@"uTextureCb"
                     reg:GL_TEXTURE1
                   index:1
                   width:nextFrame.strideCb
-                 height:nextFrame.frameHeight >> nextFrame.vDecimation
+                 height:nextFrame.format.frameHeight >> nextFrame.format.vDecimation
                    data:nextFrame.dataCb];
     
     [self attachTexture:@"uTextureCr"
                     reg:GL_TEXTURE2
                   index:2
                   width:nextFrame.strideCr
-                 height:nextFrame.frameHeight >> nextFrame.vDecimation
+                 height:nextFrame.format.frameHeight >> nextFrame.format.vDecimation
                    data:nextFrame.dataCr];
     //[self drawRect:self.frame];
     [self setNeedsDisplay];
@@ -214,7 +214,7 @@ static const GLuint rectanglePoints = 6;
     [self debugCheck];
     
     // Set the aspect ratio
-    GLfloat frameAspect = (float)nextFrame.pictureWidth / (float)nextFrame.pictureHeight;
+    GLfloat frameAspect = (float)nextFrame.format.pictureWidth / (float)nextFrame.format.pictureHeight;
     GLfloat viewAspect = (float)width / (float)height;
     GLfloat scaleX, scaleY;
 
@@ -257,10 +257,10 @@ static const GLuint rectanglePoints = 6;
 -(GLuint)setupTexturePosition:(NSString *)varname width:(int)texWidth height:(int)texHeight
 {
     // Don't forget we're upside-down in OpenGL coordinate space
-    GLfloat textureX0 = (float)nextFrame.pictureOffsetX / texWidth;
-    GLfloat textureX1 = (float)(nextFrame.pictureOffsetX + nextFrame.pictureWidth) / texWidth;
-    GLfloat textureY0 = (float)(nextFrame.pictureOffsetY + nextFrame.pictureHeight) / texHeight;
-    GLfloat textureY1 = (float)nextFrame.pictureOffsetY / texHeight;
+    GLfloat textureX0 = (float)nextFrame.format.pictureOffsetX / texWidth;
+    GLfloat textureX1 = (float)(nextFrame.format.pictureOffsetX + nextFrame.format.pictureWidth) / texWidth;
+    GLfloat textureY0 = (float)(nextFrame.format.pictureOffsetY + nextFrame.format.pictureHeight) / texHeight;
+    GLfloat textureY1 = (float)nextFrame.format.pictureOffsetY / texHeight;
     const GLfloat textureRectangle[] = {
         textureX0, textureY0,
         textureX1, textureY0,
