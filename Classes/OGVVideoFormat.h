@@ -22,7 +22,10 @@ typedef NS_ENUM(NSUInteger, OGVPixelFormat) {
 @property int pictureOffsetY;
 
 @property OGVPixelFormat pixelFormat;
-@property (readonly) int hDecimation;
-@property (readonly) int vDecimation;
+
+@property (readonly) int lumaWidth;
+@property (readonly) int lumaHeight;
+@property (readonly) int chromaWidth;
+@property (readonly) int chromaHeight;
 
 @end

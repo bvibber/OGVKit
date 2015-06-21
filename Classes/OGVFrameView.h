@@ -8,7 +8,7 @@
 
 @interface OGVFrameView : GLKView
 
-- (void)drawFrame:(OGVFrameBuffer *)buffer;
+- (void)drawFrame:(OGVVideoBuffer *)buffer;
 - (void)clearFrame;
 
 @end

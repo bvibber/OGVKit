@@ -14,7 +14,8 @@
 static const GLuint rectanglePoints = 6;
 
 @implementation OGVFrameView {
-    OGVFrameBuffer *nextFrame;
+    OGVVideoFormat *format;
+    OGVVideoBuffer *nextFrame;
     GLuint vertexShader;
     GLuint fragmentShader;
     GLuint program;
@@ -42,11 +43,12 @@ static const GLuint rectanglePoints = 6;
                                               height:self.frame.size.height];
         
         GLuint lumaPositionBuffer = [self setupTexturePosition:@"aLumaPosition"
-                                                         width:nextFrame.strideY
-                                                        height:nextFrame.format.frameHeight];
+                                                         width:nextFrame.Y.stride
+                                                        height:nextFrame.Y.lines];
+
         GLuint chromaPositionBuffer = [self setupTexturePosition:@"aChromaPosition"
-                                                           width:nextFrame.strideCb << nextFrame.format.hDecimation
-                                                          height:nextFrame.format.frameHeight];
+                                                           width:nextFrame.Cb.stride * (format.lumaWidth / format.chromaWidth)
+                                                          height:nextFrame.Cb.lines * (format.lumaHeight / format.chromaHeight)];
 
         // Note: moved texture attachment out of here
         
@@ -77,7 +79,7 @@ static const GLuint rectanglePoints = 6;
 #pragma mark OGVFrameView methods
 
 // call me on the main thread
-- (void)drawFrame:(OGVFrameBuffer *)buffer
+- (void)drawFrame:(OGVVideoBuffer *)buffer
 {
     // Initialize GL context if we haven't already
     assert(self.context);
@@ -85,29 +87,24 @@ static const GLuint rectanglePoints = 6;
     [self setupGLStuff];
 
     nextFrame = buffer;
+    format = buffer.format;
     
     // Upload the textures now, they may not last
     // @todo don't keep the frame structure beyond this, just keep the dimension info
     [self attachTexture:@"uTextureY"
                     reg:GL_TEXTURE0
                   index:0
-                  width:nextFrame.strideY
-                 height:nextFrame.format.frameHeight
-                   data:nextFrame.dataY];
+                  plane:nextFrame.Y];
     
     [self attachTexture:@"uTextureCb"
                     reg:GL_TEXTURE1
                   index:1
-                  width:nextFrame.strideCb
-                 height:nextFrame.format.frameHeight >> nextFrame.format.vDecimation
-                   data:nextFrame.dataCb];
+                  plane:nextFrame.Cb];
     
     [self attachTexture:@"uTextureCr"
                     reg:GL_TEXTURE2
                   index:2
-                  width:nextFrame.strideCr
-                 height:nextFrame.format.frameHeight >> nextFrame.format.vDecimation
-                   data:nextFrame.dataCr];
+                  plane:nextFrame.Cr];
     //[self drawRect:self.frame];
     [self setNeedsDisplay];
 }
@@ -115,6 +112,7 @@ static const GLuint rectanglePoints = 6;
 - (void)clearFrame
 {
     nextFrame = nil;
+    format = nil;
     [self setNeedsDisplay];
 }
 
@@ -262,11 +260,12 @@ static const GLuint rectanglePoints = 6;
 -(GLuint)attachTexture:(NSString *)varname
                    reg:(GLenum)reg
                  index:(GLuint)index
-                 width:(GLuint)texWidth
-                height:(GLuint)texHeight
-                  data:(NSData *)data
+                 plane:(OGVVideoPlane *)plane
 {
     GLuint texture = textures[index];
+    GLuint texWidth = plane.stride;
+    GLuint texHeight = plane.lines;
+    NSData *data = plane.data;
     
     if (texture != 0 && textureWidth[index] == texWidth && textureHeight[index] == texHeight) {
         // Reuse & update the existing texture

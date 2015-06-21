@@ -16,7 +16,8 @@
 #import "OGVAudioBuffer.h"
 
 #import "OGVVideoFormat.h"
-#import "OGVFrameBuffer.h"
+#import "OGVVideoPlane.h"
+#import "OGVVideoBuffer.h"
 
 #import "OGVStreamFile.h"
 #import "OGVDecoder.h"

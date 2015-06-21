@@ -10,7 +10,7 @@
 
 @protocol OGVPlayerStateDelegate<NSObject>
 
--(void)ogvPlayerState:(OGVPlayerState *)state drawFrame:(OGVFrameBuffer *)buffer;
+-(void)ogvPlayerState:(OGVPlayerState *)state drawFrame:(OGVVideoBuffer *)buffer;
 
 @optional
 -(void)ogvPlayerStateDidLoadMetadata:(OGVPlayerState *)state;

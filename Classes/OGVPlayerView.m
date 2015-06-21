@@ -305,7 +305,7 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
 
 #pragma mark - OGVPlayerStateDelegate methods
 
-- (void)ogvPlayerState:(OGVPlayerState *)sender drawFrame:(OGVFrameBuffer *)buffer
+- (void)ogvPlayerState:(OGVPlayerState *)sender drawFrame:(OGVVideoBuffer *)buffer
 {
     if (sender == state) {
         [self.frameView drawFrame:buffer];

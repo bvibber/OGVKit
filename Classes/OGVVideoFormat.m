@@ -38,4 +38,24 @@
     }
 }
 
+- (int)lumaWidth
+{
+    return self.frameWidth;
+}
+
+- (int)lumaHeight
+{
+    return self.frameHeight;
+}
+
+- (int)chromaWidth
+{
+    return self.lumaWidth >> [self hDecimation];
+}
+
+- (int)chromaHeight
+{
+    return self.lumaHeight >> [self vDecimation];
+}
+
 @end

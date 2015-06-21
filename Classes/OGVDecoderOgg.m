@@ -43,7 +43,7 @@ static const NSUInteger kOGVDecoderReadBufferSize = 65536;
     int          videobuf_ready;
     ogg_int64_t  videobuf_granulepos;
     double       videobuf_time;
-    OGVFrameBuffer *queuedFrame;
+    OGVVideoBuffer *queuedFrame;
     
     int          audiobuf_ready;
     ogg_int64_t  audiobuf_granulepos; /* time position of last sample */
@@ -331,28 +331,27 @@ static const NSUInteger kOGVDecoderReadBufferSize = 65536;
 -(void)doDecodeFrame
 {
     assert(queuedFrame == nil);
-    
+
     th_ycbcr_buffer ycbcr;
-    th_decode_ycbcr_out(theoraDecoderContext,ycbcr);
-    
-    OGVFrameBuffer *buffer = [[OGVFrameBuffer alloc] init];
-    
-    buffer.format = self.videoFormat;
-    
-    buffer.strideY = ycbcr[0].stride;
-    buffer.strideCb = ycbcr[1].stride;
-    buffer.strideCr = ycbcr[2].stride;
-    
-    size_t lengthY = buffer.strideY * buffer.format.frameHeight;
-    size_t lengthCb = buffer.strideCb * (buffer.format.frameHeight >> buffer.format.vDecimation);
-    size_t lengthCr = buffer.strideCr * (buffer.format.frameHeight >> buffer.format.vDecimation);
-    
-    buffer.dataY = [NSData dataWithBytesNoCopy:ycbcr[0].data length:lengthY freeWhenDone:NO];
-    buffer.dataCb = [NSData dataWithBytesNoCopy:ycbcr[1].data length:lengthCb freeWhenDone:NO];
-    buffer.dataCr = [NSData dataWithBytesNoCopy:ycbcr[2].data length:lengthCr freeWhenDone:NO];
-    
-    buffer.timestamp = videobuf_time;
-    
+    th_decode_ycbcr_out(theoraDecoderContext, ycbcr);
+
+    OGVVideoPlane *Y = [[OGVVideoPlane alloc] initWithBytes:ycbcr[0].data
+                                                     stride:ycbcr[0].stride
+                                                      lines:self.videoFormat.lumaHeight];
+
+    OGVVideoPlane *Cb = [[OGVVideoPlane alloc] initWithBytes:ycbcr[1].data
+                                                      stride:ycbcr[1].stride
+                                                       lines:self.videoFormat.chromaHeight];
+
+    OGVVideoPlane *Cr = [[OGVVideoPlane alloc] initWithBytes:ycbcr[2].data
+                                                      stride:ycbcr[2].stride
+                                                       lines:self.videoFormat.chromaHeight];
+
+    OGVVideoBuffer *buffer = [[OGVVideoBuffer alloc] initWithFormat:self.videoFormat
+                                                                  Y:Y
+                                                                 Cb:Cb
+                                                                 Cr:Cr
+                                                          timestamp:videobuf_time];
     queuedFrame = buffer;
 }
 #endif
@@ -379,10 +378,10 @@ static const NSUInteger kOGVDecoderReadBufferSize = 65536;
 #endif
 }
 
-- (OGVFrameBuffer *)frameBuffer
+- (OGVVideoBuffer *)frameBuffer
 {
     if (self.frameReady) {
-        OGVFrameBuffer *buffer = queuedFrame;
+        OGVVideoBuffer *buffer = queuedFrame;
         queuedFrame = nil;
         self.frameReady = NO;
         videobuf_ready = NO;

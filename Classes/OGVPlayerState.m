@@ -338,7 +338,7 @@
  */
 -(void)drawFrame
 {
-    OGVFrameBuffer *buffer = [decoder frameBuffer];
+    OGVVideoBuffer *buffer = [decoder frameBuffer];
     frameEndTimestamp = buffer.timestamp;
     //NSLog(@"frame: %f %f", frameEndTimestamp, self.playbackPosition);
     dispatch_async(drawingQueue, ^() {

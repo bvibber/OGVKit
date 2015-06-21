@@ -33,7 +33,7 @@ static NSMutableArray *OGVDecoderClasses;
     return NO;
 }
 
-- (OGVFrameBuffer *)frameBuffer
+- (OGVVideoBuffer *)frameBuffer
 {
     return nil;
 }

@@ -31,7 +31,7 @@
 - (BOOL)process;
 - (BOOL)decodeFrame;
 - (BOOL)decodeAudio;
-- (OGVFrameBuffer *)frameBuffer;
+- (OGVVideoBuffer *)frameBuffer;
 - (OGVAudioBuffer *)audioBuffer;
 + (BOOL)canPlayType:(NSString *)type;
 

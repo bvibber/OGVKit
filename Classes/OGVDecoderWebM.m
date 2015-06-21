@@ -149,7 +149,7 @@ static void ne_packet_to_ogg_packet(nestegg_packet *src, ogg_packet *dest)
 
     BOOL needData;
     OGVAudioBuffer *queuedAudio;
-    OGVFrameBuffer *queuedFrame;
+    OGVVideoBuffer *queuedFrame;
 }
 
 enum AppState {
@@ -364,24 +364,24 @@ enum AppState {
             }
             foundImage = true;
 
-            OGVFrameBuffer *buffer = [[OGVFrameBuffer alloc] init];
-            buffer.format = self.videoFormat;
-            
-            buffer.strideY = image->stride[0];
-            buffer.strideCb = image->stride[1];
-            buffer.strideCr = image->stride[2];
-            
-            size_t lengthY = buffer.strideY * buffer.format.frameHeight;
-            size_t lengthCb = buffer.strideCb * (buffer.format.frameHeight >> buffer.format.vDecimation);
-            size_t lengthCr = buffer.strideCr * (buffer.format.frameHeight >> buffer.format.vDecimation);
-            
-            buffer.dataY = [NSData dataWithBytesNoCopy:image->planes[0] length:lengthY freeWhenDone:NO];
-            buffer.dataCb = [NSData dataWithBytesNoCopy:image->planes[1] length:lengthCb freeWhenDone:NO];
-            buffer.dataCr = [NSData dataWithBytesNoCopy:image->planes[2] length:lengthCr freeWhenDone:NO];
-            
-            buffer.timestamp = videobufTime;
-            // @todo is keyframe timestamp still needed?
-            
+            OGVVideoPlane *Y = [[OGVVideoPlane alloc] initWithBytes:image->planes[0]
+                                                             stride:image->stride[0]
+                                                              lines:self.videoFormat.lumaHeight];
+
+            OGVVideoPlane *Cb = [[OGVVideoPlane alloc] initWithBytes:image->planes[1]
+                                                              stride:image->stride[1]
+                                                               lines:self.videoFormat.chromaHeight];
+
+            OGVVideoPlane *Cr = [[OGVVideoPlane alloc] initWithBytes:image->planes[2]
+                                                              stride:image->stride[2]
+                                                               lines:self.videoFormat.chromaHeight];
+
+            OGVVideoBuffer *buffer = [[OGVVideoBuffer alloc] initWithFormat:self.videoFormat
+                                                                          Y:Y
+                                                                         Cb:Cb
+                                                                         Cr:Cr
+                                                                  timestamp:videobufTime];
+
             queuedFrame = buffer;
         }
 #endif
@@ -474,10 +474,10 @@ enum AppState {
 }
 
 
-- (OGVFrameBuffer *)frameBuffer
+- (OGVVideoBuffer *)frameBuffer
 {
     if (self.frameReady) {
-        OGVFrameBuffer *buffer = queuedFrame;
+        OGVVideoBuffer *buffer = queuedFrame;
         queuedFrame = nil;
         self.frameReady = NO;
         videobufReady = NO;
