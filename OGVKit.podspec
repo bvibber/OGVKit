@@ -22,7 +22,7 @@ Pod::Spec.new do |s|
   s.source       = { :git => "https://github.com/brion/OGVKit.git",
                      :tag => "0.3" }
 
-  s.source_files = "Classes/OGVKit.h",
+  s.source_files = "Classes/OGVKit.{h,m}",
                    "Classes/OGVAudioFormat.{h,m}",
                    "Classes/OGVAudioBuffer.{h,m}",
                    "Classes/OGVVideoFormat.{h,m}",
@@ -49,9 +49,11 @@ Pod::Spec.new do |s|
   s.header_dir = 'OGVKit'
 
   s.resource_bundle = {
-    'OGVPlayerResources' => [
-      'Resources/*.xib',
-      'Resources/*.ttf'
+    'OGVKitResources' => [
+      'Resources/OGVFrameView.fsh',
+      'Resources/OGVFrameView.vsh',
+      'Resources/OGVPlayerView.xib',
+      'Resources/ogvkit-iconfont.ttf'
     ]
   }
 

@@ -119,9 +119,8 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
 
 -(void)setup
 {
-    NSBundle *parentBundle = [NSBundle bundleForClass:[self class]];
-    NSString *bundlePath = [parentBundle pathForResource:@"OGVPlayerResources" ofType:@"bundle"];;
-    NSBundle *bundle = [NSBundle bundleWithPath:bundlePath];
+    NSBundle *bundle = [[OGVKit singleton]
+                        resourceBundle];
 
     if (!OGVPlayerViewDidRegisterIconFont) {
         NSURL *fontURL = [bundle URLForResource:@"ogvkit-iconfont" withExtension:@"ttf"];

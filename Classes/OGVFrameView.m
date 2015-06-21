@@ -8,52 +8,6 @@
 
 #import "OGVKit.h"
 
-@interface OGVFrameView (Private)
--(GLuint)setupTexturePosition:(NSString *)varname width:(int)texWidth height:(int)texHeight;
-@end
-
-static const char ogvFragmentShaderSource[] =
-    "// inspired by https://github.com/mbebenita/Broadway/blob/master/Player/canvas.js\n"
-    "\n"
-    "precision mediump float;\n"
-    "uniform sampler2D uTextureY;\n"
-    "uniform sampler2D uTextureCb;\n"
-    "uniform sampler2D uTextureCr;\n"
-    "varying vec2 vLumaPosition;\n"
-    "varying vec2 vChromaPosition;\n"
-    "void main() {\n"
-    "   // Y, Cb, and Cr planes are uploaded as LUMINANCE textures.\n"
-    "   vec4 vY = texture2D(uTextureY, vLumaPosition);\n"
-    "   vec4 vCb = texture2D(uTextureCb, vChromaPosition);\n"
-    "   vec4 vCr = texture2D(uTextureCr, vChromaPosition);\n"
-    "\n"
-    "   // Now assemble that into a YUV vector, and premultipy the Y...\n"
-    "   vec3 YUV = vec3(\n"
-    "     vY.x * 1.1643828125,\n"
-    "     vCb.x,\n"
-    "     vCr.x\n"
-    "   );\n"
-    "   // And convert that to RGB!\n"
-    "   gl_FragColor = vec4(\n"
-    "     YUV.x + 1.59602734375 * YUV.z - 0.87078515625,\n"
-    "     YUV.x - 0.39176171875 * YUV.y - 0.81296875 * YUV.z + 0.52959375,\n"
-    "     YUV.x + 2.017234375   * YUV.y - 1.081390625,\n"
-    "     1\n"
-    "   );\n"
-    "}\n";
-
-static const char ogvVertexShaderSource[] =
-    "attribute vec2 aPosition;\n"
-    "attribute vec2 aLumaPosition;\n"
-    "attribute vec2 aChromaPosition;\n"
-    "varying vec2 vLumaPosition;\n"
-    "varying vec2 vChromaPosition;\n"
-    "void main() {\n"
-    "    gl_Position = vec4(aPosition, 0, 1);\n"
-    "    vLumaPosition = aLumaPosition;\n"
-    "    vChromaPosition = aChromaPosition;\n"
-    "}";
-
 // In the world of GL there are no rectangles.
 // There are only triangles.
 // THERE IS NO SPOON.
@@ -169,8 +123,8 @@ static const GLuint rectanglePoints = 6;
 -(void)setupGLStuff
 {
     if (!program) {
-        vertexShader = [self compileShader:GL_VERTEX_SHADER fromCString:ogvVertexShaderSource];
-        fragmentShader = [self compileShader:GL_FRAGMENT_SHADER fromCString:ogvFragmentShaderSource];
+        vertexShader = [self compileShader:GL_VERTEX_SHADER];
+        fragmentShader = [self compileShader:GL_FRAGMENT_SHADER];
         
         program = glCreateProgram();
         [self debugCheck];
@@ -185,13 +139,18 @@ static const GLuint rectanglePoints = 6;
     }
 }
 
--(GLuint)compileShader:(GLenum)shaderType fromCString:(const char *)source
+-(GLuint)compileShader:(GLenum)shaderType
 {
+    NSBundle *bundle = [[OGVKit singleton] resourceBundle];
+    NSString *ext = [self extensionForShaderType:shaderType];
+    NSString *path = [bundle pathForResource:@"OGVFrameView" ofType:ext];
+    NSData *source = [NSData dataWithContentsOfFile:path];
+
     GLuint shader = glCreateShader(shaderType);
     [self debugCheck];
     
-    const GLchar *str = source;
-    const GLint len = (GLint)strlen(source);
+    const GLchar *str = (const GLchar *)[source bytes];
+    const GLint len = (const GLint)[source length];
     glShaderSource(shader, 1, &str, &len);
     [self debugCheck];
     glCompileShader(shader);
@@ -200,6 +159,18 @@ static const GLuint rectanglePoints = 6;
     // todo: error handling? meh whatever
     
     return shader;
+}
+
+- (NSString *)extensionForShaderType:(GLenum)shaderType
+{
+    switch (shaderType) {
+        case GL_VERTEX_SHADER:
+            return @"vsh";
+        case GL_FRAGMENT_SHADER:
+            return @"fsh";
+        default:
+            abort();
+    }
 }
 
 

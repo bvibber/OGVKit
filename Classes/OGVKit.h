@@ -10,6 +10,8 @@
 #import <UIKit/UIKit.h>
 #import <GLKit/GLKit.h>
 
+@class OGVKit;
+
 #import "OGVAudioFormat.h"
 #import "OGVAudioBuffer.h"
 
@@ -24,3 +26,11 @@
 #import "OGVPlayerState.h"
 
 #import "OGVPlayerView.h"
+
+
+@interface OGVKit : NSObject
+
++ (OGVKit *)singleton;
+- (NSBundle *)resourceBundle;
+
+@end
