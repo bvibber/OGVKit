@@ -546,5 +546,15 @@ enum AppState {
     }
 }
 
++ (BOOL)canPlayType:(NSString *)type
+{
+    // @todo handle codec specifications
+    if ([type isEqualToString:@"audio/webm"]) {
+        return YES;
+    } else if ([type isEqualToString:@"video/webm"]) {
+        return YES;
+    }
+    return NO;
+}
 
 @end

@@ -8,14 +8,6 @@
 
 #import "OGVKit.h"
 
-#ifdef OGVKIT_HAVE_OGG_DEMUXER
-#import "OGVDecoderOgg.h"
-#endif
-
-#ifdef OGVKIT_HAVE_WEBM_DEMUXER
-#import "OGVDecoderWebM.h"
-#endif
-
 @implementation OGVPlayerState
 {
     __weak id<OGVPlayerStateDelegate> delegate;
@@ -50,15 +42,18 @@
         drawingQueue = dispatch_get_main_queue();
 
         stream = [[OGVStreamFile alloc] initWithURL:URL];
-        // hack! fixme
+
+        // hack! use actual content-type from stream
+        NSString *estimatedType;
         if ([[URL pathExtension] isEqualToString:@"webm"]) {
-#ifdef OGVKIT_HAVE_WEBM_DEMUXER
-            decoder = [[OGVDecoderWebM alloc] init];
-#endif
+            estimatedType = @"video/webm";
         } else {
-#ifdef OGVKIT_HAVE_OGG_DEMUXER
-            decoder = [[OGVDecoderOgg alloc] init];
-#endif
+            estimatedType = @"video/ogg";
+        }
+        decoder = [OGVDecoder decoderForType:estimatedType];
+        if (!decoder) {
+            NSLog(@"no decoder, this should not happen");
+            abort();
         }
         decoder.inputStream = stream;
 

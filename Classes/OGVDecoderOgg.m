@@ -485,4 +485,17 @@ static const NSUInteger kOGVDecoderReadBufferSize = 65536;
     ogg_sync_clear(&oggSyncState);
 }
 
++ (BOOL)canPlayType:(NSString *)type
+{
+    // @todo handle codec specifications
+    if ([type isEqualToString:@"application/ogg"]) {
+        return YES;
+    } else if ([type isEqualToString:@"audio/ogg"]) {
+        return YES;
+    } else if ([type isEqualToString:@"video/ogg"]) {
+        return YES;
+    }
+    return NO;
+}
+
 @end

@@ -6,7 +6,14 @@
 //  Copyright (c) 2013 Brion Vibber. All rights reserved.
 //
 
-@interface OGVDecoder : NSObject
+@class OGVDecoder;
+
+@protocol OGVDecoder <NSObject>
++ (instancetype)alloc;
++ (BOOL)canPlayType:(NSString *)type;
+@end
+
+@interface OGVDecoder : NSObject <OGVDecoder>
 
 @property BOOL dataReady;
 
@@ -35,5 +42,9 @@
 - (BOOL)decodeAudio;
 - (OGVFrameBuffer *)frameBuffer;
 - (OGVAudioBuffer *)audioBuffer;
++ (BOOL)canPlayType:(NSString *)type;
+
++ (void)registerDecoderClass:(Class<OGVDecoder>)decoderClass;
++ (OGVDecoder *)decoderForType:(NSString *)type;
 
 @end
