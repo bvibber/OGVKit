@@ -8,11 +8,11 @@
 
 #import "OGVKit.h"
 
-#ifdef OGVKIT_HAVE_DEMUXER_OGG
+#ifdef OGVKIT_HAVE_OGG_DEMUXER
 #import "OGVDecoderOgg.h"
 #endif
 
-#ifdef OGVKIT_HAVE_DEMUXER_WEBM
+#ifdef OGVKIT_HAVE_WEBM_DEMUXER
 #import "OGVDecoderWebM.h"
 #endif
 
@@ -52,11 +52,11 @@
         stream = [[OGVStreamFile alloc] initWithURL:URL];
         // hack! fixme
         if ([[URL pathExtension] isEqualToString:@"webm"]) {
-#ifdef OGVKIT_HAVE_DEMUXER_WEBM
+#ifdef OGVKIT_HAVE_WEBM_DEMUXER
             decoder = [[OGVDecoderWebM alloc] init];
 #endif
         } else {
-#ifdef OGVKIT_HAVE_DEMUXER_OGG
+#ifdef OGVKIT_HAVE_OGG_DEMUXER
             decoder = [[OGVDecoderOgg alloc] init];
 #endif
         }
