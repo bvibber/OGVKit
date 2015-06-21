@@ -296,7 +296,7 @@ static const NSUInteger kOGVDecoderReadBufferSize = 65536;
 {
 #ifdef OGVKIT_HAVE_OGG_THEORA_DECODER
     if (ogg_stream_packetout(&theoraStreamState, &theoraPacket) <= 0) {
-        printf("Theora packet didn't come out of stream\n");
+        NSLog(@"Theora packet didn't come out of stream");
         return NO;
     }
     videobuf_ready=0;
@@ -319,7 +319,7 @@ static const NSUInteger kOGVDecoderReadBufferSize = 65536;
         [self doDecodeFrame];
         return YES;
     } else {
-        printf("Theora decoder failed mysteriously? %d\n", ret);
+        NSLog(@"Theora decoder failed mysteriously? %d", ret);
         return NO;
     }
 #else

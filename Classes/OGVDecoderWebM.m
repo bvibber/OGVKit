@@ -182,9 +182,8 @@ enum AppState {
 
 -(void)processBegin
 {
-    printf("nestegg_init starting...\n");
     if (nestegg_init(&demuxContext, ioCallbacks, logCallback, -1) < 0) {
-        printf("nestegg_init failed\n");
+        NSLog(@"nestegg_init failed");
         // @fixme report error back somehow
         return;
     }
@@ -255,29 +254,24 @@ enum AppState {
 #ifdef OGVKIT_HAVE_WEBM_VORBIS_DECODER
             unsigned int codecDataCount;
             nestegg_track_codec_data_count(demuxContext, audioTrack, &codecDataCount);
-            printf("codec data for audio: %d\n", codecDataCount);
             
             for (unsigned int i = 0; i < codecDataCount; i++) {
                 unsigned char *data;
                 size_t len;
                 int ret = nestegg_track_codec_data(demuxContext, audioTrack, i, &data, &len);
                 if (ret < 0) {
-                    printf("failed to read codec data %d\n", i);
+                    NSLog(@"failed to read codec data %d", i);
                     abort();
                 }
                 data_to_ogg_packet(data, len, &audioPacket);
                 audioPacket.b_o_s = (i == 0); // haaaaaack
                 
                 if (audioCodec == NESTEGG_CODEC_VORBIS) {
-                    printf("checking vorbis headers...\n");
-                    
-                    printf("Checking a vorbis header packet (%d)...\n", i);
                     ret = vorbis_synthesis_headerin(&vorbisInfo, &vorbisComment, &audioPacket);
                     if (ret == 0) {
-                        printf("Completed another vorbis header (of 3 total)...\n");
                         vorbisHeaders++;
                     } else {
-                        printf("Invalid vorbis header? %d\n", ret);
+                        NSLog(@"Invalid vorbis header? %d", ret);
                         abort();
                     }
                 }
@@ -298,7 +292,6 @@ enum AppState {
 #endif
 
     appState = STATE_DECODING;
-    printf("Done with headers step\n");
     self.dataReady = YES;
 }
 
@@ -422,7 +415,7 @@ enum AppState {
 				}
 			}
 		} else {
-			printf("Vorbis decoder failed mysteriously? %d", ret);
+			NSLog(@"Vorbis decoder failed mysteriously? %d", ret);
 		}
 	}
 #endif
@@ -468,7 +461,7 @@ enum AppState {
         [self processDecoding];
     } else {
         // uhhh...
-        printf("Invalid appState in codecjs_process\n");
+        NSLog(@"Invalid appState in -[OGVDecoderWebM process]\n");
     }
     return 1;
 }

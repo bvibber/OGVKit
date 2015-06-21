@@ -80,8 +80,6 @@
             str = [NSString stringWithFormat:@"%@.%@", str, target];
         }
 
-        NSLog(@"%@", str);
-
         self.player.sourceURL = [NSURL URLWithString:str];
         // @todo separate load & play...
         [self.player play];
