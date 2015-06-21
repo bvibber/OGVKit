@@ -10,7 +10,7 @@
 
 @protocol OGVDecoder <NSObject>
 + (instancetype)alloc;
-+ (BOOL)canPlayType:(NSString *)type;
++ (BOOL)canPlayType:(OGVMediaType *)type;
 @end
 
 @interface OGVDecoder : NSObject <OGVDecoder>
@@ -33,9 +33,6 @@
 - (BOOL)decodeAudio;
 - (OGVVideoBuffer *)frameBuffer;
 - (OGVAudioBuffer *)audioBuffer;
-+ (BOOL)canPlayType:(NSString *)type;
-
-+ (void)registerDecoderClass:(Class<OGVDecoder>)decoderClass;
-+ (OGVDecoder *)decoderForType:(NSString *)type;
++ (BOOL)canPlayType:(OGVMediaType *)mediaType;
 
 @end

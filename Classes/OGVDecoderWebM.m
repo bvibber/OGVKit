@@ -525,15 +525,45 @@ enum AppState {
     }
 }
 
-+ (BOOL)canPlayType:(NSString *)type
++ (BOOL)canPlayType:(OGVMediaType *)mediaType
 {
-    // @todo handle codec specifications
-    if ([type isEqualToString:@"audio/webm"]) {
-        return YES;
-    } else if ([type isEqualToString:@"video/webm"]) {
-        return YES;
+    if ([mediaType.minor isEqualToString:@"webm"] &&
+         ([mediaType.major isEqualToString:@"audio"] ||
+          [mediaType.major isEqualToString:@"video"])
+        ) {
+
+        if (mediaType.codecs) {
+            int knownCodecs = 0;
+            int unknownCodecs = 0;
+            for (NSString *codec in mediaType.codecs) {
+#ifdef OGVKIT_HAVE_WEBM_VP8_DECODER
+                if ([codec isEqualToString:@"vp8"]) {
+                    knownCodecs++;
+                    continue;
+                }
+#endif
+#ifdef OGVKIT_HAVE_WEBM_VORBIS_DECODER
+                if ([codec isEqualToString:@"vorbis"]) {
+                    knownCodecs++;
+                    continue;
+                }
+#endif
+                unknownCodecs++;
+            }
+            if (knownCodecs == 0) {
+                return OGVCanPlayNo;
+            }
+            if (unknownCodecs > 0) {
+                return OGVCanPlayNo;
+            }
+            // All listed codecs are ones we know. Neat!
+            return OGVCanPlayProbably;
+        } else {
+            return OGVCanPlayMaybe;
+        }
+    } else {
+        return OGVCanPlayNo;
     }
-    return NO;
 }
 
 @end

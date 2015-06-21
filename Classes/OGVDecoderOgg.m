@@ -495,17 +495,46 @@ static const NSUInteger kOGVDecoderReadBufferSize = 65536;
     ogg_sync_clear(&oggSyncState);
 }
 
-+ (BOOL)canPlayType:(NSString *)type
++ (BOOL)canPlayType:(OGVMediaType *)mediaType
 {
-    // @todo handle codec specifications
-    if ([type isEqualToString:@"application/ogg"]) {
-        return YES;
-    } else if ([type isEqualToString:@"audio/ogg"]) {
-        return YES;
-    } else if ([type isEqualToString:@"video/ogg"]) {
-        return YES;
+    if ([mediaType.minor isEqualToString:@"ogg"] &&
+        ([mediaType.major isEqualToString:@"application"] ||
+         [mediaType.major isEqualToString:@"audio"] ||
+         [mediaType.major isEqualToString:@"video"])
+        ) {
+
+        if (mediaType.codecs) {
+            int knownCodecs = 0;
+            int unknownCodecs = 0;
+            for (NSString *codec in mediaType.codecs) {
+#ifdef OGVKIT_HAVE_OGG_THEORA_DECODER
+                if ([codec isEqualToString:@"theora"]) {
+                    knownCodecs++;
+                    continue;
+                }
+#endif
+#ifdef OGVKIT_HAVE_OGG_VORBIS_DECODER
+                if ([codec isEqualToString:@"vorbis"]) {
+                    knownCodecs++;
+                    continue;
+                }
+#endif
+                unknownCodecs++;
+            }
+            if (knownCodecs == 0) {
+                return OGVCanPlayNo;
+            }
+            if (unknownCodecs > 0) {
+                return OGVCanPlayNo;
+            }
+            // All listed codecs are ones we know. Neat!
+            return OGVCanPlayProbably;
+        } else {
+            return OGVCanPlayMaybe;
+        }
+    } else {
+        return OGVCanPlayNo;
     }
-    return NO;
 }
 
 @end

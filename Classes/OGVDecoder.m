@@ -8,16 +8,6 @@
 
 #import "OGVKit.h"
 
-#ifdef OGVKIT_HAVE_OGG_DEMUXER
-#import "OGVDecoderOgg.h"
-#endif
-
-#ifdef OGVKIT_HAVE_WEBM_DEMUXER
-#import "OGVDecoderWebM.h"
-#endif
-
-static NSMutableArray *OGVDecoderClasses;
-
 @implementation OGVDecoder {
 }
 
@@ -51,47 +41,6 @@ static NSMutableArray *OGVDecoderClasses;
 + (BOOL)canPlayType:(NSString *)type
 {
     return NO;
-}
-
-#pragma mark - global stuff
-
-+ (void)setup
-{
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        OGVDecoderClasses = [[NSMutableArray alloc] init];
-
-#ifdef OGVKIT_HAVE_OGG_DEMUXER
-        [OGVDecoderClasses addObject:[OGVDecoderOgg class]];
-#endif
-
-#ifdef OGVKIT_HAVE_WEBM_DEMUXER
-        [OGVDecoderClasses addObject:[OGVDecoderWebM class]];
-#endif
-    });
-}
-
-+ (void)registerDecoderClass:(Class<OGVDecoder>)decoderClass
-{
-    [OGVDecoder setup];
-    [OGVDecoderClasses addObject:decoderClass];
-}
-
-+ (OGVDecoder *)decoderForType:(NSString *)type
-{
-    Class<OGVDecoder> decoderClass = [OGVDecoder decoderClassForType:type];
-    return [[decoderClass alloc] init];
-}
-
-+ (Class<OGVDecoder>)decoderClassForType:(NSString *)type
-{
-    [OGVDecoder setup];
-    for (Class<OGVDecoder> decoderClass in OGVDecoderClasses) {
-        if ([decoderClass canPlayType:type]) {
-            return decoderClass;
-        }
-    }
-    return nil;
 }
 
 @end

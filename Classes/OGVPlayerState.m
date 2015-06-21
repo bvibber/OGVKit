@@ -45,13 +45,13 @@
         stream = [[OGVStreamFile alloc] initWithURL:URL];
 
         // hack! use actual content-type from stream
-        NSString *estimatedType;
+        OGVMediaType *estimatedType;
         if ([[URL pathExtension] isEqualToString:@"webm"]) {
-            estimatedType = @"video/webm";
+            estimatedType = [[OGVMediaType alloc] initWithString:@"video/webm"];
         } else {
-            estimatedType = @"video/ogg";
+            estimatedType = [[OGVMediaType alloc] initWithString:@"video/ogg"];
         }
-        decoder = [OGVDecoder decoderForType:estimatedType];
+        decoder = [[OGVKit singleton] decoderForType:estimatedType];
         if (!decoder) {
             NSLog(@"no decoder, this should not happen");
             abort();
