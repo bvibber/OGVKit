@@ -6,6 +6,8 @@ Will continue to improve this interface, add support for Opus audio codec, and a
 lower-level interfaces suitable for transcoding to/from AVFoundation formats. See the
 Roadmap section below for more detailed plans.
 
+![Player example](https://raw.githubusercontent.com/brion/OGVKit/master/Docs/images/example.jpg)
+
 # Status
 
 Containers:
