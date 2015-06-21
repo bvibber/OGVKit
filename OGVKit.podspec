@@ -61,66 +61,55 @@ Pod::Spec.new do |s|
     ]
   }
 
-  s.subspec "Ogg" do |subspec|
-    subspec.subspec "Decoder" do |subsubspec|
-      subsubspec.dependency 'OGVKit/Ogg/Demuxer'
-      subsubspec.dependency 'OGVKit/Ogg/Theora/Decoder'
-      subsubspec.dependency 'OGVKit/Ogg/Vorbis/Decoder'
+  # File format convenience subspecs
+  s.subspec "Ogg" do |sogg|
+    sogg.subspec "Theora" do |soggtheora|
+      soggtheora.dependency 'OGVKit/OggDemuxer'
+      soggtheora.dependency 'OGVKit/TheoraDecoder'
+      soggtheora.dependency 'OGVKit/VorbisDecoder'
     end
-
-    subspec.subspec "Demuxer" do |subsubspec|
-      subsubspec.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_OGG_DEMUXER' }
-      subsubspec.source_files = "Classes/OGVDecoderOgg.{h,m}"
-      subsubspec.dependency 'libogg'
-    end
-
-    subspec.subspec "Theora" do |subsubspec|
-      subsubspec.subspec "Decoder" do |subsubsubspec|
-        subsubsubspec.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_OGG_THEORA_DECODER' }
-        subsubsubspec.dependency 'OGVKit/Ogg/Demuxer'
-        subsubsubspec.dependency 'OGVKit/Ogg/Vorbis/Decoder'
-        subsubsubspec.dependency 'libtheora'
-      end
-    end
-
-    subspec.subspec "Vorbis" do |subsubspec|
-      subsubspec.subspec "Decoder" do |subsubsubspec|
-        subsubsubspec.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_OGG_VORBIS_DECODER' }
-        subsubsubspec.dependency 'OGVKit/Ogg/Demuxer'
-        subsubsubspec.dependency 'libvorbis'
-      end
+    sogg.subspec "Vorbis" do |soggvorbis|
+      soggvorbis.dependency 'OGVKit/OggDemuxer'
+      soggvorbis.dependency 'OGVKit/VorbisDecoder'
     end
   end
-
-  s.subspec "WebM" do |subspec|
-    subspec.subspec "Decoder" do |subsubspec|
-      subsubspec.dependency 'OGVKit/WebM/Demuxer'
-      subsubspec.dependency 'OGVKit/WebM/VP8/Decoder'
+  s.subspec "WebM" do |swebm|
+    swebm.subspec "VP8" do |swebmvp8|
+      swebmvp8.dependency 'OGVKit/WebMDemuxer'
+      swebmvp8.dependency 'OGVKit/VP8Decoder'
+      swebmvp8.dependency 'OGVKit/VorbisDecoder'
     end
-
-    subspec.subspec "Demuxer" do |subsubspec|
-      subsubspec.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_WEBM_DEMUXER' }
-      subsubspec.source_files = "Classes/OGVDecoderWebM.{h,m}"
-      subsubspec.public_header_files = "Classes/OGVDecoderWebM.h"
-
-      subsubspec.dependency 'libnestegg'
+    swebm.subspec "Vorbis" do |swebmvorbis|
+      swebmvorbis.dependency 'OGVKit/WebMDemuxer'
+      swebmvorbis.dependency 'OGVKit/VorbisDecoder'
     end
+  end
+  
+  # Demuxer module subspecs
+  s.subspec "OggDemuxer" do |soggdemuxer|
+    soggdemuxer.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_OGG_DEMUXER' }
+    soggdemuxer.source_files = "Classes/OGVDecoderOgg.{h,m}"
+    soggdemuxer.dependency 'libogg'
+  end
+  s.subspec "WebMDemuxer" do |swebmdemuxer|
+    swebmdemuxer.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_WEBM_DEMUXER' }
+    swebmdemuxer.source_files = "Classes/OGVDecoderWebM.{h,m}"
+    swebmdemuxer.dependency 'libnestegg'
+  end
 
-    subspec.subspec "VP8" do |subsubspec|
-      subsubspec.subspec "Decoder" do |subsubsubspec|
-        subsubsubspec.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_WEBM_VP8_DECODER' }
-        subsubsubspec.dependency 'OGVKit/WebM/Demuxer'
-        subsubsubspec.dependency 'OGVKit/WebM/Vorbis/Decoder'
-        subsubsubspec.dependency 'libvpx', '~>1.4.0-snapshot-20150619'
-      end
-    end
+  # Video decoder module subspecs
+  s.subspec "TheoraDecoder" do |stheoradecoder|
+    stheoradecoder.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_THEORA_DECODER' }
+    stheoradecoder.dependency 'libtheora'
+  end
+  s.subspec "VP8Decoder" do |svp8decoder|
+    svp8decoder.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_VP8_DECODER' }
+    svp8decoder.dependency 'libvpx', '~>1.4.0-snapshot-20150619'
+  end
 
-    subspec.subspec "Vorbis" do |subsubspec|
-      subsubspec.subspec "Decoder" do |subsubsubspec|
-        subsubsubspec.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_WEBM_VORBIS_DECODER' }
-        subsubsubspec.dependency 'OGVKit/WebM/Demuxer'
-        subsubsubspec.dependency 'libvorbis'
-      end
-    end
+  # Audio decoder module subspecs
+  s.subspec "VorbisDecoder" do |svorbisdecoder|
+    svorbisdecoder.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_VORBIS_DECODER' }
+    svorbisdecoder.dependency 'libvorbis'
   end
 end

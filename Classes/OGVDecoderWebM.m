@@ -11,13 +11,13 @@
 
 #include <nestegg/nestegg.h>
 
-#ifdef OGVKIT_HAVE_WEBM_VP8_DECODER
+#ifdef OGVKIT_HAVE_VP8_DECODER
 #define VPX_CODEC_DISABLE_COMPAT 1
 #include <vpx/vpx_decoder.h>
 #include <vpx/vp8dx.h>
 #endif
 
-#ifdef OGVKIT_HAVE_WEBM_VORBIS_DECODER
+#ifdef OGVKIT_HAVE_VORBIS_DECODER
 #include <ogg/ogg.h>
 #include <vorbis/codec.h>
 #endif
@@ -74,7 +74,7 @@ static nestegg_packet *packet_queue_shift(nestegg_packet **queue, unsigned int *
     }
 }
 
-#ifdef OGVKIT_HAVE_WEBM_VORBIS_DECODER
+#ifdef OGVKIT_HAVE_VORBIS_DECODER
 static void data_to_ogg_packet(unsigned char *data, size_t data_size, ogg_packet *dest)
 {
     dest->packet = data;
@@ -120,7 +120,7 @@ static void ne_packet_to_ogg_packet(nestegg_packet *src, ogg_packet *dest)
     nestegg_packet *audioPackets[PACKET_QUEUE_MAX];
     
 
-#ifdef OGVKIT_HAVE_WEBM_VP8_DECODER
+#ifdef OGVKIT_HAVE_VP8_DECODER
     vpx_codec_ctx_t    vpxContext;
     vpx_codec_iface_t *vpxDecoder;
 #endif
@@ -136,7 +136,7 @@ static void ne_packet_to_ogg_packet(nestegg_packet *src, ogg_packet *dest)
     int64_t           audiobufGranulepos; /* time position of last sample */
     double            audiobufTime;
 
-#ifdef OGVKIT_HAVE_WEBM_VORBIS_DECODER
+#ifdef OGVKIT_HAVE_VORBIS_DECODER
     /* Audio decode state */
     ogg_packet        audioPacket;
     int               vorbisHeaders;
@@ -171,7 +171,7 @@ enum AppState {
         ioCallbacks.tell = tellCallback;
         ioCallbacks.userdata = (__bridge void *)self;
         
-#ifdef OGVKIT_HAVE_WEBM_VORBIS_DECODER
+#ifdef OGVKIT_HAVE_VORBIS_DECODER
         /* init supporting Vorbis structures needed in header parsing */
         vorbis_info_init(&vorbisInfo);
         vorbis_comment_init(&vorbisComment);
@@ -198,7 +198,7 @@ enum AppState {
         int codec = nestegg_track_codec_id(demuxContext, track);
         
         if (trackType == NESTEGG_TRACK_VIDEO && !hasVideo) {
-#ifdef OGVKIT_HAVE_WEBM_VP8_DECODER
+#ifdef OGVKIT_HAVE_VP8_DECODER
             if (codec == NESTEGG_CODEC_VP8 /* || codec == NESTEGG_CODEC_VP9 */) {
                 hasVideo = 1;
                 videoTrack = track;
@@ -208,7 +208,7 @@ enum AppState {
         }
         
         if (trackType == NESTEGG_TRACK_AUDIO && !hasAudio) {
-#ifdef OGVKIT_HAVE_WEBM_VORBIS_DECODER
+#ifdef OGVKIT_HAVE_VORBIS_DECODER
             if (codec == NESTEGG_CODEC_VORBIS /* || codec == NESTEGG_CODEC_OPUS */) {
                 hasAudio = 1;
                 audioTrack = track;
@@ -224,7 +224,7 @@ enum AppState {
             // failed! something is wrong...
             hasVideo = 0;
         } else {
-#ifdef OGVKIT_HAVE_WEBM_VP8_DECODER
+#ifdef OGVKIT_HAVE_VP8_DECODER
             if (videoCodec == NESTEGG_CODEC_VP8) {
                 vpxDecoder = vpx_codec_vp8_dx();
             } else if (videoCodec == NESTEGG_CODEC_VP9) {
@@ -251,7 +251,7 @@ enum AppState {
             // failed! something is wrong
             hasAudio = 0;
         } else {
-#ifdef OGVKIT_HAVE_WEBM_VORBIS_DECODER
+#ifdef OGVKIT_HAVE_VORBIS_DECODER
             unsigned int codecDataCount;
             nestegg_track_codec_data_count(demuxContext, audioTrack, &codecDataCount);
             
@@ -280,7 +280,7 @@ enum AppState {
         }
     }
     
-#ifdef OGVKIT_HAVE_WEBM_VORBIS_DECODER
+#ifdef OGVKIT_HAVE_VORBIS_DECODER
 	if (vorbisHeaders) {
 		vorbis_synthesis_init(&vorbisDspState, &vorbisInfo);
 		vorbis_block_init(&vorbisDspState, &vorbisBlock);
@@ -332,7 +332,7 @@ enum AppState {
         nestegg_packet_tstamp(packet, &timestamp);
         videobufTime = timestamp / 1000000000.0;
         
-#ifdef OGVKIT_HAVE_WEBM_VP8_DECODER
+#ifdef OGVKIT_HAVE_VP8_DECODER
         // uh, can this happen? curiouser :D
         for (unsigned int chunk = 0; chunk < chunks; ++chunk) {
             unsigned char *data;
@@ -393,7 +393,7 @@ enum AppState {
     
     nestegg_packet *packet = packet_queue_shift(audioPackets, &audioPacketCount);
 
-#ifdef OGVKIT_HAVE_WEBM_VORBIS_DECODER
+#ifdef OGVKIT_HAVE_VORBIS_DECODER
     ne_packet_to_ogg_packet(packet, &audioPacket);
     
 	if (vorbisHeaders) {
@@ -501,7 +501,7 @@ enum AppState {
 
 -(void)dealloc
 {
-#ifdef OGVKIT_HAVE_WEBM_VORBIS_DECODER
+#ifdef OGVKIT_HAVE_VORBIS_DECODER
     if (vorbisHeaders) {
         //ogg_stream_clear(&vorbisStreamState);
         vorbis_info_clear(&vorbisInfo);
@@ -536,13 +536,13 @@ enum AppState {
             int knownCodecs = 0;
             int unknownCodecs = 0;
             for (NSString *codec in mediaType.codecs) {
-#ifdef OGVKIT_HAVE_WEBM_VP8_DECODER
+#ifdef OGVKIT_HAVE_VP8_DECODER
                 if ([codec isEqualToString:@"vp8"]) {
                     knownCodecs++;
                     continue;
                 }
 #endif
-#ifdef OGVKIT_HAVE_WEBM_VORBIS_DECODER
+#ifdef OGVKIT_HAVE_VORBIS_DECODER
                 if ([codec isEqualToString:@"vorbis"]) {
                     knownCodecs++;
                     continue;
