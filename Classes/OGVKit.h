@@ -3,7 +3,7 @@
 //  OGVKit
 //
 //  Created by Brion on 6/25/14.
-//  Copyright (c) 2014 Brion Vibber. All rights reserved.
+//  Copyright (c) 2014-2015 Brion Vibber. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
@@ -29,6 +29,9 @@
 #import "OGVPlayerView.h"
 
 
+/**
+ * OGVKit utility class.
+ */
 @interface OGVKit : NSObject
 
 + (OGVKit *)singleton;

@@ -1,9 +1,9 @@
 //
 //  OGVAudioBuffer.h
-//  OgvDemo
+//  OGVKit
 //
 //  Created by Brion on 11/5/13.
-//  Copyright (c) 2013 Brion Vibber. All rights reserved.
+//  Copyright (c) 2013-2015 Brion Vibber. All rights reserved.
 //
 
 @interface OGVAudioBuffer : NSObject

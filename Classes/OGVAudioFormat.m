@@ -1,5 +1,5 @@
 //
-//  OGVVideoFormat.m
+//  OGVAudioFormat.m
 //  OGVKit
 //
 //  Created by Brion on 6/21/2015

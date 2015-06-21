@@ -1,8 +1,9 @@
 //
 //  OGVPlayerState.h
-//  Pods
+//  OGVKit
 //
 //  Created by Brion on 6/13/15.
+//  Copyright (c) 2015 Brion Vibber. All rights reserved.
 //
 //
 
