@@ -12,6 +12,8 @@
 @property (nonatomic) NSURL *URL;
 @property (nonatomic) OGVInputStreamState state;
 @property (nonatomic) BOOL dataAvailable;
+@property (nonatomic) NSUInteger bytePosition;
+@property (nonatomic) NSUInteger bytesAvailable;
 @end
 
 @implementation OGVInputStream
@@ -21,12 +23,12 @@
     NSURL *_URL;
     OGVInputStreamState _state;
     BOOL _dataAvailable;
+    NSUInteger _bytePosition;
+    NSUInteger _bytesAvailable;
 
     NSURLConnection *connection;
     NSMutableArray *inputDataQueue;
     BOOL doneDownloading;
-    NSUInteger bytePosition;
-    NSUInteger queuedDataSize;
 
     dispatch_semaphore_t waitingForDataSemaphore;
 }
@@ -86,9 +88,6 @@
         BOOL wasAvailable = _dataAvailable;
         _dataAvailable = dataAvailable;
         
-        if (waitingForDataSemaphore) {
-            dispatch_semaphore_signal(waitingForDataSemaphore);
-        }
         if (self.delegate && !wasAvailable && dataAvailable) {
             dispatch_async(dispatch_get_main_queue(), ^() {
                 if ([self.delegate respondsToSelector:@selector(OGVInputStreamDataAvailable:)]) {
@@ -102,14 +101,28 @@
 -(NSUInteger)bytesAvailable
 {
     @synchronized (timeLock) {
-        return queuedDataSize;
+        return _bytesAvailable;
+    }
+}
+
+-(void)setBytesAvailable:(NSUInteger)bytesAvailable
+{
+    @synchronized (timeLock) {
+        _bytesAvailable = bytesAvailable;
     }
 }
 
 -(NSUInteger)bytePosition
 {
     @synchronized (timeLock) {
-        return bytePosition;
+        return _bytePosition;
+    }
+}
+
+-(void)setBytePosition:(NSUInteger)bytePosition
+{
+    @synchronized (timeLock) {
+        _bytePosition = bytePosition;
     }
 }
 
@@ -119,7 +132,6 @@
     if (self) {
         timeLock = [[NSObject alloc] init];
         self.URL = URL;
-        self.bufferSize = 65536;
         self.state = OGVInputStreamStateInit;
         self.dataAvailable = NO;
         inputDataQueue = [[NSMutableArray alloc] init];
@@ -184,7 +196,7 @@
     }
     
     if (data) {
-        bytePosition += [data length];
+        self.bytePosition += [data length];
     }
     return data;
 }
@@ -232,10 +244,14 @@
 {
     @synchronized (timeLock) {
         [inputDataQueue addObject:data];
-        queuedDataSize += [data length];
+        self.bytesAvailable += [data length];
 
         if ([inputDataQueue count] == 1) {
             self.dataAvailable = YES;
+
+            if (waitingForDataSemaphore) {
+                dispatch_semaphore_signal(waitingForDataSemaphore);
+            }
         }
     }
 }
@@ -258,7 +274,7 @@
         NSData *inputData = [self peekData];
         if (inputData) {
             [inputDataQueue removeObjectAtIndex:0];
-            queuedDataSize -= [inputData length];
+            self.bytesAvailable -= [inputData length];
         }
         if ([inputDataQueue count] == 0) {
             self.dataAvailable = NO;
@@ -290,7 +306,7 @@
                     NSData *dataHead = [inputData subdataWithRange:NSMakeRange(0, chunkSize)];
                     NSData *dataTail = [inputData subdataWithRange:NSMakeRange(chunkSize, inputSize - chunkSize)];
                     inputDataQueue[0] = dataTail;
-                    queuedDataSize -= [dataHead length];
+                    self.bytesAvailable -= [dataHead length];
                     [outputData appendData:dataHead];
                 }
             } else {
@@ -323,7 +339,6 @@
 {
     @synchronized (timeLock) {
         [self queueData:data];
-        self.dataAvailable = YES;
         
         // @todo once moved to its own thread, throttle this connection!
     }

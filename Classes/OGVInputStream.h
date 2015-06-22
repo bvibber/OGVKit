@@ -21,17 +21,15 @@
 typedef NS_ENUM(NSUInteger, OGVInputStreamState) {
     OGVInputStreamStateInit = 0,
     OGVInputStreamStateConnecting = 1,
-    OGVInputStreamStateFailed = 2,
-    OGVInputStreamStateDone = 3,
-    OGVInputStreamStateReading = 4,
-    OGVInputStreamStateSeeking = 5
+    OGVInputStreamStateReading = 2,
+    OGVInputStreamStateSeeking = 3,
+    OGVInputStreamStateDone = 4,
+    OGVInputStreamStateFailed = 5
 };
 
 @interface OGVInputStream : NSObject <NSURLConnectionDataDelegate>
 
-@property (weak, nonatomic) id<OGVInputStreamDelegate> delegate;
-
-@property (nonatomic) NSUInteger bufferSize;
+@property (weak) id<OGVInputStreamDelegate> delegate;
 
 @property (readonly) NSURL *URL;
 @property (readonly) OGVInputStreamState state;
