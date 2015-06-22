@@ -35,8 +35,8 @@
 @property BOOL hasAudio;
 @property OGVAudioFormat *audioFormat;
 
-@property BOOL audioReady;
-@property BOOL frameReady;
+@property (readonly) BOOL audioReady;
+@property (readonly) BOOL frameReady;
 
 @property OGVInputStream *inputStream;
 

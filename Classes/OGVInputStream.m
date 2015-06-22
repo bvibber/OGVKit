@@ -300,7 +300,7 @@ static const NSUInteger kOGVInputStreamBufferSize = 1024 * 1024;
         connection = [[NSURLConnection alloc] initWithRequest:req delegate:self startImmediately:NO];
         [NSThread detachNewThreadSelector:@selector(startDownloadThread:)
                                  toTarget:self
-                               withObject:nil];
+                               withObject:connection];
     }
 }
 
@@ -309,8 +309,10 @@ static const NSUInteger kOGVInputStreamBufferSize = 1024 * 1024;
     NSRunLoop *downloadRunLoop = [NSRunLoop currentRunLoop];
 
     @synchronized (timeLock) {
-        [connection scheduleInRunLoop:downloadRunLoop forMode:NSRunLoopCommonModes];
-        [connection start];
+        if (connection == obj) {
+            [connection scheduleInRunLoop:downloadRunLoop forMode:NSRunLoopCommonModes];
+            [connection start];
+        }
     }
     [downloadRunLoop run];
 }
@@ -328,7 +330,9 @@ static const NSUInteger kOGVInputStreamBufferSize = 1024 * 1024;
     waitingForDataSemaphore = dispatch_semaphore_create(0);
     while (YES) {
         @synchronized (timeLock) {
+            NSLog(@"waiting: have %ld, want %ld", (long)self.bytesAvailable, (long)nBytes);
             if (self.bytesAvailable >= nBytes ||
+                doneDownloading ||
                 self.state == OGVInputStreamStateDone ||
                 self.state == OGVInputStreamStateFailed ||
                 self.state == OGVInputStreamStateCanceled) {

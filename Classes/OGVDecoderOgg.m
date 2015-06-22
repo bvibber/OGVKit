@@ -7,10 +7,11 @@
 //
 
 #import "OGVKit.h"
-#import "OGVDecoderOgg.h"
 
 #define OV_EXCLUDE_STATIC_CALLBACKS
 #include <ogg/ogg.h>
+
+#include <oggz/oggz.h>
 
 #ifdef OGVKIT_HAVE_VORBIS_DECODER
 #include <vorbis/vorbisfile.h>
@@ -20,41 +21,90 @@
 #include <theora/theoradec.h>
 #endif
 
+#import "OGVDecoderOgg.h"
+#import "OGVDecoderOggPacket.h"
+#import "OGVDecoderOggPacketQueue.h"
+
+
+@interface OGVDecoderOgg (Private)
+- (int)readPacketCallback:(OGVDecoderOggPacket *)packet serialno:(long)serialno;
+@end
+
 static const NSUInteger kOGVDecoderReadBufferSize = 65536;
 
+static size_t readCallback(void *user_handle, void *buf, size_t n)
+{
+    OGVDecoderOgg *decoder = (__bridge OGVDecoderOgg *)user_handle;
+    OGVInputStream *stream = decoder.inputStream;
+    NSData *data = [stream readBytes:n blocking:YES];
+    if (data) {
+        assert([data length] <= n);
+        memcpy(buf, [data bytes], [data length]);
+        return [data length];
+    } else {
+        return 0;
+    }
+}
+
+static int seekCallback(void *user_handle, long offset, int whence)
+{
+    // @todo implement on OGVInputStream
+    abort();
+    return -1;
+}
+
+static long tellCallback(void *user_handle)
+{
+    OGVDecoderOgg *decoder = (__bridge OGVDecoderOgg *)user_handle;
+    OGVInputStream *stream = decoder.inputStream;
+    return (long)stream.bytePosition;
+}
+
+static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, void *user_data)
+{
+    OGVDecoderOgg *decoder = (__bridge OGVDecoderOgg *)user_data;
+    OGVDecoderOggPacket *wrappedPacket = [[OGVDecoderOggPacket alloc] initWithOggzPacket:packet];
+    return [decoder readPacketCallback:wrappedPacket serialno:serialno];
+}
+
+
 @implementation OGVDecoderOgg {
-    /* Ogg and codec state for demux/decode */
-    ogg_sync_state    oggSyncState;
-    ogg_page          oggPage;
+    OGGZ *oggz;
+
+    long videoStream;
+    OggzStreamContent videoCodec;
+    BOOL videoHeadersComplete;
+    OGVDecoderOggPacketQueue *videoPackets;
+
+    long audioStream;
+    OggzStreamContent audioCodec;
+    BOOL audioHeadersComplete;
+    OGVDecoderOggPacketQueue *audioPackets;
     
 #ifdef OGVKIT_HAVE_THEORA_DECODER
     /* Video decode state */
-    ogg_stream_state  theoraStreamState;
+    //ogg_stream_state  theoraStreamState;
     th_info           theoraInfo;
     th_comment        theoraComment;
     th_setup_info    *theoraSetupInfo;
     th_dec_ctx       *theoraDecoderContext;
-#endif
     
     int              theora_p;
     int              theora_processing_headers;
+#endif
     
     /* single frame video buffering */
-    int          videobuf_ready;
     ogg_int64_t  videobuf_granulepos;
     double       videobuf_time;
     OGVVideoBuffer *queuedFrame;
     
-    int          audiobuf_ready;
     ogg_int64_t  audiobuf_granulepos; /* time position of last sample */
-    
-    int          raw;
     
     /* Audio decode state */
     int              vorbis_p;
     int              vorbis_processing_headers;
 #ifdef OGVKIT_HAVE_VORBIS_DECODER
-    ogg_stream_state vo;
+    //ogg_stream_state vo;
     vorbis_info      vi;
     vorbis_dsp_state vd;
     vorbis_block     vb;
@@ -62,21 +112,11 @@ static const NSUInteger kOGVDecoderReadBufferSize = 65536;
 #endif
     OGVAudioBuffer *queuedAudio;
     
-    int          crop;
-    
-    ogg_packet oggPacket;
-    ogg_packet theoraPacket;
-    ogg_packet vorbisPacket;
-    BOOL needData;
-    
-    int frames;
-    
     enum AppState {
         STATE_BEGIN,
         STATE_HEADERS,
         STATE_DECODING
     } appState;
-    int process_audio, process_video;
 }
 
 
@@ -89,8 +129,15 @@ static const NSUInteger kOGVDecoderReadBufferSize = 65536;
         appState = STATE_BEGIN;
         
         /* start up Ogg stream synchronization layer */
-        ogg_sync_init(&oggSyncState);
-        
+        oggz = oggz_new(OGGZ_READ);
+        oggz_io_set_read(oggz, readCallback, (__bridge void *)self);
+        oggz_io_set_seek(oggz, seekCallback, (__bridge void *)self);
+        oggz_io_set_tell(oggz, tellCallback, (__bridge void *)self);
+        oggz_set_read_callback(oggz, -1, readPacketCallback, (__bridge void *)self);
+
+        videoPackets = [[OGVDecoderOggPacketQueue alloc] init];
+        audioPackets = [[OGVDecoderOggPacketQueue alloc] init];
+
 #ifdef OGVKIT_HAVE_VORBIS_DECODER
         /* init supporting Vorbis structures needed in header parsing */
         vorbis_info_init(&vi);
@@ -102,147 +149,155 @@ static const NSUInteger kOGVDecoderReadBufferSize = 65536;
         th_comment_init(&theoraComment);
         th_info_init(&theoraInfo);
 #endif
-
-        process_audio = 1;
-        process_video = 1;
-        
-        needData = YES;
     }
     return self;
 }
 
-
-- (void) processBegin
+- (int)readPacketCallback:(OGVDecoderOggPacket *)packet serialno:(long)serialno
 {
-    if (ogg_page_bos(&oggPage)) {
-        int got_packet;
-        
-        // Initialize a stream state object...
-        ogg_stream_state test;
-        ogg_stream_init(&test,ogg_page_serialno(&oggPage));
-        ogg_stream_pagein(&test, &oggPage);
-        
-        // Peek at the next packet, since th_decode_headerin() will otherwise
-        // eat the first Theora video packet...
-        got_packet = ogg_stream_packetpeek(&test, &oggPacket);
-        if (!got_packet) {
-            return;
-        }
-        
-        /* identify the codec: try theora */
-#ifdef OGVKIT_HAVE_THEORA_DECODER
-        if(process_video && !theora_p && (theora_processing_headers = th_decode_headerin(&theoraInfo,&theoraComment,&theoraSetupInfo,&oggPacket))>=0){
-            
-            /* it is theora -- save this stream state */
-            memcpy(&theoraStreamState, &test, sizeof(test));
-            theora_p = 1;
-            
-            if (theora_processing_headers == 0) {
-                // Saving first video packet for later!
-            } else {
-                ogg_stream_packetout(&theoraStreamState, NULL);
-            }
-            return;
-        }
-#endif
-
-#ifdef OGVKIT_HAVE_VORBIS_DECODER
-        if (process_audio && !vorbis_p && (vorbis_processing_headers = vorbis_synthesis_headerin(&vi,&vc,&oggPacket)) == 0) {
-            // it's vorbis!
-            // save this as our audio stream...
-            memcpy(&vo, &test, sizeof(test));
-            vorbis_p = 1;
-            
-            // ditch the processed packet...
-            ogg_stream_packetout(&vo, NULL);
-            return;
-        }
-#endif
-
-		/* whatever it is, we don't care about it */
-		ogg_stream_clear(&test);
-    } else {
-        // Not a bitstream start -- move on to header decoding...
-        appState = STATE_HEADERS;
+    switch (appState) {
+        case STATE_BEGIN:
+            return [self processBegin:packet serialno:serialno];
+        case STATE_HEADERS:
+            return [self processHeaders:packet serialno:serialno];
+        case STATE_DECODING:
+            return [self processDecoding:packet serialno:serialno];
+        default:
+            abort();
     }
 }
 
-- (void) processHeaders
+- (int)processBegin:(OGVDecoderOggPacket *)packet serialno:(long)serialno
 {
-    if ((theora_p && theora_processing_headers) || (vorbis_p && vorbis_p < 3)) {
-        int ret;
+    BOOL bos = packet.oggPacket->b_o_s;
+    if (!bos) {
+        // Not a bitstream start -- move on to header decoding...
+        appState = STATE_HEADERS;
+        return [self processHeaders:packet serialno:serialno];
+    }
+
+    OggzStreamContent content = oggz_stream_get_content(oggz, serialno);
+
+#ifdef OGVKIT_HAVE_THEORA_DECODER
+    if (!videoStream && content == OGGZ_CONTENT_THEORA) {
+        videoCodec = content;
+        videoStream = serialno;
+        int ret = th_decode_headerin(&theoraInfo, &theoraComment, &theoraSetupInfo, packet.oggPacket);
+        if (ret == 0) {
+            // At end of Theora headers surprisingly early...
+            NSLog(@"Theora headers ended after first packet, which is impossible");
+            return OGGZ_STOP_ERR;
+        } else if (ret > 0) {
+            // Still processing headerssssss!
+            return OGGZ_CONTINUE;
+        } else {
+            NSLog(@"Error reading theora headers: %d.", ret);
+            return OGGZ_STOP_ERR;
+        }
+    }
+#endif /* OGVKIT_HAVE_THEORA_DECODER */
+
+#ifdef OGVKIT_HAVE_VORBIS_DECODER
+    if (!audioStream && content == OGGZ_CONTENT_VORBIS) {
+        audioCodec = content;
+        audioStream = serialno;
+
+        vorbis_processing_headers = 1;
+        int ret = vorbis_synthesis_headerin(&vi, &vc, packet.oggPacket);
+        if (ret == 0) {
+            // First of 3 header packets down.
+            return OGGZ_CONTINUE;
+        } else {
+            NSLog(@"Error reading Vorbis headers (packet %d): %d", vorbis_processing_headers, ret);
+            return OGGZ_STOP_ERR;
+        }
+        return OGGZ_CONTINUE;
+    }
+#endif /* OGVKIT_HAVE_VORBIS_DECODER */
+
+    return OGGZ_CONTINUE;
+}
+
+- (int) processHeaders:(OGVDecoderOggPacket *)packet serialno:(long)serialno
+{
+    if (videoStream == serialno) {
+        if (videoHeadersComplete) {
+            [videoPackets queue:packet];
+            // fall through to later logic...
+        } else {
+
+#ifdef OGVKIT_HAVE_THEORA_DECODER
+            if (videoCodec == OGGZ_CONTENT_THEORA) {
+                int ret = th_decode_headerin(&theoraInfo, &theoraComment, &theoraSetupInfo, packet.oggPacket);
+                if (ret == 0) {
+                    // At end of Theora headers.
+                    videoHeadersComplete = YES;
+
+                    theoraDecoderContext = th_decode_alloc(&theoraInfo,theoraSetupInfo);
+
+                    self.videoFormat = [[OGVVideoFormat alloc] init];
+                    self.videoFormat.frameWidth = theoraInfo.frame_width;
+                    self.videoFormat.frameHeight = theoraInfo.frame_height;
+                    self.videoFormat.pictureWidth = theoraInfo.pic_width;
+                    self.videoFormat.pictureHeight = theoraInfo.pic_height;
+                    self.videoFormat.pictureOffsetX = theoraInfo.pic_x;
+                    self.videoFormat.pictureOffsetY = theoraInfo.pic_y;
+                    self.videoFormat.pixelFormat = [self theoraPixelFormat:theoraInfo.pixel_fmt];
+
+                    // Surprise! This is actually the first video packet.
+                    // Save it for later.
+                    [videoPackets queue:packet];
+                } else if (ret > 0) {
+                    // Still processing headerssssss!
+                } else {
+                    NSLog(@"Error reading theora headers: %d.", ret);
+                    return OGGZ_STOP_ERR;
+                }
+            }
+#endif /* OGVKIT_HAVE_THEORA_DECODER */
+
+        }
+    }
+
+    if (audioStream == serialno) {
+        if (audioHeadersComplete) {
+            [audioPackets queue:packet];
+            // fall through to later logic...
+        } else {
         
-#ifdef OGVKIT_HAVE_THEORA_DECODER
-        /* look for further theora headers */
-        if (theora_p && theora_processing_headers) {
-            ret = ogg_stream_packetpeek(&theoraStreamState, &oggPacket);
-            if (ret < 0) {
-                NSLog(@"Error reading theora headers: %d.", ret);
-                exit(1);
-            }
-            if (ret > 0) {
-                theora_processing_headers = th_decode_headerin(&theoraInfo, &theoraComment, &theoraSetupInfo, &oggPacket);
-                if (theora_processing_headers == 0) {
-                    // We've completed the theora header
-                    theora_p = 3;
-                } else {
-                    ogg_stream_packetout(&theoraStreamState, NULL);
-                }
-            }
-        }
-#endif
-
 #ifdef OGVKIT_HAVE_VORBIS_DECODER
-        if (vorbis_p && (vorbis_p < 3)) {
-            ret = ogg_stream_packetpeek(&vo, &oggPacket);
-            if (ret < 0) {
-                NSLog(@"Error reading vorbis headers: %d.", ret);
-                exit(1);
-            }
-            if (ret > 0) {
-                vorbis_processing_headers = vorbis_synthesis_headerin(&vi, &vc, &oggPacket);
-                if (vorbis_processing_headers == 0) {
-                    vorbis_p++;
+            if (audioCodec == OGGZ_CONTENT_VORBIS) {
+                vorbis_processing_headers++;
+                int ret = vorbis_synthesis_headerin(&vi, &vc, packet.oggPacket);
+                if (ret == 0) {
+                    // Another successful header down.
+                    if (vorbis_processing_headers == 3) {
+                        // Oh that was the last one!
+                        audioHeadersComplete = YES;
+                        vorbis_synthesis_init(&vd,&vi);
+                        vorbis_block_init(&vd,&vb);
+                        
+                        self.audioFormat = [[OGVAudioFormat alloc] initWithChannels:vi.channels
+                                                                         sampleRate:vi.rate];
+                    }
                 } else {
-                    NSLog(@"Invalid vorbis header?");
-                    exit(1);
+                    NSLog(@"Error reading Vorbis headers (packet %d): %d", vorbis_processing_headers, ret);
+                    return OGGZ_STOP_ERR;
                 }
-                ogg_stream_packetout(&vo, NULL);
             }
-        }
-#endif
+#endif /* OGVKIT_HAVE_VORBIS_DECODER */
 
+        }
+    }
+
+    if ((audioStream && !audioHeadersComplete) || (videoStream && !videoHeadersComplete)) {
+        return OGGZ_CONTINUE;
     } else {
-        /* and now we have it all.  initialize decoders */
-#ifdef OGVKIT_HAVE_THEORA_DECODER
-        if(theora_p){
-            theoraDecoderContext=th_decode_alloc(&theoraInfo,theoraSetupInfo);
-            
-            self.hasVideo = YES;
-            self.videoFormat = [[OGVVideoFormat alloc] init];
-            self.videoFormat.frameWidth = theoraInfo.frame_width;
-            self.videoFormat.frameHeight = theoraInfo.frame_height;
-            self.videoFormat.pictureWidth = theoraInfo.pic_width;
-            self.videoFormat.pictureHeight = theoraInfo.pic_height;
-            self.videoFormat.pictureOffsetX = theoraInfo.pic_x;
-            self.videoFormat.pictureOffsetY = theoraInfo.pic_y;
-            self.videoFormat.pixelFormat = [self theoraPixelFormat:theoraInfo.pixel_fmt];
-        }
-#endif
-
-#ifdef OGVKIT_HAVE_VORBIS_DECODER
-        if (vorbis_p) {
-            vorbis_synthesis_init(&vd,&vi);
-            vorbis_block_init(&vd,&vb);
-            
-            self.hasAudio = YES;
-            self.audioFormat = [[OGVAudioFormat alloc] initWithChannels:vi.channels
-                                                             sampleRate:vi.rate];
-        }
-#endif
-
-        appState = STATE_DECODING;
+        self.hasVideo = videoHeadersComplete;
+        self.hasAudio = audioHeadersComplete;
         self.dataReady = YES;
+        appState = STATE_DECODING;
+        return OGGZ_STOP_OK;
     }
 }
 
@@ -265,70 +320,57 @@ static const NSUInteger kOGVDecoderReadBufferSize = 65536;
 }
 #endif
 
-- (void)processDecoding
+- (int)processDecoding:(OGVDecoderOggPacket *)packet serialno:(long)serialno
 {
-    needData = NO;
-
-#ifdef OGVKIT_HAVE_THEORA_DECODER
-    if (theora_p && !videobuf_ready) {
-        if (ogg_stream_packetpeek(&theoraStreamState, &theoraPacket) > 0) {
-            videobuf_ready = 1;
-            self.frameReady = YES;
-        } else {
-            needData = YES;
-        }
+    if (serialno == videoStream) {
+        [videoPackets queue:packet];
     }
-#endif
 
-#ifdef OGVKIT_HAVE_VORBIS_DECODER
-    if (vorbis_p && !audiobuf_ready) {
-        if (ogg_stream_packetpeek(&vo, &vorbisPacket) > 0) {
-            audiobuf_ready = 1;
-            self.audioReady = YES;
-        } else {
-            needData = YES;
-        }
+    if (serialno == audioStream) {
+        [audioPackets queue:packet];
     }
-#endif
+
+    if (self.frameReady || self.audioReady) {
+        return OGGZ_STOP_OK;
+    } else {
+        return OGGZ_CONTINUE;
+    }
 }
 
 - (BOOL) decodeFrame
 {
+    OGVDecoderOggPacket *packet = [videoPackets dequeue];
+
 #ifdef OGVKIT_HAVE_THEORA_DECODER
-    if (ogg_stream_packetout(&theoraStreamState, &theoraPacket) <= 0) {
-        NSLog(@"Theora packet didn't come out of stream");
-        return NO;
-    }
-    videobuf_ready=0;
-    int ret = th_decode_packetin(theoraDecoderContext, &theoraPacket, &videobuf_granulepos);
-    if (ret == 0){
-        double t = th_granule_time(theoraDecoderContext,videobuf_granulepos);
-        if (t > 0) {
-            videobuf_time = t;
-        } else {
-            // For some reason sometimes we get a bunch of 0s out of th_granule_time
+    if (videoCodec == OGGZ_CONTENT_THEORA) {
+        int ret = th_decode_packetin(theoraDecoderContext, packet.oggPacket, &videobuf_granulepos);
+        if (ret == 0){
+            double t = th_granule_time(theoraDecoderContext,videobuf_granulepos);
+            if (t > 0) {
+                videobuf_time = t;
+            } else {
+                // For some reason sometimes we get a bunch of 0s out of th_granule_time
+                videobuf_time += 1.0 / ((double)theoraInfo.fps_numerator / theoraInfo.fps_denominator);
+            }
+            [self doDecodeTheora];
+            return YES;
+        } else if (ret == TH_DUPFRAME) {
+            // Duplicated frame, advance time
             videobuf_time += 1.0 / ((double)theoraInfo.fps_numerator / theoraInfo.fps_denominator);
+            [self doDecodeTheora];
+            return YES;
+        } else {
+            NSLog(@"Theora decoder failed mysteriously? %d", ret);
+            return NO;
         }
-        frames++;
-        [self doDecodeFrame];
-        return YES;
-    } else if (ret == TH_DUPFRAME) {
-        // Duplicated frame, advance time
-        videobuf_time += 1.0 / ((double)theoraInfo.fps_numerator / theoraInfo.fps_denominator);
-        frames++;
-        [self doDecodeFrame];
-        return YES;
-    } else {
-        NSLog(@"Theora decoder failed mysteriously? %d", ret);
-        return NO;
     }
-#else
-	return NO;
-#endif
+#endif /* OGVKIT_HAVE_THEORA_DECODER */
+
+    return NO;
 }
 
 #ifdef OGVKIT_HAVE_THEORA_DECODER
--(void)doDecodeFrame
+-(void)doDecodeTheora
 {
     assert(queuedFrame == nil);
 
@@ -358,33 +400,39 @@ static const NSUInteger kOGVDecoderReadBufferSize = 65536;
 
 - (BOOL)decodeAudio
 {
+    OGVDecoderOggPacket *packet = [audioPackets dequeue];
+
 #ifdef OGVKIT_HAVE_VORBIS_DECODER
-    if (ogg_stream_packetout(&vo, &vorbisPacket) > 0) {
-        if(vorbis_synthesis(&vb, &vorbisPacket) == 0) {
-            vorbis_synthesis_blockin(&vd,&vb);
+    if (audioCodec == OGGZ_CONTENT_VORBIS) {
+        int ret = vorbis_synthesis(&vb, packet.oggPacket);
+        if (ret == 0) {
+            vorbis_synthesis_blockin(&vd, &vb);
             
             float **pcm;
             int sampleCount = vorbis_synthesis_pcmout(&vd, &pcm);
             if (sampleCount > 0) {
                 queuedAudio = [[OGVAudioBuffer alloc] initWithPCM:pcm samples:sampleCount format:self.audioFormat];
                 vorbis_synthesis_read(&vd, sampleCount);
-                self.audioReady = YES;
+                return YES;
+            } else {
+                NSLog(@"Vorbis decoder gave empty packet; ignore it!");
+                return NO;
             }
+        } else {
+            NSLog(@"Vorbis decoder failed mysteriously? %d", ret);
+            return NO;
         }
     }
-    return YES;
-#else
-	return 0;
-#endif
+#endif /* OGVKIT_HAVE_VORBIS_DECODER */
+
+    return NO;
 }
 
 - (OGVVideoBuffer *)frameBuffer
 {
-    if (self.frameReady) {
+    if (queuedFrame) {
         OGVVideoBuffer *buffer = queuedFrame;
         queuedFrame = nil;
-        self.frameReady = NO;
-        videobuf_ready = NO;
         return buffer;
     } else {
         @throw [NSException
@@ -396,11 +444,9 @@ static const NSUInteger kOGVDecoderReadBufferSize = 65536;
 
 - (OGVAudioBuffer *)audioBuffer
 {
-    if (self.audioReady) {
+    if (queuedAudio) {
         OGVAudioBuffer *buffer = queuedAudio;
         queuedAudio = nil;
-        self.audioReady = NO;
-        audiobuf_ready = NO;
         return buffer;
     } else {
         @throw [NSException
@@ -410,72 +456,54 @@ static const NSUInteger kOGVDecoderReadBufferSize = 65536;
     }
 }
 
-- (void)receiveInput:(NSData *)data
-{
-    char *buffer = (char *)data.bytes;
-    size_t bufsize = data.length;
-    if (bufsize > 0) {
-        char *dest = ogg_sync_buffer(&oggSyncState, bufsize);
-        memcpy(dest, buffer, bufsize);
-        ogg_sync_wrote(&oggSyncState, bufsize);
-    }
-}
-
-- (BOOL)readFromInputStream
-{
-    if (self.inputStream.state == OGVInputStreamStateDone) {
-        // No more data.
-        return NO;
-    } else {
-        NSData *buffer = [self.inputStream readBytes:kOGVDecoderReadBufferSize blocking:YES];
-        if (buffer) {
-            [self receiveInput:buffer];
-            
-            // Inform the troops we'll need to do more processing
-            // on this shiny new data.
-            return YES;
-        }
-    }
-    
-    // Need more data and nobody gave it to us!
-    return NO;
-}
-
 - (BOOL)process
 {
+    BOOL needData;
+    switch (appState) {
+        case STATE_DECODING:
+            needData = (self.hasAudio && audioPackets.empty) ||
+                       (self.hasVideo && videoPackets.empty);
+            break;
+        case STATE_BEGIN:
+        case STATE_HEADERS:
+        default:
+            needData = YES;
+    }
+
     if (needData) {
-        if (ogg_sync_pageout(&oggSyncState, &oggPage) > 0) {
-#ifdef OGVKIT_HAVE_THEORA_DECODER
-            if (theora_p) {
-                ogg_stream_pagein(&theoraStreamState, &oggPage);
-            }
-#endif
-#ifdef OGVKIT_HAVE_VORBIS_DECODER
-            if (vorbis_p) {
-                ogg_stream_pagein(&vo, &oggPage);
-            }
-#endif
+        //NSLog(@"READING:");
+        long ret = oggz_read(oggz, kOGVDecoderReadBufferSize);
+        if (ret > 0) {
+            // just chillin'
+            //NSLog(@"READ A BUNCH OF DATA from oggz_read? frameReady:%d audioReady:%d", (int)self.frameReady, (int)self.audioReady);
+            return 1;
+        } else if (ret == 0) {
+            // end of file
+            NSLog(@"END OF FILE from oggz_read?");
+            return 0;
+        } else if (ret == OGGZ_ERR_STOP_OK) {
+            // we processed enough packets for now,
+            // but come back for more later please!
+            //NSLog(@"ASKED TO STOP from oggz_read? %d %d", (int)self.frameReady, (int)self.audioReady);
+            return 1;
         } else {
-            // Out of data!
-            return [self readFromInputStream];
+            NSLog(@"Error from oggz_read? %ld", ret);
+            abort();
         }
+    } else if (self.inputStream.state == OGVInputStreamStateReading) {
+        // nothing to do right now (??)
+        return 1;
+    } else {
+        NSLog(@"Input stream done or errored, state %d", (int)self.inputStream.state);
+        return 0;
     }
-    if (appState == STATE_BEGIN) {
-        [self processBegin];
-    } else if (appState == STATE_HEADERS) {
-        [self processHeaders];
-    } else if (appState == STATE_DECODING) {
-        [self processDecoding];
-    }
-    return 1;
 }
 
 
 - (void)dealloc
 {
 #ifdef OGVKIT_HAVE_THEORA_DECODER
-    if(theora_p){
-        ogg_stream_clear(&theoraStreamState);
+    if (videoCodec == OGGZ_CONTENT_THEORA) {
         th_decode_free(theoraDecoderContext);
     }
     th_comment_clear(&theoraComment);
@@ -483,8 +511,7 @@ static const NSUInteger kOGVDecoderReadBufferSize = 65536;
 #endif
 
 #ifdef OGVKIT_HAVE_VORBIS_DECODER
-    if (vorbis_p) {
-        ogg_stream_clear(&vo);
+    if (audioCodec == OGGZ_CONTENT_VORBIS) {
         vorbis_dsp_clear(&vd);
         vorbis_block_clear(&vb);
     }
@@ -492,8 +519,22 @@ static const NSUInteger kOGVDecoderReadBufferSize = 65536;
     vorbis_info_clear(&vi);
 #endif
 
-    ogg_sync_clear(&oggSyncState);
+    oggz_close(oggz);
 }
+
+#pragma mark - property getters
+
+- (BOOL)frameReady
+{
+    return appState == STATE_DECODING && !videoPackets.empty;
+}
+
+- (BOOL)audioReady
+{
+    return appState == STATE_DECODING && !audioPackets.empty;
+}
+
+#pragma mark - class methods
 
 + (BOOL)canPlayType:(OGVMediaType *)mediaType
 {

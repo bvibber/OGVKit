@@ -38,6 +38,8 @@
     return NO;
 }
 
+#pragma mark - stub property getters
+
 - (BOOL)seekable
 {
     return NO;
@@ -47,6 +49,18 @@
 {
     return INFINITY;
 }
+
+- (BOOL)frameReady
+{
+    return NO;
+}
+
+- (BOOL)audioReady
+{
+    return NO;
+}
+
+#pragma mark - stub static methods
 
 + (BOOL)canPlayType:(NSString *)type
 {

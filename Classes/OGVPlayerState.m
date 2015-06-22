@@ -257,6 +257,7 @@
             
             BOOL readyForFrame = (frameDelay <= fudgeDelta);
             
+            //NSLog(@"%d %d / %d %d (%f - %f)", readyForAudio, decoder.audioReady, readyForFrame, decoder.frameReady, frameEndTimestamp, playbackPosition);
             if (readyForAudio && decoder.audioReady) {
                 //NSLog(@"%f ms audio queued; buffering", audioBufferedDuration * 1000);
                 BOOL ok = [decoder decodeAudio];
@@ -337,6 +338,7 @@
 
 - (void)pingProcessing:(float)delay
 {
+    //NSLog(@"after %f ms", delay * 1000);
     dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delay * NSEC_PER_SEC));
     dispatch_after(popTime, decodeQueue, ^() {
         [self processNextFrame];
