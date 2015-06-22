@@ -116,6 +116,15 @@
     }
 }
 
+-(float)duration
+{
+    if (decoder) {
+        return decoder.duration;
+    } else {
+        return INFINITY;
+    }
+}
+
 #pragma mark - Private decode thread methods
 
 - (void)startDecoder

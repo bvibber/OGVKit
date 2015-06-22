@@ -3,6 +3,7 @@
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="7703"/>
+        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
     </dependencies>
     <customFonts key="customFonts">
         <mutableArray key="ogvkit-iconfont.ttf">
@@ -15,7 +16,9 @@
                 <outlet property="controlBar" destination="EsP-BZ-Yz6" id="kZr-a1-Teq"/>
                 <outlet property="frameView" destination="Gcs-fE-inA" id="mUz-Pm-SAA"/>
                 <outlet property="pausePlayButton" destination="C1P-af-wnM" id="11x-Mz-MjO"/>
+                <outlet property="progressSlider" destination="E0L-Vt-d1P" id="J0Z-lc-54g"/>
                 <outlet property="timeLabel" destination="I5T-iC-1VI" id="3dW-cB-l7u"/>
+                <outlet property="timeRemainingLabel" destination="qHJ-2z-FME" id="DRh-ga-uAS"/>
             </connections>
         </placeholder>
         <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
@@ -29,12 +32,6 @@
                 <view opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="EsP-BZ-Yz6">
                     <rect key="frame" x="0.0" y="552" width="600" height="48"/>
                     <subviews>
-                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="-:--" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="I5T-iC-1VI">
-                            <rect key="frame" x="56" y="17" width="18.5" height="14.5"/>
-                            <fontDescription key="fontDescription" type="system" pointSize="12"/>
-                            <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
-                            <nil key="highlightedColor"/>
-                        </label>
                         <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="C1P-af-wnM">
                             <rect key="frame" x="0.0" y="0.0" width="48" height="48"/>
                             <constraints>
@@ -50,14 +47,37 @@
                                 <action selector="togglePausePlay:" destination="-1" eventType="touchUpInside" id="Fy0-YV-N06"/>
                             </connections>
                         </button>
+                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="-:--" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="I5T-iC-1VI">
+                            <rect key="frame" x="56" y="17" width="18.5" height="14.5"/>
+                            <fontDescription key="fontDescription" type="system" pointSize="12"/>
+                            <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
+                            <nil key="highlightedColor"/>
+                        </label>
+                        <slider opaque="NO" contentMode="scaleToFill" enabled="NO" contentHorizontalAlignment="center" contentVerticalAlignment="center" minValue="0.0" maxValue="1" translatesAutoresizingMaskIntoConstraints="NO" id="E0L-Vt-d1P">
+                            <rect key="frame" x="80.5" y="9" width="486.5" height="31"/>
+                            <connections>
+                                <action selector="onProgressSliderChanged:" destination="-1" eventType="valueChanged" id="RQ5-SO-kBh"/>
+                            </connections>
+                        </slider>
+                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="-:--" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="qHJ-2z-FME">
+                            <rect key="frame" x="573" y="17" width="18.5" height="14.5"/>
+                            <fontDescription key="fontDescription" type="system" pointSize="12"/>
+                            <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
+                            <nil key="highlightedColor"/>
+                        </label>
                     </subviews>
                     <color key="backgroundColor" white="1" alpha="0.5" colorSpace="calibratedWhite"/>
                     <constraints>
                         <constraint firstItem="I5T-iC-1VI" firstAttribute="leading" secondItem="C1P-af-wnM" secondAttribute="trailing" constant="8" id="4AX-L4-zMD"/>
+                        <constraint firstAttribute="centerY" secondItem="qHJ-2z-FME" secondAttribute="centerY" id="5E8-n1-o4F"/>
                         <constraint firstItem="C1P-af-wnM" firstAttribute="centerY" secondItem="EsP-BZ-Yz6" secondAttribute="centerY" id="6vi-ZW-vWx"/>
+                        <constraint firstItem="E0L-Vt-d1P" firstAttribute="leading" secondItem="I5T-iC-1VI" secondAttribute="trailing" constant="8" id="724-BZ-qzW"/>
                         <constraint firstItem="C1P-af-wnM" firstAttribute="leading" secondItem="EsP-BZ-Yz6" secondAttribute="leading" id="CMh-Fs-IRX"/>
+                        <constraint firstItem="qHJ-2z-FME" firstAttribute="leading" secondItem="E0L-Vt-d1P" secondAttribute="trailing" constant="8" id="NV7-sd-3ib"/>
+                        <constraint firstAttribute="centerY" secondItem="E0L-Vt-d1P" secondAttribute="centerY" id="WnE-uJ-Ptv"/>
                         <constraint firstItem="I5T-iC-1VI" firstAttribute="centerY" secondItem="EsP-BZ-Yz6" secondAttribute="centerY" id="YiX-cx-QCr"/>
                         <constraint firstAttribute="height" constant="48" id="md1-UK-sKq"/>
+                        <constraint firstAttribute="trailingMargin" secondItem="qHJ-2z-FME" secondAttribute="trailing" id="qSW-YX-bhl"/>
                     </constraints>
                 </view>
             </subviews>

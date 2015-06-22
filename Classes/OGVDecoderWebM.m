@@ -513,17 +513,23 @@ enum AppState {
 #endif
 }
 
-/**
- * @return segment duration in seconds, or -1 if unknown
- */
+-(BOOL)seekable
+{
+    return self.dataReady &&
+        self.inputStream.seekable &&
+        demuxContext &&
+        nestegg_has_cues(demuxContext);
+}
+
 -(float)duration
 {
-    uint64_t duration_ns;
-    if (nestegg_duration(demuxContext, &duration_ns) < 0) {
-        return -1;
-    } else {
-        return duration_ns / 1000000000.0;
+    if (demuxContext) {
+        uint64_t duration_ns;
+        if (nestegg_duration(demuxContext, &duration_ns) == 0) {
+            return duration_ns / 1000000000.0;
+        }
     }
+    return INFINITY;
 }
 
 + (BOOL)canPlayType:(OGVMediaType *)mediaType

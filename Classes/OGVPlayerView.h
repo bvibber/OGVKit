@@ -35,6 +35,8 @@
 @property (weak, nonatomic) IBOutlet UIView *controlBar;
 @property (weak, nonatomic) IBOutlet UIButton *pausePlayButton;
 @property (weak, nonatomic) IBOutlet UILabel *timeLabel;
+@property (weak, nonatomic) IBOutlet UILabel *timeRemainingLabel;
+@property (weak, nonatomic) IBOutlet UISlider *progressSlider;
 
 @property (nonatomic) NSURL *sourceURL;
 

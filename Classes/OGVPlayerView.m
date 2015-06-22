@@ -199,6 +199,10 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
     }
 }
 
+- (IBAction)onProgressSliderChanged:(id)sender {
+    // @todo
+}
+
 -(BOOL)controlsAreVisible
 {
     return (self.controlBar.alpha == 1.0f);
@@ -289,9 +293,24 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
 -(void)updateTimeLabel
 {
     if (state) {
-        self.timeLabel.text = [self formatTime:state.playbackPosition];
+        float position = state.playbackPosition;
+        self.timeLabel.text = [self formatTime:position];
+
+        float duration = state.duration;
+        if (duration < INFINITY) {
+            self.timeRemainingLabel.text = [self formatTime:position - duration];
+            self.progressSlider.value = position / duration;
+            self.progressSlider.hidden = NO;
+        } else {
+            self.timeRemainingLabel.text = @"";
+            self.progressSlider.value = 0;
+            self.progressSlider.hidden = YES;
+        }
     } else {
         self.timeLabel.text = kOGVPlayerTimeLabelEmpty;
+        self.timeRemainingLabel.text = @"";
+        self.progressSlider.value = 0;
+        self.progressSlider.hidden = YES;
     }
 }
 
@@ -299,7 +318,7 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
 {
     int rounded = (int)roundf(seconds);
     int min = rounded / 60;
-    int sec = rounded % 60;
+    int sec = abs(rounded % 60);
     return [NSString stringWithFormat:@"%d:%02d", min, sec];
 }
 

@@ -38,6 +38,16 @@
     return NO;
 }
 
+- (BOOL)seekable
+{
+    return NO;
+}
+
+- (float)duration
+{
+    return INFINITY;
+}
+
 + (BOOL)canPlayType:(NSString *)type
 {
     return NO;

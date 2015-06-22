@@ -17,6 +17,18 @@
 
 @property BOOL dataReady;
 
+/**
+ * Contains YES if the target media and its underlying data stream
+ * allow seeking; NO if not.
+ */
+@property (readonly) BOOL seekable;
+
+/**
+ * Length of the loaded media segment in seconds, if known;
+ * contains INFINITY if duration cannot be determined.
+ */
+@property (readonly) float duration;
+
 @property BOOL hasVideo;
 @property OGVVideoFormat *videoFormat;
 
@@ -33,6 +45,7 @@
 - (BOOL)decodeAudio;
 - (OGVVideoBuffer *)frameBuffer;
 - (OGVAudioBuffer *)audioBuffer;
+
 + (BOOL)canPlayType:(OGVMediaType *)mediaType;
 
 @end
