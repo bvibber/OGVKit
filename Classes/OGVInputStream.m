@@ -224,8 +224,10 @@ static const NSUInteger kOGVInputStreamBufferSize = 1024 * 1024;
             case OGVInputStreamStateReading:
                 // We're ok.
                 break;
-            case OGVInputStreamStateSeeking:
             case OGVInputStreamStateDone:
+                // We're done so there's no data. Return it now!
+                return nil;
+            case OGVInputStreamStateSeeking:
             case OGVInputStreamStateFailed:
             case OGVInputStreamStateCanceled:
                 NSLog(@"OGVInputStream reading in invalid state %d", (int)self.state);
