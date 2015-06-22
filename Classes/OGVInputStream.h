@@ -18,13 +18,14 @@
 
 @end
 
-typedef NS_ENUM(NSUInteger, OGVInputStreamState) {
+typedef NS_ENUM(int, OGVInputStreamState) {
     OGVInputStreamStateInit = 0,
     OGVInputStreamStateConnecting = 1,
     OGVInputStreamStateReading = 2,
     OGVInputStreamStateSeeking = 3,
     OGVInputStreamStateDone = 4,
-    OGVInputStreamStateFailed = 5
+    OGVInputStreamStateFailed = 5,
+    OGVInputStreamStateCanceled = 6
 };
 
 @interface OGVInputStream : NSObject <NSURLConnectionDataDelegate>
@@ -34,10 +35,11 @@ typedef NS_ENUM(NSUInteger, OGVInputStreamState) {
 @property (readonly) NSURL *URL;
 @property (readonly) OGVInputStreamState state;
 @property (readonly) OGVMediaType *mediaType;
-
+@property (readonly) int64_t length;
+@property (readonly) BOOL seekable;
 @property (readonly) BOOL dataAvailable;
+@property (readonly) int64_t bytePosition;
 @property (readonly) NSUInteger bytesAvailable;
-@property (readonly) NSUInteger bytePosition;
 
 -(instancetype)initWithURL:(NSURL *)URL;
 -(void)start;
@@ -50,5 +52,7 @@ typedef NS_ENUM(NSUInteger, OGVInputStreamState) {
  * If no data is available, returns nil.
  */
 -(NSData *)readBytes:(NSUInteger)nBytes blocking:(BOOL)blocking;
+
+-(void)seek:(int64_t)offset blocking:(BOOL)blocking;
 
 @end

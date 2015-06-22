@@ -184,7 +184,8 @@ enum AppState {
 {
     if (nestegg_init(&demuxContext, ioCallbacks, logCallback, -1) < 0) {
         NSLog(@"nestegg_init failed");
-        // @fixme report error back somehow
+        // @fixme report error back gracefully!
+        abort();
         return;
     }
     

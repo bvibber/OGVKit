@@ -370,8 +370,12 @@
             stream = nil;
             break;
 
+        case OGVInputStreamStateCanceled:
+            // we canceled it, eh
+            break;
+
         default:
-            NSLog(@"Unexpected stream state change!");
+            NSLog(@"Unexpected stream state change! %d", (int)stream.state);
             stream.delegate = nil;
             [stream cancel];
             stream = nil;
