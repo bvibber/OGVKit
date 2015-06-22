@@ -400,12 +400,12 @@ enum AppState {
 	if (vorbisHeaders) {
 		int ret = vorbis_synthesis(&vorbisBlock, &audioPacket);
 		if (ret == 0) {
+            foundSome = 1;
 			vorbis_synthesis_blockin(&vorbisDspState, &vorbisBlock);
 			
 			float **pcm;
 			int sampleCount = vorbis_synthesis_pcmout(&vorbisDspState, &pcm);
 			if (sampleCount > 0) {
-				foundSome = 1;
                 queuedAudio = [[OGVAudioBuffer alloc] initWithPCM:pcm samples:sampleCount format:self.audioFormat];
 				
 				vorbis_synthesis_read(&vorbisDspState, sampleCount);
