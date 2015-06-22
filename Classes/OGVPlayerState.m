@@ -13,7 +13,7 @@
 {
     __weak id<OGVPlayerStateDelegate> delegate;
 
-    OGVStreamFile *stream;
+    OGVInputStream *stream;
     OGVAudioFeeder *audioFeeder;
     OGVDecoder *decoder;
 
@@ -42,7 +42,7 @@
         // draw on UI thread
         drawingQueue = dispatch_get_main_queue();
 
-        stream = [[OGVStreamFile alloc] initWithURL:URL];
+        stream = [[OGVInputStream alloc] initWithURL:URL];
 
         playing = NO;
         playAfterLoad = NO;
@@ -349,21 +349,21 @@
     });
 }
 
-#pragma mark - OGVStreamFileDelegate methods
+#pragma mark - OGVInputStreamDelegate methods
 
--(void)ogvStreamFileStateChanged:(OGVStreamFile *)sender
+-(void)OGVInputStreamStateChanged:(OGVInputStream *)sender
 {
     switch (stream.state) {
-        case OGVStreamFileStateConnecting:
+        case OGVInputStreamStateConnecting:
             // Good... Good. Let the data flow through you!
             break;
 
-        case OGVStreamFileStateReading:
+        case OGVInputStreamStateReading:
             stream.delegate = nil;
             [self startDecoder];
             break;
 
-        case OGVStreamFileStateFailed:
+        case OGVInputStreamStateFailed:
             NSLog(@"Stream file failed.");
             stream.delegate = nil;
             [stream cancel];

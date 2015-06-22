@@ -26,7 +26,7 @@
 @property BOOL audioReady;
 @property BOOL frameReady;
 
-@property OGVStreamFile *inputStream;
+@property OGVInputStream *inputStream;
 
 - (BOOL)process;
 - (BOOL)decodeFrame;

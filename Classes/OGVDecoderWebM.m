@@ -37,7 +37,7 @@ static void logCallback(nestegg *context, unsigned int severity, char const * fo
 static int readCallback(void * buffer, size_t length, void *userdata)
 {
     OGVDecoderWebM *decoder = (__bridge OGVDecoderWebM *)userdata;
-    OGVStreamFile *stream = decoder.inputStream;
+    OGVInputStream *stream = decoder.inputStream;
     NSData *data = [stream readBytes:length blocking:YES];
     if (data) {
         assert([data length] <= length);
@@ -50,7 +50,7 @@ static int readCallback(void * buffer, size_t length, void *userdata)
 
 static int seekCallback(int64_t offset, int whence, void * userdata)
 {
-    // @todo implement on OGVStreamFile
+    // @todo implement on OGVInputStream
     abort();
     return -1;
 }
@@ -58,7 +58,7 @@ static int seekCallback(int64_t offset, int whence, void * userdata)
 static int64_t tellCallback(void * userdata)
 {
     OGVDecoderWebM *decoder = (__bridge OGVDecoderWebM *)userdata;
-    OGVStreamFile *stream = decoder.inputStream;
+    OGVInputStream *stream = decoder.inputStream;
     return (int64_t)stream.bytePosition;
 }
 

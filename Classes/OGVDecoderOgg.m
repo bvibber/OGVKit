@@ -423,7 +423,7 @@ static const NSUInteger kOGVDecoderReadBufferSize = 65536;
 
 - (BOOL)readFromInputStream
 {
-    if (self.inputStream.state == OGVStreamFileStateDone) {
+    if (self.inputStream.state == OGVInputStreamStateDone) {
         // No more data.
         return NO;
     } else {

@@ -28,7 +28,7 @@
 @end
 
 
-@interface OGVPlayerState : NSObject <OGVStreamFileDelegate>
+@interface OGVPlayerState : NSObject <OGVInputStreamDelegate>
 
 -(instancetype)initWithURL:(NSURL *)URL delegate:(id<OGVPlayerStateDelegate>)delegate;
 

@@ -1,40 +1,40 @@
 //
-//  OGVStreamFile.h
+//  OGVInputStream.h
 //  OGVKit
 //
 //  Created by Brion on 6/16/15.
 //  Copyright (c) 2015 Brion Vibber. All rights reserved.
 //
 
-@class OGVStreamFile;
+@class OGVInputStream;
 
-@protocol OGVStreamFileDelegate <NSObject>
-
-@optional
--(void)ogvStreamFileDataAvailable:(OGVStreamFile *)sender;
+@protocol OGVInputStreamDelegate <NSObject>
 
 @optional
--(void)ogvStreamFileStateChanged:(OGVStreamFile *)sender;
+-(void)OGVInputStreamDataAvailable:(OGVInputStream *)sender;
+
+@optional
+-(void)OGVInputStreamStateChanged:(OGVInputStream *)sender;
 
 @end
 
-typedef NS_ENUM(NSUInteger, OGVStreamFileState) {
-    OGVStreamFileStateInit = 0,
-    OGVStreamFileStateConnecting = 1,
-    OGVStreamFileStateFailed = 2,
-    OGVStreamFileStateDone = 3,
-    OGVStreamFileStateReading = 4,
-    OGVStreamFileStateSeeking = 5
+typedef NS_ENUM(NSUInteger, OGVInputStreamState) {
+    OGVInputStreamStateInit = 0,
+    OGVInputStreamStateConnecting = 1,
+    OGVInputStreamStateFailed = 2,
+    OGVInputStreamStateDone = 3,
+    OGVInputStreamStateReading = 4,
+    OGVInputStreamStateSeeking = 5
 };
 
-@interface OGVStreamFile : NSObject <NSURLConnectionDataDelegate>
+@interface OGVInputStream : NSObject <NSURLConnectionDataDelegate>
 
-@property (weak, nonatomic) id<OGVStreamFileDelegate> delegate;
+@property (weak, nonatomic) id<OGVInputStreamDelegate> delegate;
 
 @property (nonatomic) NSUInteger bufferSize;
 
 @property (readonly) NSURL *URL;
-@property (readonly) OGVStreamFileState state;
+@property (readonly) OGVInputStreamState state;
 @property (readonly) OGVMediaType *mediaType;
 
 @property (readonly) BOOL dataAvailable;

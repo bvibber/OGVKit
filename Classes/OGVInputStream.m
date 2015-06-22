@@ -1,5 +1,5 @@
 //
-//  OGVStreamFile.h
+//  OGVInputStream.h
 //  OGVKit
 //
 //  Created by Brion on 6/16/15.
@@ -8,18 +8,18 @@
 
 #import "OGVKit.h"
 
-@interface OGVStreamFile (Private)
+@interface OGVInputStream (Private)
 @property (nonatomic) NSURL *URL;
-@property (nonatomic) OGVStreamFileState state;
+@property (nonatomic) OGVInputStreamState state;
 @property (nonatomic) BOOL dataAvailable;
 @end
 
-@implementation OGVStreamFile
+@implementation OGVInputStream
 {
     NSObject *timeLock;
 
     NSURL *_URL;
-    OGVStreamFileState _state;
+    OGVInputStreamState _state;
     BOOL _dataAvailable;
 
     NSURLConnection *connection;
@@ -50,23 +50,23 @@
     _URL = URL;
 }
 
--(OGVStreamFileState)state
+-(OGVInputStreamState)state
 {
     @synchronized (timeLock) {
         return _state;
     }
 }
 
--(void)setState:(OGVStreamFileState)state
+-(void)setState:(OGVInputStreamState)state
 {
     @synchronized (timeLock) {
-        OGVStreamFileState oldState = _state;
+        OGVInputStreamState oldState = _state;
         _state = state;
         
         if (self.delegate && state != oldState) {
             dispatch_async(dispatch_get_main_queue(), ^() {
-                if ([self.delegate respondsToSelector:@selector(ogvStreamFileStateChanged:)]) {
-                    [self.delegate ogvStreamFileStateChanged:self];
+                if ([self.delegate respondsToSelector:@selector(OGVInputStreamStateChanged:)]) {
+                    [self.delegate OGVInputStreamStateChanged:self];
                 }
             });
         }
@@ -91,8 +91,8 @@
         }
         if (self.delegate && !wasAvailable && dataAvailable) {
             dispatch_async(dispatch_get_main_queue(), ^() {
-                if ([self.delegate respondsToSelector:@selector(ogvStreamFileDataAvailable:)]) {
-                    [self.delegate ogvStreamFileDataAvailable:self];
+                if ([self.delegate respondsToSelector:@selector(OGVInputStreamDataAvailable:)]) {
+                    [self.delegate OGVInputStreamDataAvailable:self];
                 }
             });
         }
@@ -120,7 +120,7 @@
         timeLock = [[NSObject alloc] init];
         self.URL = URL;
         self.bufferSize = 65536;
-        self.state = OGVStreamFileStateInit;
+        self.state = OGVInputStreamStateInit;
         self.dataAvailable = NO;
         inputDataQueue = [[NSMutableArray alloc] init];
     }
@@ -150,15 +150,15 @@
 
     @synchronized (timeLock) {
         switch (self.state) {
-            case OGVStreamFileStateInit:
-            case OGVStreamFileStateConnecting:
-            case OGVStreamFileStateReading:
+            case OGVInputStreamStateInit:
+            case OGVInputStreamStateConnecting:
+            case OGVInputStreamStateReading:
                 // We're ok.
                 break;
-            case OGVStreamFileStateDone:
-            case OGVStreamFileStateFailed:
-            case OGVStreamFileStateSeeking:
-                NSLog(@"OGVStreamFile reading in invalid state %d", (int)self.state);
+            case OGVInputStreamStateDone:
+            case OGVInputStreamStateFailed:
+            case OGVInputStreamStateSeeking:
+                NSLog(@"OGVInputStream reading in invalid state %d", (int)self.state);
                 return nil;
         }
 
@@ -201,7 +201,7 @@
         [connection scheduleInRunLoop:downloadRunLoop forMode:NSRunLoopCommonModes];
         [connection start];
 
-        self.state = OGVStreamFileStateConnecting;
+        self.state = OGVInputStreamStateConnecting;
         doneDownloading = NO;
     }
 
@@ -215,8 +215,8 @@
     while (YES) {
         @synchronized (timeLock) {
             if (self.bytesAvailable >= nBytes ||
-                self.state == OGVStreamFileStateDone ||
-                self.state == OGVStreamFileStateFailed) {
+                self.state == OGVInputStreamStateDone ||
+                self.state == OGVInputStreamStateFailed) {
                 waitingForDataSemaphore = nil;
                 break;
             }
@@ -301,7 +301,7 @@
 
         if (doneDownloading && self.bytesAvailable == 0) {
             // Ran out of input data.
-            self.state = OGVStreamFileStateDone;
+            self.state = OGVInputStreamStateDone;
         }
 
         return outputData;
@@ -314,7 +314,7 @@
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response
 {
     @synchronized (timeLock) {
-        self.state = OGVStreamFileStateReading;
+        self.state = OGVInputStreamStateReading;
         _mediaType = [[OGVMediaType alloc] initWithString:response.MIMEType];
     }
 }
@@ -346,7 +346,7 @@
     @synchronized (timeLock) {
         // @todo if we're in read state, let us read out the rest of data
         // already fetched!
-        self.state = OGVStreamFileStateFailed;
+        self.state = OGVInputStreamStateFailed;
         self.dataAvailable = ([inputDataQueue count] > 0);
 
         if (waitingForDataSemaphore) {
