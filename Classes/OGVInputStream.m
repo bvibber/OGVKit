@@ -296,6 +296,7 @@ static const NSUInteger kOGVInputStreamBufferSize = 1024 * 1024;
         req.cachePolicy = NSURLRequestReloadIgnoringLocalCacheData;
 
         [req addValue:[self nextRange] forHTTPHeaderField:@"Range"];
+        NSLog(@"%@", [self nextRange]);
 
         connection = [[NSURLConnection alloc] initWithRequest:req delegate:self startImmediately:NO];
         [NSThread detachNewThreadSelector:@selector(startDownloadThread:)
@@ -328,7 +329,9 @@ static const NSUInteger kOGVInputStreamBufferSize = 1024 * 1024;
     waitingForDataSemaphore = dispatch_semaphore_create(0);
     while (YES) {
         @synchronized (timeLock) {
+            NSLog(@"waiting: have %ld, want %ld", (long)self.bytesAvailable, (long)nBytes);
             if (self.bytesAvailable >= nBytes ||
+                doneDownloading ||
                 self.state == OGVInputStreamStateDone ||
                 self.state == OGVInputStreamStateFailed ||
                 self.state == OGVInputStreamStateCanceled) {

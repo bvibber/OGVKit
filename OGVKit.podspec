@@ -89,8 +89,10 @@ Pod::Spec.new do |s|
   # Demuxer module subspecs
   s.subspec "OggDemuxer" do |soggdemuxer|
     soggdemuxer.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_OGG_DEMUXER' }
-    soggdemuxer.source_files = "Classes/OGVDecoderOgg.{h,m}"
-    soggdemuxer.dependency 'libogg'
+    soggdemuxer.source_files = "Classes/OGVDecoderOgg.{h,m}",
+                               "Classes/OGVDecoderOggPacket.{h,m}",
+                               "Classes/OGVDecoderOggPacketQueue.{h,m}"
+    soggdemuxer.dependency 'liboggz'
   end
   s.subspec "WebMDemuxer" do |swebmdemuxer|
     swebmdemuxer.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_WEBM_DEMUXER' }
