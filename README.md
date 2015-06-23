@@ -13,12 +13,12 @@ Roadmap section below for more detailed plans.
 Containers:
 * Ogg
  * playback: yes
- * duration: not yet
- * seeking: not yet
+ * duration: yes (uses slow seek)
+ * seeking: yes  (uses slow bisection)
 * WebM
  * playback: yes
- * duration: not yet
- * seeking: not yet
+ * duration: yes
+ * seeking: yes
 
 Video:
 * Theora (ogg only)
