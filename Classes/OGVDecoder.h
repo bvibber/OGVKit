@@ -36,7 +36,10 @@
 @property OGVAudioFormat *audioFormat;
 
 @property (readonly) BOOL audioReady;
+@property (readonly) float audioTimestamp;
+
 @property (readonly) BOOL frameReady;
+@property (readonly) float frameTimestamp;
 
 @property OGVInputStream *inputStream;
 
@@ -45,6 +48,7 @@
 - (BOOL)decodeAudio;
 - (OGVVideoBuffer *)frameBuffer;
 - (OGVAudioBuffer *)audioBuffer;
+- (BOOL)seek:(float)seconds;
 
 + (BOOL)canPlayType:(OGVMediaType *)mediaType;
 

@@ -22,7 +22,7 @@
 #include <vorbis/codec.h>
 #endif
 
-#define PACKET_QUEUE_MAX 128
+#define PACKET_QUEUE_MAX 1280
 
 static void logCallback(nestegg *context, unsigned int severity, char const * format, ...)
 {
@@ -50,9 +50,24 @@ static int readCallback(void * buffer, size_t length, void *userdata)
 
 static int seekCallback(int64_t offset, int whence, void * userdata)
 {
-    // @todo implement on OGVInputStream
-    abort();
-    return -1;
+    OGVDecoderWebM *decoder = (__bridge OGVDecoderWebM *)userdata;
+    OGVInputStream *stream = decoder.inputStream;
+    int64_t position;
+    switch (whence) {
+        case SEEK_SET:
+            position = offset;
+            break;
+        case SEEK_CUR:
+            position = stream.bytePosition + offset;
+            break;
+        case SEEK_END:
+            position = stream.length + offset;
+            break;
+        default:
+            return -1;
+    }
+    [stream seek:position blocking:YES];
+    return 0;
 }
 
 static int64_t tellCallback(void * userdata)
@@ -344,11 +359,9 @@ enum AppState {
     if (packet) {
         unsigned int chunks;
         nestegg_packet_count(packet, &chunks);
-        
-        uint64_t timestamp;
-        nestegg_packet_tstamp(packet, &timestamp);
-        videobufTime = timestamp / 1000000000.0;
-        
+
+        videobufTime = [self packetTimestamp:packet];
+
 #ifdef OGVKIT_HAVE_VP8_DECODER
         // uh, can this happen? curiouser :D
         for (unsigned int chunk = 0; chunk < chunks; ++chunk) {
@@ -486,6 +499,45 @@ enum AppState {
 #endif
 }
 
+
+-(void)flush
+{
+    if (self.hasVideo) {
+        queuedFrame = nil;
+        videoPacketCount = 0;
+    }
+    
+    if (self.hasAudio) {
+        queuedAudio = nil;
+        audioPacketCount = 0;
+    }
+}
+
+- (BOOL)seek:(float)seconds
+{
+    if (self.seekable) {
+        int64_t nanoseconds = (int64_t)(seconds * NSEC_PER_SEC);
+        int ret = nestegg_track_seek(demuxContext, videoTrack, nanoseconds);
+        if (ret < 0) {
+            // uhhh.... not good.
+            NSLog(@"OGVDecoderWebM failed to seek to time position within file");
+            return NO;
+        } else {
+            [self flush];
+            return YES;
+        }
+    } else {
+        return NO;
+    }
+}
+
+-(float)packetTimestamp:(nestegg_packet *)packet
+{
+    uint64_t timestamp;
+    nestegg_packet_tstamp(packet, &timestamp);
+    return (float)timestamp / NSEC_PER_SEC;
+}
+
 #pragma mark - property getters
 
 - (BOOL)frameReady
@@ -493,9 +545,27 @@ enum AppState {
     return appState == STATE_DECODING && (videoPacketCount > 0);
 }
 
+- (float)frameTimestamp
+{
+    if (self.frameReady) {
+        return [self packetTimestamp:videoPackets[0]];
+    } else {
+        return -1;
+    }
+}
+
 - (BOOL)audioReady
 {
     return appState == STATE_DECODING && (audioPacketCount > 0);
+}
+
+- (float)audioTimestamp
+{
+    if (self.audioReady) {
+        return [self packetTimestamp:audioPackets[0]];
+    } else {
+        return -1;
+    }
 }
 
 -(BOOL)seekable

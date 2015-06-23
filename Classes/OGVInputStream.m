@@ -9,7 +9,8 @@
 #import "OGVKit.h"
 #import "OGVHTTPContentRange.h"
 
-static const NSUInteger kOGVInputStreamBufferSize = 1024 * 1024;
+static const NSUInteger kOGVInputStreamBufferSizeSeeking = 1024 * 64;
+static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
 
 @interface OGVInputStream (Private)
 @property (nonatomic) NSURL *URL;
@@ -34,6 +35,9 @@ static const NSUInteger kOGVInputStreamBufferSize = 1024 * 1024;
     BOOL _dataAvailable;
     int64_t _bytePosition;
     NSUInteger _bytesAvailable;
+
+    NSUInteger rangeSize;
+    NSUInteger remainingBytesInRange;
 
     NSURLConnection *connection;
     NSMutableArray *inputDataQueue;
@@ -180,6 +184,8 @@ static const NSUInteger kOGVInputStreamBufferSize = 1024 * 1024;
         _URL = URL;
         _state = OGVInputStreamStateInit;
         _dataAvailable = NO;
+        rangeSize = kOGVInputStreamBufferSizeSeeking; // start small, we may need to seek away
+        remainingBytesInRange = 0;
         inputDataQueue = [[NSMutableArray alloc] init];
     }
     return self;
@@ -259,6 +265,18 @@ static const NSUInteger kOGVInputStreamBufferSize = 1024 * 1024;
 
 -(void)seek:(int64_t)offset blocking:(BOOL)blocking
 {
+    rangeSize = kOGVInputStreamBufferSizeSeeking;
+
+    if (blocking) {
+        // Canceling lots of small connections tends to explode.
+        // Try not exploding them yet.
+        [self waitForBytesAvailable:remainingBytesInRange];
+        
+        if (self.state != OGVInputStreamStateReading) {
+            NSLog(@"Unexpected input stream state after seeking: %d", self.state);
+        }
+    }
+
     @synchronized (timeLock) {
         self.state = OGVInputStreamStateSeeking;
 
@@ -299,6 +317,8 @@ static const NSUInteger kOGVInputStreamBufferSize = 1024 * 1024;
         req.cachePolicy = NSURLRequestReloadIgnoringLocalCacheData;
 
         [req addValue:[self nextRange] forHTTPHeaderField:@"Range"];
+        NSLog(@"Range %lld: %@", (int64_t)rangeSize, [self nextRange]);
+        remainingBytesInRange = rangeSize;
 
         doneDownloading = NO;
         connection = [[NSURLConnection alloc] initWithRequest:req delegate:self startImmediately:NO];
@@ -318,13 +338,27 @@ static const NSUInteger kOGVInputStreamBufferSize = 1024 * 1024;
             [connection start];
         }
     }
+
     [downloadRunLoop run];
+
+    @synchronized (timeLock) {
+        // In case one of our download attempts silently failed while
+        // we were waiting on it for a blocking read, it would be nice
+        // to know about it.
+        if (waitingForDataSemaphore) {
+            NSLog(@"URL download may have failed? poking foreground thread with a stick...");
+            if (connection == obj) {
+                NSLog(@"yeah def");
+            }
+            dispatch_semaphore_signal(waitingForDataSemaphore);
+        }
+    }
 }
 
 -(NSString *)nextRange
 {
     int64_t start = self.bytePosition + self.bytesAvailable;
-    int64_t end = start + kOGVInputStreamBufferSize;
+    int64_t end = start + rangeSize;
     return [NSString stringWithFormat:@"bytes=%lld-%lld", start, end - 1];
 }
 
@@ -334,12 +368,14 @@ static const NSUInteger kOGVInputStreamBufferSize = 1024 * 1024;
     waitingForDataSemaphore = dispatch_semaphore_create(0);
     while (YES) {
         @synchronized (timeLock) {
-            NSLog(@"waiting: have %ld, want %ld", (long)self.bytesAvailable, (long)nBytes);
+            NSLog(@"waiting: have %ld, want %ld; done %d, state %d, rangeSize %d, remaining %d", (long)self.bytesAvailable, (long)nBytes, (int)doneDownloading, (int)self.state, (int)rangeSize, (int)remainingBytesInRange);
             if (self.bytesAvailable >= nBytes ||
                 doneDownloading ||
                 self.state == OGVInputStreamStateDone ||
                 self.state == OGVInputStreamStateFailed ||
                 self.state == OGVInputStreamStateCanceled) {
+
+                NSLog(@"data received; continuing!");
                 waitingForDataSemaphore = nil;
                 break;
             }
@@ -356,6 +392,7 @@ static const NSUInteger kOGVInputStreamBufferSize = 1024 * 1024;
     @synchronized (timeLock) {
         [inputDataQueue addObject:data];
         self.bytesAvailable += [data length];
+        remainingBytesInRange -= [data length];
 
         if ([inputDataQueue count] == 1) {
             self.dataAvailable = YES;
@@ -431,7 +468,12 @@ static const NSUInteger kOGVInputStreamBufferSize = 1024 * 1024;
                     self.state = OGVInputStreamStateDone;
                 }
             } else {
-                if (self.bytesAvailable < kOGVInputStreamBufferSize) {
+                if (self.bytesAvailable < rangeSize) {
+                    // After a successful seek-related read range completes,
+                    // bump our stream size back up
+                    if (rangeSize < kOGVInputStreamBufferSizeReading) {
+                        rangeSize = MIN(rangeSize * 2, kOGVInputStreamBufferSizeReading);
+                    }
                     [self startDownload];
                 }
             }
@@ -469,6 +511,7 @@ static const NSUInteger kOGVInputStreamBufferSize = 1024 * 1024;
                             if (contentLength) {
                                 self.length = [contentLength longLongValue];
                             }
+                            remainingBytesInRange = 0;
                             self.seekable = NO;
                         } else {
                             NSLog(@"Unexpected HTTP status %d in OGVInputStream", (int)statusCode);
@@ -496,6 +539,10 @@ static const NSUInteger kOGVInputStreamBufferSize = 1024 * 1024;
                     NSLog(@"invalid state %d in -[OGVInputStream connection:didReceiveResponse:]", (int)self.state);
             }
         }
+
+        if (waitingForDataSemaphore) {
+            dispatch_semaphore_signal(waitingForDataSemaphore);
+        }
     }
 }
 
@@ -504,10 +551,10 @@ static const NSUInteger kOGVInputStreamBufferSize = 1024 * 1024;
     @synchronized (timeLock) {
         if (sender == connection) {
             [self queueData:data];
+        }
 
-            if (waitingForDataSemaphore) {
-                dispatch_semaphore_signal(waitingForDataSemaphore);
-            }
+        if (waitingForDataSemaphore) {
+            dispatch_semaphore_signal(waitingForDataSemaphore);
         }
     }
 }
@@ -523,11 +570,12 @@ static const NSUInteger kOGVInputStreamBufferSize = 1024 * 1024;
             }
             if (doneDownloading) {
                 self.dataAvailable = ([inputDataQueue count] > 0);
-                if (waitingForDataSemaphore) {
-                    dispatch_semaphore_signal(waitingForDataSemaphore);
-                }
             }
             connection = nil;
+        }
+
+        if (waitingForDataSemaphore) {
+            dispatch_semaphore_signal(waitingForDataSemaphore);
         }
     }
 }
@@ -540,12 +588,13 @@ static const NSUInteger kOGVInputStreamBufferSize = 1024 * 1024;
             // already fetched!
             self.state = OGVInputStreamStateFailed;
             self.dataAvailable = ([inputDataQueue count] > 0);
+        }
 
-            if (waitingForDataSemaphore) {
-                dispatch_semaphore_signal(waitingForDataSemaphore);
-            }
+        if (waitingForDataSemaphore) {
+            dispatch_semaphore_signal(waitingForDataSemaphore);
         }
     }
 }
+
 
 @end

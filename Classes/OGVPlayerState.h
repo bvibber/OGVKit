@@ -35,9 +35,12 @@
 -(void)play;
 -(void)pause;
 -(void)cancel;
+-(void)seek:(float)time;
 
 @property (readonly) BOOL paused;
 @property (readonly) float playbackPosition;
 @property (readonly) float duration;
+@property (readonly) BOOL seekable;
+
 
 @end

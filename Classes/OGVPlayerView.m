@@ -43,6 +43,7 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
     OGVPlayerState *state;
     NSTimer *timeTimer;
     NSTimer *controlsTimeout;
+    NSTimer *seekTimeout;
 }
 
 #pragma mark - Public methods
@@ -201,6 +202,22 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
 
 - (IBAction)onProgressSliderChanged:(id)sender {
     // @todo
+    if (state.seekable) {
+        if (seekTimeout) {
+            [seekTimeout invalidate];
+        }
+        seekTimeout = [NSTimer timerWithTimeInterval:0.25f target:self selector:@selector(onSeekTimeout:) userInfo:state repeats:NO];
+        [[NSRunLoop currentRunLoop] addTimer:seekTimeout forMode:NSRunLoopCommonModes];
+    }
+}
+
+-(void)onSeekTimeout:(NSTimer *)timer
+{
+    if (timer.userInfo == state) {
+        float targetTime = self.progressSlider.value * state.duration;
+        [state seek:targetTime];
+        seekTimeout = nil;
+    }
 }
 
 -(BOOL)controlsAreVisible
@@ -301,6 +318,7 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
             self.timeRemainingLabel.text = [self formatTime:position - duration];
             self.progressSlider.value = position / duration;
             self.progressSlider.hidden = NO;
+            self.progressSlider.enabled = state.seekable;
         } else {
             self.timeRemainingLabel.text = @"";
             self.progressSlider.value = 0;

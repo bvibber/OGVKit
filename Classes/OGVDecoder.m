@@ -38,6 +38,11 @@
     return NO;
 }
 
+- (BOOL)seek:(float)seconds
+{
+    return NO;
+}
+
 #pragma mark - stub property getters
 
 - (BOOL)seekable
@@ -50,14 +55,24 @@
     return INFINITY;
 }
 
+- (BOOL)audioReady
+{
+    return NO;
+}
+
+- (float)audioTimestamp
+{
+    return -1;
+}
+
 - (BOOL)frameReady
 {
     return NO;
 }
 
-- (BOOL)audioReady
+- (float)frameTimestamp
 {
-    return NO;
+    return -1;
 }
 
 #pragma mark - stub static methods

@@ -101,6 +101,38 @@
     });
 }
 
+-(void)seek:(float)time
+{
+    dispatch_async(decodeQueue, ^() {
+        if (decoder && decoder.seekable) {
+            BOOL wasPlaying = !self.paused;
+            if (wasPlaying) {
+                [self pause];
+            }
+            dispatch_async(decodeQueue, ^() {
+                frameEndTimestamp = time;
+                initialAudioTimestamp = time;
+
+                BOOL ok = [decoder seek:time];
+
+                if (ok) {
+                    float ts = [self timestampAfterSeek];
+                    //NSLog(@"%f, was %f / %f", ts, frameEndTimestamp, initialAudioTimestamp);
+
+                    frameEndTimestamp = ts;
+                    initialAudioTimestamp = ts;
+                    if (wasPlaying) {
+                        [self play];
+                    }
+                }
+            });
+        }
+    });
+}
+
+
+#pragma mark - getters/setters
+
 -(BOOL)paused
 {
     return !playing;
@@ -122,6 +154,15 @@
         return decoder.duration;
     } else {
         return INFINITY;
+    }
+}
+
+-(BOOL)seekable
+{
+    if (decoder) {
+        return decoder.seekable;
+    } else {
+        return NO;
     }
 }
 
@@ -175,7 +216,7 @@
     assert(decoder.hasAudio);
     assert(!audioFeeder);
     audioFeeder = [[OGVAudioFeeder alloc] initWithFormat:decoder.audioFormat];
-    //NSLog(@"start: %f", initialAudioTimestamp);
+    NSLog(@"start: %f", initialAudioTimestamp);
 }
 
 -(void)stopAudio
@@ -358,6 +399,40 @@
         [delegate ogvPlayerState:self drawFrame:buffer];
         [self pingProcessing:0];
     });
+}
+
+-(float)timestampAfterSeek
+{
+    while (true) {
+        if (decoder.hasAudio) {
+            if (decoder.audioReady) {
+                float ts = decoder.audioTimestamp;
+                if (ts < 0) {
+                    NSLog(@"decoder.audioTimestamp invalid or unimplemented in post-seek sync");
+                    return initialAudioTimestamp;
+                } else {
+                    return ts;
+                }
+            }
+        } else if (decoder.hasVideo) {
+            if (decoder.frameReady) {
+                float ts = decoder.frameTimestamp;
+                if (ts < 0) {
+                    NSLog(@"decoder.frameTimestamp invalid or unimplemented in post-seek sync");
+                    return initialAudioTimestamp;
+                } else {
+                    return ts;
+                }
+            }
+        } else {
+            NSLog(@"Got to end of file before resynced timestamps.");
+            return initialAudioTimestamp;
+        }
+        if (![decoder process]) {
+            NSLog(@"Got to end of file before found timestamps again after seek.");
+            return initialAudioTimestamp;
+        }
+    }
 }
 
 #pragma mark - OGVInputStreamDelegate methods

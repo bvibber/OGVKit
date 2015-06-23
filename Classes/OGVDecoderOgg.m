@@ -647,6 +647,24 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
     }
 }
 
+- (BOOL)seek:(float)seconds
+{
+    if (self.seekable) {
+        long milliseconds = (long)(seconds * 1000.0f);
+        ogg_int64_t pos = oggz_seek_units(oggz, milliseconds, SEEK_SET);
+        if (pos < 0) {
+            // uhhh.... not good.
+            NSLog(@"OGVDecoderOgg failed to seek to time position within file");
+            return NO;
+        } else {
+            [self flush];
+            return YES;
+        }
+    } else {
+        return NO;
+    }
+}
+
 #pragma mark - property getters
 
 - (BOOL)frameReady
@@ -654,14 +672,41 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
     return appState == STATE_DECODING && !videoPackets.empty;
 }
 
+- (float)frameTimestamp
+{
+    return [self decodeTimestamp];
+}
+
 - (BOOL)audioReady
 {
     return appState == STATE_DECODING && !audioPackets.empty;
 }
 
+- (float)audioTimestamp
+{
+    return [self decodeTimestamp];
+}
+
+- (float)decodeTimestamp
+{
+    ogg_int64_t milliseconds = oggz_tell_units(oggz);
+    if (milliseconds < 0) {
+        return -1;
+    } else {
+        return (float)milliseconds / 1000;
+    }
+}
+
 - (float)duration
 {
     return duration;
+}
+
+- (BOOL)seekable
+{
+    return (appState == STATE_DECODING) &&
+           (self.inputStream.seekable) &&
+           (duration < INFINITY);
 }
 
 #pragma mark - class methods
