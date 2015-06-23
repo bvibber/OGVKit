@@ -45,6 +45,11 @@
     return packet;
 }
 
+- (void)flush
+{
+    [packets removeAllObjects];
+}
+
 - (BOOL)empty
 {
     return ([packets count] == 0);

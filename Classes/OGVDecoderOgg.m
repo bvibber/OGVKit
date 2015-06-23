@@ -48,9 +48,24 @@ static size_t readCallback(void *user_handle, void *buf, size_t n)
 
 static int seekCallback(void *user_handle, long offset, int whence)
 {
-    // @todo implement on OGVInputStream
-    abort();
-    return -1;
+    OGVDecoderOgg *decoder = (__bridge OGVDecoderOgg *)user_handle;
+    OGVInputStream *stream = decoder.inputStream;
+    int64_t position;
+    switch (whence) {
+        case SEEK_SET:
+            position = offset;
+            break;
+        case SEEK_CUR:
+            position = stream.bytePosition + offset;
+            break;
+        case SEEK_END:
+            position = stream.length + offset;
+            break;
+        default:
+            return -1;
+    }
+    [stream seek:position blocking:YES];
+    return (int)position;
 }
 
 static long tellCallback(void *user_handle)
@@ -80,7 +95,9 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
     OggzStreamContent audioCodec;
     BOOL audioHeadersComplete;
     OGVDecoderOggPacketQueue *audioPackets;
-    
+
+    float duration;
+
 #ifdef OGVKIT_HAVE_THEORA_DECODER
     /* Video decode state */
     //ogg_stream_state  theoraStreamState;
@@ -115,6 +132,7 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
     enum AppState {
         STATE_BEGIN,
         STATE_HEADERS,
+        STATE_DURATION,
         STATE_DECODING
     } appState;
 }
@@ -125,11 +143,12 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
     self = [super init];
     if (self) {
         self.dataReady = NO;
-        
+
         appState = STATE_BEGIN;
-        
+        duration = INFINITY;
+
         /* start up Ogg stream synchronization layer */
-        oggz = oggz_new(OGGZ_READ);
+        oggz = oggz_new(OGGZ_READ | OGGZ_AUTO);
         oggz_io_set_read(oggz, readCallback, (__bridge void *)self);
         oggz_io_set_seek(oggz, seekCallback, (__bridge void *)self);
         oggz_io_set_tell(oggz, tellCallback, (__bridge void *)self);
@@ -160,16 +179,21 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
             return [self processBegin:packet serialno:serialno];
         case STATE_HEADERS:
             return [self processHeaders:packet serialno:serialno];
+        case STATE_DURATION:
+            // In duration check state we just want to run through the stream
+            // until we find the last packet, and check its time.
+            return OGGZ_CONTINUE;
         case STATE_DECODING:
             return [self processDecoding:packet serialno:serialno];
         default:
-            abort();
+            NSLog(@"Invalid state in Ogg readPacketCallback");
+            return OGGZ_STOP_ERR;
     }
 }
 
 - (int)processBegin:(OGVDecoderOggPacket *)packet serialno:(long)serialno
 {
-    BOOL bos = packet.oggPacket->b_o_s;
+    BOOL bos = (packet.oggPacket->b_o_s != 0);
     if (!bos) {
         // Not a bitstream start -- move on to header decoding...
         appState = STATE_HEADERS;
@@ -220,6 +244,8 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
 
 - (int) processHeaders:(OGVDecoderOggPacket *)packet serialno:(long)serialno
 {
+    assert(audioStream || videoStream);
+
     if (videoStream == serialno) {
         if (videoHeadersComplete) {
             [videoPackets queue:packet];
@@ -290,14 +316,18 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
         }
     }
 
-    if ((audioStream && !audioHeadersComplete) || (videoStream && !videoHeadersComplete)) {
-        return OGGZ_CONTINUE;
-    } else {
-        self.hasVideo = videoHeadersComplete;
-        self.hasAudio = audioHeadersComplete;
-        self.dataReady = YES;
-        appState = STATE_DECODING;
+    BOOL isComplete = YES;
+    if (audioStream) {
+        isComplete = isComplete && audioHeadersComplete;
+    }
+    if (videoStream) {
+        isComplete = isComplete && videoHeadersComplete;
+    }
+    if (isComplete) {
+        appState = STATE_DURATION;
         return OGGZ_STOP_OK;
+    } else {
+        return OGGZ_CONTINUE;
     }
 }
 
@@ -319,6 +349,64 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
     }
 }
 #endif
+
+-(BOOL)extractDuration
+{
+    // @todo use X-Content-Duration from stream if available
+    // @todo use ogg skeleton track info if available
+    
+    // Do it the hard way: seek to the end and find the time of the last packet.
+    // Beware this will be slow over the network.
+    if (self.inputStream.seekable) {
+        long endChunkSize = 256 * 1024;
+        //oggz_off_t currentPosition = oggz_tell(oggz);
+
+        oggz_off_t ret = oggz_seek(oggz, -endChunkSize, SEEK_END);
+        if (ret < 0) {
+            NSLog(@"Unable to seek to end of Ogg file for duration check.");
+            return NO;
+        }
+        
+        while (true) {
+            long readRet = oggz_read(oggz, kOGVDecoderReadBufferSize);
+            if (readRet == OGGZ_ERR_HOLE_IN_DATA) {
+                // We seeked to mid-stream so this is expected.
+                NSLog(@"resyncing ogg stream...");
+                continue;
+            } else if (readRet == OGGZ_ERR_STOP_OK) {
+                // Not sure why this happens. Our callback should
+                // not be returning it during seek state!
+                continue;
+            } else if (readRet == 0) {
+                // Got to the end of the file.
+                break;
+            } else if (readRet < 0) {
+                NSLog(@"Error %d reading for Ogg file duration.", (int)readRet);
+                return NO;
+            } else {
+                // processed some number of bytes...
+            }
+        }
+
+        ogg_int64_t finalTime = oggz_tell_units(oggz);
+        if (finalTime < 0) {
+            NSLog(@"Unable to read time from end of Ogg file for duration check: %d", (int)finalTime);
+            return NO;
+        }
+        duration = (float)finalTime / 1000.0f;
+        NSLog(@"duration: %f", duration);
+
+        ret = oggz_seek(oggz, 0, SEEK_SET);
+        if (ret < 0) {
+            NSLog(@"Unable to seek back to current Ogg position in duration check: %d", (int)ret);
+            return NO;
+        }
+
+        [self flush];
+    }
+
+    return YES;
+}
 
 - (int)processDecoding:(OGVDecoderOggPacket *)packet serialno:(long)serialno
 {
@@ -460,14 +548,34 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
 {
     BOOL needData;
     switch (appState) {
+        case STATE_DURATION:
+            if ([self extractDuration]) {
+                self.hasVideo = videoHeadersComplete;
+                self.hasAudio = audioHeadersComplete;
+                self.dataReady = YES;
+                
+                appState = STATE_DECODING;
+                return YES;
+            } else {
+                // something exploded
+                NSLog(@"error during Ogg duration extraction");
+                return NO;
+            }
+            break;
+
+        case STATE_BEGIN:
+        case STATE_HEADERS:
+            needData = YES;
+            break;
+            
         case STATE_DECODING:
             needData = (self.hasAudio && audioPackets.empty) ||
                        (self.hasVideo && videoPackets.empty);
             break;
-        case STATE_BEGIN:
-        case STATE_HEADERS:
+
         default:
-            needData = YES;
+            NSLog(@"Invalid internal state %d in OGVDecoderOgg", (int)appState);
+            return NO;
     }
 
     if (needData) {
@@ -492,6 +600,10 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
         }
     } else if (self.inputStream.state == OGVInputStreamStateReading) {
         // nothing to do right now (??)
+        return 1;
+    } else if (self.inputStream.state == OGVInputStreamStateSeeking) {
+        // this shouldn't actually happen!
+        NSLog(@"Called decoder process during seeking, beware!");
         return 1;
     } else {
         NSLog(@"Input stream done or errored, state %d", (int)self.inputStream.state);
@@ -522,6 +634,19 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
     oggz_close(oggz);
 }
 
+-(void)flush
+{
+    if (videoStream) {
+        queuedFrame = nil;
+        [videoPackets flush];
+    }
+
+    if (audioStream) {
+        queuedAudio = nil;
+        [audioPackets flush];
+    }
+}
+
 #pragma mark - property getters
 
 - (BOOL)frameReady
@@ -532,6 +657,11 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
 - (BOOL)audioReady
 {
     return appState == STATE_DECODING && !audioPackets.empty;
+}
+
+- (float)duration
+{
+    return duration;
 }
 
 #pragma mark - class methods

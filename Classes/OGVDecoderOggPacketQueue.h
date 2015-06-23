@@ -16,5 +16,6 @@
 - (void)queue:(OGVDecoderOggPacket *)packet;
 - (OGVDecoderOggPacket *)peek;
 - (OGVDecoderOggPacket *)dequeue;
+- (void)flush;
 
 @end

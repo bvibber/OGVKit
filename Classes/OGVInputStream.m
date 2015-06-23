@@ -198,7 +198,6 @@ static const NSUInteger kOGVInputStreamBufferSize = 1024 * 1024;
         assert(self.state == OGVInputStreamStateInit);
 
         self.state = OGVInputStreamStateConnecting;
-        doneDownloading = NO;
         [self startDownload];
     }
 }
@@ -276,6 +275,10 @@ static const NSUInteger kOGVInputStreamBufferSize = 1024 * 1024;
 
     if (blocking) {
         [self waitForBytesAvailable:1];
+        
+        if (self.state != OGVInputStreamStateReading) {
+            NSLog(@"Unexpected input stream state after seeking: %d", self.state);
+        }
     }
 }
 
@@ -285,7 +288,7 @@ static const NSUInteger kOGVInputStreamBufferSize = 1024 * 1024;
 {
     @synchronized (timeLock) {
         assert(connection == nil);
-        
+
         NSMutableURLRequest *req = [NSMutableURLRequest requestWithURL:self.URL];
 
         // Local NSURLConnection cache gets corrupted by use of Range: headers.
@@ -297,6 +300,7 @@ static const NSUInteger kOGVInputStreamBufferSize = 1024 * 1024;
 
         [req addValue:[self nextRange] forHTTPHeaderField:@"Range"];
 
+        doneDownloading = NO;
         connection = [[NSURLConnection alloc] initWithRequest:req delegate:self startImmediately:NO];
         [NSThread detachNewThreadSelector:@selector(startDownloadThread:)
                                  toTarget:self
@@ -482,8 +486,11 @@ static const NSUInteger kOGVInputStreamBufferSize = 1024 * 1024;
                     self.state = OGVInputStreamStateReading;
                     break;
                 case OGVInputStreamStateReading:
-                case OGVInputStreamStateSeeking:
                     // We're just continuing a stream already connected to.
+                    break;
+                case OGVInputStreamStateSeeking:
+                    // Reconnected. THE BYTES MUST FLOW
+                    self.state = OGVInputStreamStateReading;
                     break;
                 default:
                     NSLog(@"invalid state %d in -[OGVInputStream connection:didReceiveResponse:]", (int)self.state);
