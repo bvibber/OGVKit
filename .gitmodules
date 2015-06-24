@@ -1,0 +1,3 @@
+[submodule "libskeleton"]
+	path = libskeleton
+	url = https://github.com/brion/libskeleton.git
