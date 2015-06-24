@@ -32,7 +32,8 @@
 - (int)readPacketCallback:(OGVDecoderOggPacket *)packet serialno:(long)serialno;
 @end
 
-static const NSUInteger kOGVDecoderReadBufferSize = 65536;
+//static const NSUInteger kOGVDecoderReadBufferSize = 65536;
+static const NSUInteger kOGVDecoderReadBufferSize = 20000;
 
 static size_t readCallback(void *user_handle, void *buf, size_t n)
 {
@@ -697,7 +698,8 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
 - (BOOL)seekViaSkeleton:(float)seconds
 {
     int64_t offset = [self keypointOffset:seconds];
-    [self.inputStream seek:offset blocking:YES];
+    //[self.inputStream seek:offset blocking:YES];
+    oggz_seek(oggz, offset, SEEK_SET);
     [self flush];
     return YES;
 }

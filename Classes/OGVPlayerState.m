@@ -110,17 +110,19 @@
                 [self pause];
             }
             dispatch_async(decodeQueue, ^() {
+                // Save our approximate time...
                 frameEndTimestamp = time;
                 initialAudioTimestamp = time;
 
                 BOOL ok = [decoder seek:time];
 
                 if (ok) {
-                    float ts = [self timestampAfterSeek];
-                    //NSLog(@"%f, was %f / %f", ts, frameEndTimestamp, initialAudioTimestamp);
+                    // Find out the actual time we seeked to!
+                    // We may have gone to a keyframe nearby.
+                    [self syncAfterSeek];
+                    frameEndTimestamp = decoder.frameTimestamp;
+                    initialAudioTimestamp = decoder.audioTimestamp;
 
-                    frameEndTimestamp = ts;
-                    initialAudioTimestamp = ts;
                     if (wasPlaying) {
                         [self play];
                     }
@@ -401,36 +403,12 @@
     });
 }
 
--(float)timestampAfterSeek
+-(BOOL)syncAfterSeek
 {
-    while (true) {
-        if (decoder.hasAudio) {
-            if (decoder.audioReady) {
-                float ts = decoder.audioTimestamp;
-                if (ts < 0) {
-                    NSLog(@"decoder.audioTimestamp invalid or unimplemented in post-seek sync");
-                    return initialAudioTimestamp;
-                } else {
-                    return ts;
-                }
-            }
-        } else if (decoder.hasVideo) {
-            if (decoder.frameReady) {
-                float ts = decoder.frameTimestamp;
-                if (ts < 0) {
-                    NSLog(@"decoder.frameTimestamp invalid or unimplemented in post-seek sync");
-                    return initialAudioTimestamp;
-                } else {
-                    return ts;
-                }
-            }
-        } else {
-            NSLog(@"Got to end of file before resynced timestamps.");
-            return initialAudioTimestamp;
-        }
+    while ((decoder.hasAudio && !decoder.audioReady) || (decoder.hasVideo && !decoder.frameReady)) {
         if (![decoder process]) {
-            NSLog(@"Got to end of file before found timestamps again after seek.");
-            return initialAudioTimestamp;
+            NSLog(@"Got to end of file before found data again after seek.");
+            break;
         }
     }
 }
@@ -445,6 +423,7 @@
             break;
 
         case OGVInputStreamStateReading:
+            // Break the stream off from us and send it to the decoder.
             stream.delegate = nil;
             [self startDecoder];
             break;
