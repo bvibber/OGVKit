@@ -41,8 +41,10 @@
 @property (nonatomic) NSURL *sourceURL;
 
 @property (readonly) BOOL paused;
+@property (readonly) float playbackPosition;
 
 -(void)play;
 -(void)pause;
+-(void)seek:(float)seconds;
 
 @end

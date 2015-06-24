@@ -117,6 +117,22 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
     }
 }
 
+- (void)seek:(float)seconds
+{
+    if (state) {
+        [state seek:seconds];
+    }
+}
+
+- (float)playbackPosition
+{
+    if (state) {
+        return state.playbackPosition;
+    } else {
+        return 0;
+    }
+}
+
 #pragma mark - private methods
 
 -(void)setup

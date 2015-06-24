@@ -19,6 +19,7 @@
     NSInteger selectedSource;
     BOOL useWebM;
     int resolution;
+    float lastPosition;
 }
 
 - (void)viewDidLoad
@@ -82,11 +83,13 @@
 
         self.player.sourceURL = [NSURL URLWithString:str];
         // @todo separate load & play...
-        [self.player play];
+        //[self.player play];
     }
 }
 
 - (IBAction)selectFormat:(id)sender {
+    lastPosition = self.player.playbackPosition;
+
     BOOL wasWebM = useWebM;
     useWebM = (self.formatSelector.selectedSegmentIndex == 0);
     if (wasWebM != useWebM) {
@@ -125,6 +128,8 @@
 }
 
 - (IBAction)resolutionSelected:(id)sender {
+    lastPosition = self.player.playbackPosition;
+    
     int oldResolution = resolution;
     resolution = [resolutions[self.resolutionSelector.selectedSegmentIndex] intValue];
 
@@ -171,8 +176,20 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 
 #pragma mark - OGVPlayerDelegate methods
 
+- (void)ogvPlayerDidLoadMetadata:(OGVPlayerView *)sender
+{
+    if (lastPosition > 0) {
+        [self.player seek:lastPosition];
+        lastPosition = 0;
+    }
+
+    [self.player play];
+}
+
 - (void)ogvPlayerDidEnd:(OGVPlayerView *)sender
 {
+    lastPosition = 0;
+
     NSInteger nextSource = selectedSource + 1;
     if (nextSource < [sources count]) {
         [self.tableView selectRowAtIndexPath:[NSIndexPath indexPathForItem:nextSource inSection:0]
