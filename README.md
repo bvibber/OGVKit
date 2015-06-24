@@ -13,8 +13,8 @@ Roadmap section below for more detailed plans.
 Containers:
 * Ogg
  * playback: yes
- * duration: yes (uses slow seek)
- * seeking: yes  (uses slow bisection)
+ * duration: yes (uses skeleton or slow seek)
+ * seeking: yes  (uses skeleton or slow bisection)
 * WebM
  * playback: yes
  * duration: yes
@@ -157,5 +157,6 @@ See [milestones in issue tracker](https://github.com/brion/OGVKit/milestones) fo
 * v1 stable player API
 * v1.1 extras: fullscreen, AirPlay, etc
 * v1.2 performance
+* v1.3 adaptive bitrate streaming
 * v2 internals and API refactor
-* v3 encoder & transcoding
+* v2.1 encoder & transcoding
