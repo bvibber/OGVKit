@@ -711,9 +711,9 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
     const size_t nstreams = 1;
     ogg_int32_t serial_nos[nstreams];
     if (videoHeadersComplete) {
-        serial_nos[0] = videoStream;
+        serial_nos[0] = (ogg_int32_t)videoStream;
     } else if (audioHeadersComplete) {
-        serial_nos[0] = audioStream;
+        serial_nos[0] = (ogg_int32_t)audioStream;
     }
 
     ogg_int64_t offset;
@@ -746,10 +746,10 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
     ogg_int32_t serial_nos[4];
     size_t nstreams = 0;
     if (videoStream) {
-        serial_nos[nstreams++] = videoStream;
+        serial_nos[nstreams++] = (ogg_int32_t)videoStream;
     }
     if (audioStream) {
-        serial_nos[nstreams++] = audioStream;
+        serial_nos[nstreams++] = (ogg_int32_t)audioStream;
     }
     
     float firstSample = -1;
