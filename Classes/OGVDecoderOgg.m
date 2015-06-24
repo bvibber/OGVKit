@@ -117,11 +117,7 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
 #endif
     
     /* single frame video buffering */
-    ogg_int64_t  videobuf_granulepos;
-    double       videobuf_time;
     OGVVideoBuffer *queuedFrame;
-    
-    ogg_int64_t  audiobuf_granulepos; /* time position of last sample */
     
     /* Audio decode state */
     int              vorbis_p;
@@ -470,21 +466,12 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
 
 #ifdef OGVKIT_HAVE_THEORA_DECODER
     if (videoCodec == OGGZ_CONTENT_THEORA) {
-        int ret = th_decode_packetin(theoraDecoderContext, packet.oggPacket, &videobuf_granulepos);
-        if (ret == 0){
-            double t = th_granule_time(theoraDecoderContext,videobuf_granulepos);
-            if (t > 0) {
-                videobuf_time = t;
-            } else {
-                // For some reason sometimes we get a bunch of 0s out of th_granule_time
-                videobuf_time += 1.0 / ((double)theoraInfo.fps_numerator / theoraInfo.fps_denominator);
-            }
-            [self doDecodeTheora];
-            return YES;
-        } else if (ret == TH_DUPFRAME) {
-            // Duplicated frame, advance time
-            videobuf_time += 1.0 / ((double)theoraInfo.fps_numerator / theoraInfo.fps_denominator);
-            [self doDecodeTheora];
+        ogg_int64_t videobuf_granulepos = packet.oggzPacket->pos.calc_granulepos;
+        float videobuf_time = th_granule_time(theoraDecoderContext, videobuf_granulepos);
+
+        int ret = th_decode_packetin(theoraDecoderContext, packet.oggPacket, nil);
+        if (ret == 0 || ret == TH_DUPFRAME){
+            [self doDecodeTheora:videobuf_time];
             return YES;
         } else {
             NSLog(@"Theora decoder failed mysteriously? %d", ret);
@@ -497,7 +484,7 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
 }
 
 #ifdef OGVKIT_HAVE_THEORA_DECODER
--(void)doDecodeTheora
+-(void)doDecodeTheora:(float)timestamp
 {
     assert(queuedFrame == nil);
 
@@ -520,7 +507,7 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
                                                                   Y:Y
                                                                  Cb:Cb
                                                                  Cr:Cr
-                                                          timestamp:videobuf_time];
+                                                          timestamp:timestamp];
     queuedFrame = buffer;
 }
 #endif
@@ -807,7 +794,14 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
 
 - (float)frameTimestamp
 {
-    return [self decodeTimestamp];
+    OGVDecoderOggPacket *packet = [videoPackets peek];
+    if (packet) {
+        ogg_int64_t videobuf_granulepos = packet.oggzPacket->pos.calc_granulepos;
+        float videobuf_time = th_granule_time(theoraDecoderContext, videobuf_granulepos);
+        return videobuf_time;
+    } else {
+        return -1;
+    }
 }
 
 - (BOOL)audioReady
@@ -817,16 +811,13 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
 
 - (float)audioTimestamp
 {
-    return [self decodeTimestamp];
-}
-
-- (float)decodeTimestamp
-{
-    ogg_int64_t milliseconds = oggz_tell_units(oggz);
-    if (milliseconds < 0) {
-        return -1;
+    OGVDecoderOggPacket *packet = [audioPackets peek];
+    if (packet) {
+        ogg_int64_t audiobuf_granulepos = packet.oggzPacket->pos.calc_granulepos;
+        float audiobuf_time = vorbis_granule_time(&vd, audiobuf_granulepos);
+        return audiobuf_time;
     } else {
-        return (float)milliseconds / 1000;
+        return -1;
     }
 }
 
