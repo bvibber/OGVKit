@@ -644,6 +644,12 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
     if (audioStream) {
         queuedAudio = nil;
         [audioPackets flush];
+
+#ifdef OGVKIT_HAVE_VORBIS_DECODER
+        if (audioCodec == OGGZ_CONTENT_VORBIS) {
+            vorbis_synthesis_restart(&vd);
+        }
+#endif
     }
 }
 

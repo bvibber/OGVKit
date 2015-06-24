@@ -510,6 +510,12 @@ enum AppState {
     if (self.hasAudio) {
         queuedAudio = nil;
         audioPacketCount = 0;
+
+#ifdef OGVKIT_HAVE_VORBIS_DECODER
+        if (audioCodec == NESTEGG_CODEC_VORBIS) {
+            vorbis_synthesis_restart(&vorbisDspState);
+        }
+#endif
     }
 }
 
