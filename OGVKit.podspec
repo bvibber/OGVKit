@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = "OGVKit"
-  s.version      = "0.3"
+  s.version      = "0.4pre"
   s.summary      = "Ogg Vorbis/Theora and WebM media playback widget for iOS."
 
   s.description  = <<-DESC
@@ -20,7 +20,7 @@ Pod::Spec.new do |s|
   s.platform     = :ios, "6.0"
 
   s.source       = { :git => "https://github.com/brion/OGVKit.git",
-                     :tag => "0.3",
+                     :tag => "0.4",
                      :submodules => true }
 
   s.source_files = "Classes/OGVKit.{h,m}",
