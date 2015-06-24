@@ -57,6 +57,7 @@
                             <rect key="frame" x="80.5" y="9" width="486.5" height="31"/>
                             <connections>
                                 <action selector="onProgressSliderChanged:" destination="-1" eventType="valueChanged" id="RQ5-SO-kBh"/>
+                                <action selector="onProgressSliderReleased:" destination="-1" eventType="touchUpInside" id="Edt-eQ-oYj"/>
                             </connections>
                         </slider>
                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="-:--" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="qHJ-2z-FME">
