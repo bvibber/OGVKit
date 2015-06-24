@@ -34,7 +34,7 @@
                                     <outlet property="delegate" destination="vXZ-lx-hvc" id="seS-By-Lqo"/>
                                 </connections>
                             </tableView>
-                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="RfG-07-jlb">
+                            <view clipsSubviews="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="RfG-07-jlb">
                                 <rect key="frame" x="140" y="358" width="320" height="40"/>
                                 <subviews>
                                     <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="xBv-uU-ejx">
