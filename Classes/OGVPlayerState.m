@@ -411,6 +411,18 @@
             break;
         }
     }
+
+    if (decoder.hasVideo) {
+        // Show where we left off
+        BOOL ok = [decoder decodeFrame];
+        if (ok) {
+            [self drawFrame];
+        }
+        return ok;
+    } else {
+        // If audio-only there's nothing to do after seeking.
+        return YES;
+    }
 }
 
 #pragma mark - OGVInputStreamDelegate methods
