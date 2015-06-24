@@ -20,7 +20,8 @@ Pod::Spec.new do |s|
   s.platform     = :ios, "6.0"
 
   s.source       = { :git => "https://github.com/brion/OGVKit.git",
-                     :tag => "0.3" }
+                     :tag => "0.3",
+                     :submodules => true }
 
   s.source_files = "Classes/OGVKit.{h,m}",
                    "Classes/OGVMediaType.{h,m}",
@@ -93,6 +94,7 @@ Pod::Spec.new do |s|
                                "Classes/OGVDecoderOggPacket.{h,m}",
                                "Classes/OGVDecoderOggPacketQueue.{h,m}"
     soggdemuxer.dependency 'liboggz'
+    soggdemuxer.dependency 'OGVKit/libskeleton'
   end
   s.subspec "WebMDemuxer" do |swebmdemuxer|
     swebmdemuxer.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_WEBM_DEMUXER' }
@@ -115,4 +117,27 @@ Pod::Spec.new do |s|
     svorbisdecoder.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_VORBIS_DECODER' }
     svorbisdecoder.dependency 'libvorbis'
   end
+
+  # Additional libraries not ready to package separately
+  s.subspec "libskeleton" do |sskel|
+    sskel.source_files = "libskeleton/include/skeleton/skeleton.h",
+                         "libskeleton/include/skeleton/skeleton_constants.h",
+                         "libskeleton/include/skeleton/skeleton_query.h",
+                         "libskeleton/src/skeleton.c",
+                         "libskeleton/src/skeleton_macros.h",
+                         "libskeleton/src/skeleton_privte.h",
+                         "libskeleton/src/skeleton_query.c",
+                         "libskeleton/src/skeleton_vector.h",
+                         "libskeleton/src/skeleton_vector.c"
+    sskel.compiler_flags = "-Wno-conversion",
+                           "-Wno-unused-function"
+
+    sskel.public_header_files = "libskeleton/include/skeleton/skeleton.h",
+                                "libskeleton/include/skeleton/skeleton_constants.h",
+                                "libskeleton/include/skeleton/skeleton_query.h"
+    sskel.header_dir = 'skeleton'
+
+    sskel.dependency 'libogg'
+  end
+  
 end

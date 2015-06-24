@@ -21,6 +21,8 @@
 #include <theora/theoradec.h>
 #endif
 
+#include <skeleton/skeleton.h>
+
 #import "OGVDecoderOgg.h"
 #import "OGVDecoderOggPacket.h"
 #import "OGVDecoderOggPacketQueue.h"
@@ -96,6 +98,10 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
     BOOL audioHeadersComplete;
     OGVDecoderOggPacketQueue *audioPackets;
 
+    long skeletonStream;
+    OggSkeleton *skeleton;
+    BOOL skeletonHeadersComplete;
+
     float duration;
 
 #ifdef OGVKIT_HAVE_THEORA_DECODER
@@ -128,7 +134,7 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
     vorbis_comment   vc;
 #endif
     OGVAudioBuffer *queuedAudio;
-    
+
     enum AppState {
         STATE_BEGIN,
         STATE_HEADERS,
@@ -168,6 +174,8 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
         th_comment_init(&theoraComment);
         th_info_init(&theoraInfo);
 #endif
+
+        skeleton = oggskel_new();
     }
     return self;
 }
@@ -239,6 +247,19 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
     }
 #endif /* OGVKIT_HAVE_VORBIS_DECODER */
 
+    if (!skeletonStream && content == OGGZ_CONTENT_SKELETON) {
+        skeletonStream = serialno;
+        
+        int ret = oggskel_decode_header(skeleton, packet.oggPacket);
+        if (ret == 0) {
+            skeletonHeadersComplete = YES;
+        } else if (ret > 0) {
+            // Just keep going
+        } else {
+            NSLog(@"Invalid ogg skeleton track data? %d", ret);
+            return OGGZ_STOP_ERR;
+        }
+    }
     return OGGZ_CONTINUE;
 }
 
@@ -316,12 +337,26 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
         }
     }
 
+    if (skeletonStream == serialno) {
+        int ret = oggskel_decode_header(skeleton, packet.oggPacket);
+        if (ret < 0) {
+            NSLog(@"Error processing skeleton packet: %d", ret);
+            return OGGZ_STOP_ERR;
+        }
+        if (packet.oggPacket->e_o_s) {
+            skeletonHeadersComplete = YES;
+        }
+    }
+
     BOOL isComplete = YES;
     if (audioStream) {
         isComplete = isComplete && audioHeadersComplete;
     }
     if (videoStream) {
         isComplete = isComplete && videoHeadersComplete;
+    }
+    if (skeletonStream) {
+        isComplete = isComplete && skeletonHeadersComplete;
     }
     if (isComplete) {
         appState = STATE_DURATION;
@@ -353,8 +388,12 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
 -(BOOL)extractDuration
 {
     // @todo use X-Content-Duration from stream if available
-    // @todo use ogg skeleton track info if available
-    
+
+    if (skeletonHeadersComplete) {
+        duration = [self durationViaSkeleton];
+        return (duration < INFINITY);
+    }
+
     // Do it the hard way: seek to the end and find the time of the last packet.
     // Beware this will be slow over the network.
     if (self.inputStream.seekable) {
@@ -631,6 +670,8 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
     vorbis_info_clear(&vi);
 #endif
 
+    oggskel_destroy(skeleton);
+
     oggz_close(oggz);
 }
 
@@ -656,18 +697,104 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
 - (BOOL)seek:(float)seconds
 {
     if (self.seekable) {
-        long milliseconds = (long)(seconds * 1000.0f);
-        ogg_int64_t pos = oggz_seek_units(oggz, milliseconds, SEEK_SET);
-        if (pos < 0) {
-            // uhhh.... not good.
-            NSLog(@"OGVDecoderOgg failed to seek to time position within file");
-            return NO;
+        if (skeletonHeadersComplete) {
+            return [self seekViaSkeleton:seconds];
         } else {
-            [self flush];
-            return YES;
+            return [self seekViaBisection:seconds];
         }
     } else {
         return NO;
+    }
+}
+
+- (BOOL)seekViaSkeleton:(float)seconds
+{
+    int64_t offset = [self keypointOffset:seconds];
+    [self.inputStream seek:offset blocking:YES];
+    [self flush];
+    return YES;
+}
+
+- (int64_t)keypointOffset:(float)seconds
+{
+    int64_t time_ms = (float)(seconds * 1000);
+
+    const size_t nstreams = 1;
+    ogg_int32_t serial_nos[nstreams];
+    if (videoHeadersComplete) {
+        serial_nos[0] = videoStream;
+    } else if (audioHeadersComplete) {
+        serial_nos[0] = audioStream;
+    }
+
+    ogg_int64_t offset;
+    int ret = oggskel_get_keypoint_offset(skeleton, serial_nos, nstreams, time_ms, &offset);
+    if (ret == 0) {
+        return offset;
+    } else {
+        NSLog(@"Error %d getting Ogg skeleton keypoint offset", ret);
+        return 0;
+    }
+}
+
+- (BOOL)seekViaBisection:(float)seconds
+{
+    // Fall back to bisection sort. Very slow over network.
+    long milliseconds = (long)(seconds * 1000.0f);
+    ogg_int64_t pos = oggz_seek_units(oggz, milliseconds, SEEK_SET);
+    if (pos < 0) {
+        // uhhh.... not good.
+        NSLog(@"OGVDecoderOgg failed to seek to time position within file");
+        return NO;
+    } else {
+        [self flush];
+        return YES;
+    }
+}
+
+- (float)durationViaSkeleton
+{
+    ogg_int32_t serial_nos[4];
+    size_t nstreams = 0;
+    if (videoStream) {
+        serial_nos[nstreams++] = videoStream;
+    }
+    if (audioStream) {
+        serial_nos[nstreams++] = audioStream;
+    }
+    
+    float firstSample = -1;
+    float lastSample = -1;
+    for (int i = 0; i < nstreams; i++) {
+        ogg_int64_t first_sample_num = -1;
+        ogg_int64_t first_sample_denum = -1;
+        ogg_int64_t last_sample_num = -1;
+        ogg_int64_t last_sample_denum = -1;
+
+        int ret;
+        ret = oggskel_get_first_sample_num(skeleton, serial_nos[i], &first_sample_num);
+        ret = oggskel_get_first_sample_denum(skeleton, serial_nos[i], &first_sample_denum);
+        ret = oggskel_get_last_sample_num(skeleton, serial_nos[i], &last_sample_num);
+        ret = oggskel_get_last_sample_denum(skeleton, serial_nos[i], &last_sample_denum);
+        
+        double firstStreamSample = (float)first_sample_num / (float)first_sample_denum;
+        if (firstSample == -1 || firstStreamSample < firstSample) {
+            firstSample = firstStreamSample;
+        }
+        
+        double lastStreamSample = (float)last_sample_num / (float)last_sample_denum;
+        if (lastSample == -1 || lastStreamSample > lastSample) {
+            lastSample = lastStreamSample;
+        }
+    }
+    
+    float skelDuration = lastSample - firstSample;
+    if (skelDuration > 0) {
+        return skelDuration;
+    } else {
+        // something went awry?
+        NSLog(@"Confused about ogg skeleton duration? (%f to %f looks wrong)", firstSample, lastSample);
+        return INFINITY;
     }
 }
 
