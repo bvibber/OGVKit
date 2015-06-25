@@ -30,18 +30,33 @@
     resolution = 360;
     [self updateResolutions];
     sources = @[
+                // Wikipedia stuff
                 @{@"title": @"Wikipedia Visual Editor",
                   @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/c/c8/Sneak_Preview_-_Wikipedia_VisualEditor.webm/Sneak_Preview_-_Wikipedia_VisualEditor.webm" },
-                @{@"title": @"Open Access",
-                  @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/b/b7/How_Open_Access_Empowered_a_16-Year-Old_to_Make_Cancer_Breakthrough.ogv/How_Open_Access_Empowered_a_16-Year-Old_to_Make_Cancer_Breakthrough.ogv" },
-                @{@"title": @"Curiosity (720p)",
-                  @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/9/96/Curiosity%27s_Seven_Minutes_of_Terror.ogv/Curiosity%27s_Seven_Minutes_of_Terror.ogv",
+                @{@"title": @"¿Qué es Wikipédia?",
+                  @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/1/1a/%C2%BFQu%C3%A9_es_Wikipedia%3F.ogv/%C2%BFQu%C3%A9_es_Wikipedia%3F.ogv",
                   @"resolution": @(720)},
-                @{@"title": @"Wiki Makes Video (720p60)",
+                @{@"title": @"Wiki Makes Video (60fps)",
                   @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/8/89/Wiki_Makes_Video_Intro_4_26.webm/Wiki_Makes_Video_Intro_4_26.webm",
                   @"resolution": @(720)},
-                @{@"title": @"Pumpjack (short)",
-                  @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/d/d6/Pumpjack.webm/Pumpjack.webm" },
+
+                // Third-party stuff
+                @{@"title": @"Curiosity's Seven Minutes of Terror",
+                  @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/9/96/Curiosity%27s_Seven_Minutes_of_Terror.ogv/Curiosity%27s_Seven_Minutes_of_Terror.ogv",
+                  @"resolution": @(720)},
+                @{@"title": @"Open Access",
+                  @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/b/b7/How_Open_Access_Empowered_a_16-Year-Old_to_Make_Cancer_Breakthrough.ogv/How_Open_Access_Empowered_a_16-Year-Old_to_Make_Cancer_Breakthrough.ogv" },
+
+                // Blender open movies
+                @{@"title": @"Sintel",
+                  @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/f/f1/Sintel_movie_4K.webm/Sintel_movie_4K.webm"},
+                @{@"title": @"Tears of Steel",
+                  //@"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/a/af/Tears_of_Steel_4K.webm/Tears_of_Steel_4K.webm"}, // bad color conversion
+                  @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/c/cb/Tears_of_Steel_1080p.webm/Tears_of_Steel_1080p.webm"},
+                @{@"title": @"Big Buck Bunny (60fps)",
+                  @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/c/c0/Big_Buck_Bunny_4K.webm/Big_Buck_Bunny_4K.webm"},
+
+                // Short tests
                 @{@"title": @"Myopa (video only)",
                   @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/8/8b/Myopa_-_2015-05-02.webm/Myopa_-_2015-05-02.webm" },
                 @{@"title": @"Bach (Ogg audio only)",
