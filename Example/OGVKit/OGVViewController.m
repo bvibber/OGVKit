@@ -8,6 +8,8 @@
 
 #import "OGVViewController.h"
 
+#import "OGVExampleItem.h"
+
 @interface OGVViewController ()
 
 @end
@@ -15,147 +17,160 @@
 @implementation OGVViewController
 {
     NSArray *sources;
-    NSArray *resolutions;
+
     NSInteger selectedSource;
-    BOOL useWebM;
+    OGVExampleItem *source;
+
+    NSArray *formats;
+    NSString *format;
+
+    NSArray *resolutions;
     int resolution;
-    float lastPosition;
+
+    BOOL firstTime;
 }
 
 - (void)viewDidLoad
 {
     [super viewDidLoad];
 
-    useWebM = YES;
-    resolution = 360;
-    [self updateResolutions];
     sources = @[
                 // Wikipedia stuff
-                @{@"title": @"Wikipedia Visual Editor",
-                  @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/c/c8/Sneak_Preview_-_Wikipedia_VisualEditor.webm/Sneak_Preview_-_Wikipedia_VisualEditor.webm" },
-                @{@"title": @"¿Qué es Wikipédia?",
-                  @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/1/1a/%C2%BFQu%C3%A9_es_Wikipedia%3F.ogv/%C2%BFQu%C3%A9_es_Wikipedia%3F.ogv",
-                  @"resolution": @(720)},
-                @{@"title": @"Wiki Makes Video (60fps)",
-                  @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/8/89/Wiki_Makes_Video_Intro_4_26.webm/Wiki_Makes_Video_Intro_4_26.webm",
-                  @"resolution": @(720)},
+                [[OGVExampleItem alloc] initWithTitle:@"Wikipedia VisualEditor"
+                                             filename:@"Sneak Preview - Wikipedia VisualEditor.webm"],
+                [[OGVExampleItem alloc] initWithTitle:@"¿Qué es Wikipedia?"
+                                             filename:@"¿Qué es Wikipedia?.ogv"],
+                [[OGVExampleItem alloc] initWithTitle:@"Wiki Makes Video (60fps)"
+                                             filename:@"Wiki Makes Video Intro 4 26.webm"],
 
                 // Third-party stuff
-                @{@"title": @"Open Access",
-                  @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/b/b7/How_Open_Access_Empowered_a_16-Year-Old_to_Make_Cancer_Breakthrough.ogv/How_Open_Access_Empowered_a_16-Year-Old_to_Make_Cancer_Breakthrough.ogv" },
-                @{@"title": @"Curiosity's Seven Minutes of Terror",
-                  @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/9/96/Curiosity%27s_Seven_Minutes_of_Terror.ogv/Curiosity%27s_Seven_Minutes_of_Terror.ogv",
-                  @"resolution": @(720)},
-                @{@"title": @"Hamilton Mixtape (60fps)",
-                  @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/3/3d/Hamilton_Mixtape_%2812_May_2009_live_at_the_White_House%29_Lin-Manuel_Miranda.ogv/Hamilton_Mixtape_%2812_May_2009_live_at_the_White_House%29_Lin-Manuel_Miranda.ogv",
-                  @"resolution": @(720)},
-                @{@"title": @"Alaskan Huskies",
-                  @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/0/08/Alaskan_Huskies_-_Sled_Dogs_-_Ivalo_2013.ogv/Alaskan_Huskies_-_Sled_Dogs_-_Ivalo_2013.ogv"},
+                [[OGVExampleItem alloc] initWithTitle:@"Open Access Empowers"
+                                             filename:@"How_Open_Access_Empowered_a_16-Year-Old_to_Make_Cancer_Breakthrough.ogv"],
+                [[OGVExampleItem alloc] initWithTitle:@"Curiosity's Seven Minutes of Terror"
+                                             filename:@"Curiosity's Seven Minutes of Terror.ogv"],
+                [[OGVExampleItem alloc] initWithTitle:@"Hamilton Mixtape (60fps)"
+                                             filename:@"Hamilton_Mixtape_(12_May_2009_live_at_the_White_House)_Lin-Manuel_Miranda.ogv"],
+                [[OGVExampleItem alloc] initWithTitle:@"Alaskan Huskies"
+                                             filename:@"Alaskan_Huskies_-_Sled_Dogs_-_Ivalo_2013.ogv"],
 
                 // Blender open movies
-                @{@"title": @"Sintel",
-                  @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/f/f1/Sintel_movie_4K.webm/Sintel_movie_4K.webm"},
-                @{@"title": @"Tears of Steel",
-                  //@"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/a/af/Tears_of_Steel_4K.webm/Tears_of_Steel_4K.webm"}, // bad color conversion
-                  @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/c/cb/Tears_of_Steel_1080p.webm/Tears_of_Steel_1080p.webm"},
-                @{@"title": @"Big Buck Bunny (60fps)",
-                  @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/c/c0/Big_Buck_Bunny_4K.webm/Big_Buck_Bunny_4K.webm"},
+                [[OGVExampleItem alloc] initWithTitle:@"Sintel"
+                                             filename:@"Sintel_movie_4K.webm"],
+                [[OGVExampleItem alloc] initWithTitle:@"Tears of Steel"
+                                             filename:@"Tears_of_Steel_1080p.webm"],
+                [[OGVExampleItem alloc] initWithTitle:@"Big Buck Bunny (60fps)"
+                                             filename:@"Big_Buck_Bunny_4K.webm"],
 
                 // Short tests
-                @{@"title": @"Myopa (video only)",
-                  @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/8/8b/Myopa_-_2015-05-02.webm/Myopa_-_2015-05-02.webm" },
-                @{@"title": @"Bach (Ogg audio only)",
-                  @"URL": @"https://upload.wikimedia.org/wikipedia/commons/e/ea/Bach_C_Major_Prelude_Werckmeister.ogg",
-                  @"audioOnly": @(YES)}
-                ];
-    selectedSource = -1;
+                [[OGVExampleItem alloc] initWithTitle:@"Myopa (video only)"
+                                             filename:@"Myopa_-_2015-05-02.webm"],
+
+                // Audio tests
+                //[[OGVExampleItem alloc] initWithTitle:@"Arigato (short audio)"
+                //                             filename:@"Ja-arigato.oga"],
+                [[OGVExampleItem alloc] initWithTitle:@"Bach C Major Prelude Werckmeister"
+                                             filename:@"Bach_C_Major_Prelude_Werckmeister.ogg"]];
 
     [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"generic"];
     
     self.player.delegate = self;
+
+    format = @"webm";
+    resolution = 360;
+    firstTime = YES;
+    [self selectSource:0];
 }
 
 - (void)selectSource:(NSInteger)index
 {
     selectedSource = index;
     if (selectedSource >= 0) {
-        NSDictionary *source = sources[index];
+        source = sources[index];
 
-        NSString *format;
-        if (useWebM) {
-            format = @"webm";
+        [self updateFormats];
+        [self updateResolutions];
+
+        if ([resolutions count]) {
+            self.player.sourceURL = [source URLforVideoFormat:format resolution:resolution];
         } else {
-            format = @"ogv";
+            self.player.sourceURL = [source URLforAudioFormat:format];
         }
-        if (source[@"resolution"]) {
-            int max = [source[@"resolution"] intValue];
-            if (resolution > max) {
-                resolution = max;
-                [self updateResolutions];
-            }
-        }
-        NSString *target = [NSString stringWithFormat:@"%dp.%@", resolution, format];
-
-        NSString *str = source[@"URL"];
-        if (!source[@"audioOnly"]) {
-            str = [NSString stringWithFormat:@"%@.%@", str, target];
-        }
-
-        self.player.sourceURL = [NSURL URLWithString:str];
         // @todo separate load & play...
         //[self.player play];
     }
 }
 
 - (IBAction)selectFormat:(id)sender {
-    lastPosition = self.player.playbackPosition;
+    source.playbackPosition = self.player.playbackPosition;
 
-    BOOL wasWebM = useWebM;
-    useWebM = (self.formatSelector.selectedSegmentIndex == 0);
-    if (wasWebM != useWebM) {
-        [self updateResolutions];
-        [self selectSource:selectedSource];
+    format = formats[self.formatSelector.selectedSegmentIndex];
+    [self updateFormats];
+    [self updateResolutions];
+    [self selectSource:selectedSource];
+}
+
+- (void)updateFormats
+{
+    formats = [source formats];
+    if (![formats containsObject:format]) {
+        if ([formats containsObject:@"webm"]) {
+            // prefer webm over ogv
+            format = @"webm";
+        } else {
+            format = formats[0];
+        }
+    }
+    
+    [self.formatSelector removeAllSegments];
+    for (int i = 0; i < [formats count]; i++) {
+        NSString *title = formats[i];
+        [self.formatSelector insertSegmentWithTitle:title
+                                                atIndex:i
+                                               animated:NO];
+        if ([format isEqualToString:formats[i]]) {
+            self.formatSelector.selectedSegmentIndex = i;
+        }
     }
 }
 
 - (void)updateResolutions
 {
-    // @todo get this info from mediawiki :)
-    if (useWebM) {
-        resolutions = @[@(360), @(480), @(720), @(1080)];
-        if (resolution < 360) {
-            resolution = 360
-            ;
+    resolutions = [source resolutionsForFormat:format];
+
+    int minRes = 0, maxRes = 0;
+    if ([resolutions count]) {
+        minRes = [resolutions[0] intValue];
+        maxRes = [resolutions[[resolutions count] - 1] intValue];
+        resolution = MAX(resolution, minRes);
+        resolution = MIN(resolution, maxRes);
+
+        [self.resolutionSelector removeAllSegments];
+        for (int i = 0; i < [resolutions count]; i++) {
+            int res = [resolutions[i] intValue];
+            NSString *title = [NSString stringWithFormat:@"%dp", res];
+            [self.resolutionSelector insertSegmentWithTitle:title
+                                                    atIndex:i
+                                                   animated:NO];
+            if (resolution == res) {
+                self.resolutionSelector.selectedSegmentIndex = i;
+            }
         }
     } else {
-        resolutions = @[@(160), @(360), @(480)];
-        if (resolution > 480) {
-            resolution = 480;
-        }
-    }
-    
-    [self.resolutionSelector removeAllSegments];
-    for (int i = 0; i < [resolutions count]; i++) {
-        int res = [resolutions[i] intValue];
-        NSString *title = [NSString stringWithFormat:@"%dp", res];
-        [self.resolutionSelector insertSegmentWithTitle:title
-                                                atIndex:i
+        [self.resolutionSelector removeAllSegments];
+        [self.resolutionSelector insertSegmentWithTitle:@"audio"
+                                                atIndex:0
                                                animated:NO];
-        if (resolution == res) {
-            self.resolutionSelector.selectedSegmentIndex = i;
-        }
     }
 }
 
 - (IBAction)resolutionSelected:(id)sender {
-    lastPosition = self.player.playbackPosition;
+    source.playbackPosition = self.player.playbackPosition;
     
-    int oldResolution = resolution;
-    resolution = [resolutions[self.resolutionSelector.selectedSegmentIndex] intValue];
-
-    if (resolution != oldResolution) {
-        [self selectSource:selectedSource];
+    if ([resolutions count]) {
+        resolution = [resolutions[self.resolutionSelector.selectedSegmentIndex] intValue];
     }
+
+    [self selectSource:selectedSource];
 }
 
 - (void)didReceiveMemoryWarning
@@ -170,8 +185,8 @@
          cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"generic"];
-    NSDictionary *source = sources[indexPath.item];
-    cell.textLabel.text = source[@"title"];
+    OGVExampleItem *item = sources[indexPath.item];
+    cell.textLabel.text = item.title;
     return cell;
 }
 
@@ -191,6 +206,9 @@
 - (void)tableView:(UITableView *)tableView
 didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
+    if (source) {
+        source.playbackPosition = self.player.playbackPosition;
+    }
     [self selectSource:indexPath.item];
 }
 
@@ -198,17 +216,21 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 
 - (void)ogvPlayerDidLoadMetadata:(OGVPlayerView *)sender
 {
-    if (lastPosition > 0) {
-        [self.player seek:lastPosition];
-        lastPosition = 0;
-    }
+    if (firstTime) {
+        // don't autoplay on app launch, it's annoying!
+        firstTime = NO;
+    } else {
+        if (source.playbackPosition > 0) {
+            [self.player seek:source.playbackPosition];
+        }
 
-    [self.player play];
+        [self.player play];
+    }
 }
 
 - (void)ogvPlayerDidEnd:(OGVPlayerView *)sender
 {
-    lastPosition = 0;
+    source.playbackPosition = 0;
 
     NSInteger nextSource = selectedSource + 1;
     if (nextSource < [sources count]) {
