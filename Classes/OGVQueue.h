@@ -1,5 +1,5 @@
 //
-//  OGVDecoderOggPacketQueue.h
+//  OGVQueue.h
 //  OGVKit
 //
 //  Created by Brion on 6/22/15
@@ -9,13 +9,14 @@
 #import "OGVKit.h"
 #import "OGVDecoderOggPacket.h"
 
-@interface OGVDecoderOggPacketQueue : NSObject
+@interface OGVQueue : NSObject
 
 @property (readonly) BOOL empty;
 
-- (void)queue:(OGVDecoderOggPacket *)packet;
-- (OGVDecoderOggPacket *)peek;
-- (OGVDecoderOggPacket *)dequeue;
+- (void)queue:(id)object;
+- (void)swap:(id)object;
+- (id)peek;
+- (id)dequeue;
 - (void)flush;
 
 @end

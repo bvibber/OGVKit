@@ -24,6 +24,7 @@ Pod::Spec.new do |s|
                      :submodules => true }
 
   s.source_files = "Classes/OGVKit.{h,m}",
+                   "Classes/OGVQueue.{h,m}",
                    "Classes/OGVMediaType.{h,m}",
                    "Classes/OGVAudioFormat.{h,m}",
                    "Classes/OGVAudioBuffer.{h,m}",
@@ -39,6 +40,7 @@ Pod::Spec.new do |s|
                    "Classes/OGVPlayerView.{h,m}"
 
   s.public_header_files = "Classes/OGVKit.h",
+                          "Classes/OGVQueue.h",
                           "Classes/OGVMediaType.h",
                           "Classes/OGVAudioFormat.h",
                           "Classes/OGVAudioBuffer.h",
@@ -91,14 +93,14 @@ Pod::Spec.new do |s|
   s.subspec "OggDemuxer" do |soggdemuxer|
     soggdemuxer.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_OGG_DEMUXER' }
     soggdemuxer.source_files = "Classes/OGVDecoderOgg.{h,m}",
-                               "Classes/OGVDecoderOggPacket.{h,m}",
-                               "Classes/OGVDecoderOggPacketQueue.{h,m}"
+                               "Classes/OGVDecoderOggPacket.{h,m}"
     soggdemuxer.dependency 'liboggz'
     soggdemuxer.dependency 'OGVKit/libskeleton'
   end
   s.subspec "WebMDemuxer" do |swebmdemuxer|
     swebmdemuxer.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_WEBM_DEMUXER' }
-    swebmdemuxer.source_files = "Classes/OGVDecoderWebM.{h,m}"
+    swebmdemuxer.source_files = "Classes/OGVDecoderWebM.{h,m}",
+                                "Classes/OGVDecoderWebMPacket.{h,m}"
     swebmdemuxer.dependency 'libnestegg'
   end
 

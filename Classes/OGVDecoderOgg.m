@@ -25,7 +25,6 @@
 
 #import "OGVDecoderOgg.h"
 #import "OGVDecoderOggPacket.h"
-#import "OGVDecoderOggPacketQueue.h"
 
 
 @interface OGVDecoderOgg (Private)
@@ -92,12 +91,12 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
     long videoStream;
     OggzStreamContent videoCodec;
     BOOL videoHeadersComplete;
-    OGVDecoderOggPacketQueue *videoPackets;
+    OGVQueue *videoPackets;
 
     long audioStream;
     OggzStreamContent audioCodec;
     BOOL audioHeadersComplete;
-    OGVDecoderOggPacketQueue *audioPackets;
+    OGVQueue *audioPackets;
 
     long skeletonStream;
     OggSkeleton *skeleton;
@@ -157,8 +156,8 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
         oggz_io_set_tell(oggz, tellCallback, (__bridge void *)self);
         oggz_set_read_callback(oggz, -1, readPacketCallback, (__bridge void *)self);
 
-        videoPackets = [[OGVDecoderOggPacketQueue alloc] init];
-        audioPackets = [[OGVDecoderOggPacketQueue alloc] init];
+        videoPackets = [[OGVQueue alloc] init];
+        audioPackets = [[OGVQueue alloc] init];
 
 #ifdef OGVKIT_HAVE_VORBIS_DECODER
         /* init supporting Vorbis structures needed in header parsing */
