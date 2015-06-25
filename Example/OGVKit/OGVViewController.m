@@ -41,11 +41,16 @@
                   @"resolution": @(720)},
 
                 // Third-party stuff
+                @{@"title": @"Open Access",
+                  @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/b/b7/How_Open_Access_Empowered_a_16-Year-Old_to_Make_Cancer_Breakthrough.ogv/How_Open_Access_Empowered_a_16-Year-Old_to_Make_Cancer_Breakthrough.ogv" },
                 @{@"title": @"Curiosity's Seven Minutes of Terror",
                   @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/9/96/Curiosity%27s_Seven_Minutes_of_Terror.ogv/Curiosity%27s_Seven_Minutes_of_Terror.ogv",
                   @"resolution": @(720)},
-                @{@"title": @"Open Access",
-                  @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/b/b7/How_Open_Access_Empowered_a_16-Year-Old_to_Make_Cancer_Breakthrough.ogv/How_Open_Access_Empowered_a_16-Year-Old_to_Make_Cancer_Breakthrough.ogv" },
+                @{@"title": @"Hamilton Mixtape (60fps)",
+                  @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/3/3d/Hamilton_Mixtape_%2812_May_2009_live_at_the_White_House%29_Lin-Manuel_Miranda.ogv/Hamilton_Mixtape_%2812_May_2009_live_at_the_White_House%29_Lin-Manuel_Miranda.ogv",
+                  @"resolution": @(720)},
+                @{@"title": @"Alaskan Huskies",
+                  @"URL": @"https://upload.wikimedia.org/wikipedia/commons/transcoded/0/08/Alaskan_Huskies_-_Sled_Dogs_-_Ivalo_2013.ogv/Alaskan_Huskies_-_Sled_Dogs_-_Ivalo_2013.ogv"},
 
                 // Blender open movies
                 @{@"title": @"Sintel",
