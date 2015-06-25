@@ -40,36 +40,40 @@
                                              filename:@"Sneak Preview - Wikipedia VisualEditor.webm"],
                 [[OGVExampleItem alloc] initWithTitle:@"¿Qué es Wikipedia?"
                                              filename:@"¿Qué es Wikipedia?.ogv"],
-                [[OGVExampleItem alloc] initWithTitle:@"Wiki Makes Video (60fps)"
-                                             filename:@"Wiki Makes Video Intro 4 26.webm"],
 
                 // Third-party stuff
                 [[OGVExampleItem alloc] initWithTitle:@"Open Access Empowers"
                                              filename:@"How_Open_Access_Empowered_a_16-Year-Old_to_Make_Cancer_Breakthrough.ogv"],
-                [[OGVExampleItem alloc] initWithTitle:@"Curiosity's Seven Minutes of Terror"
+                [[OGVExampleItem alloc] initWithTitle:@"Curiosity (NASA)"
                                              filename:@"Curiosity's Seven Minutes of Terror.ogv"],
-                [[OGVExampleItem alloc] initWithTitle:@"Hamilton Mixtape (60fps)"
-                                             filename:@"Hamilton_Mixtape_(12_May_2009_live_at_the_White_House)_Lin-Manuel_Miranda.ogv"],
-                [[OGVExampleItem alloc] initWithTitle:@"Alaskan Huskies"
-                                             filename:@"Alaskan_Huskies_-_Sled_Dogs_-_Ivalo_2013.ogv"],
 
                 // Blender open movies
-                [[OGVExampleItem alloc] initWithTitle:@"Sintel"
-                                             filename:@"Sintel_movie_4K.webm"],
-                [[OGVExampleItem alloc] initWithTitle:@"Tears of Steel"
+                [[OGVExampleItem alloc] initWithTitle:@"Tears of Steel (sci-fi)"
                                              filename:@"Tears_of_Steel_1080p.webm"],
-                [[OGVExampleItem alloc] initWithTitle:@"Big Buck Bunny (60fps)"
+                [[OGVExampleItem alloc] initWithTitle:@"Sintel (animation)"
+                                             filename:@"Sintel_movie_4K.webm"],
+
+                // Very busy/heavy motion
+                [[OGVExampleItem alloc] initWithTitle:@"Alaskan Huskies (high motion)"
+                                             filename:@"Alaskan_Huskies_-_Sled_Dogs_-_Ivalo_2013.ogv"],
+
+                // High frame rate
+                [[OGVExampleItem alloc] initWithTitle:@"Wiki Makes Video (60fps)"
+                                             filename:@"Wiki Makes Video Intro 4 26.webm"],
+                [[OGVExampleItem alloc] initWithTitle:@"Hamilton Mixtape (60fps)"
+                                             filename:@"Hamilton_Mixtape_(12_May_2009_live_at_the_White_House)_Lin-Manuel_Miranda.ogv"],
+                [[OGVExampleItem alloc] initWithTitle:@"Big Buck Bunny (60fps animation)"
                                              filename:@"Big_Buck_Bunny_4K.webm"],
 
-                // Short tests
+                // Video-only tests
                 [[OGVExampleItem alloc] initWithTitle:@"Myopa (video only)"
                                              filename:@"Myopa_-_2015-05-02.webm"],
 
-                // Audio tests
-                //[[OGVExampleItem alloc] initWithTitle:@"Arigato (short audio)"
-                //                             filename:@"Ja-arigato.oga"],
-                [[OGVExampleItem alloc] initWithTitle:@"Bach C Major Prelude Werckmeister"
-                                             filename:@"Bach_C_Major_Prelude_Werckmeister.ogg"]];
+                // Audio-only tests
+                [[OGVExampleItem alloc] initWithTitle:@"Bach C Major (audio)"
+                                             filename:@"Bach_C_Major_Prelude_Werckmeister.ogg"],
+                [[OGVExampleItem alloc] initWithTitle:@"Arigato (short audio)"
+                                             filename:@"Ja-arigato.oga"]];
 
     [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"generic"];
     
