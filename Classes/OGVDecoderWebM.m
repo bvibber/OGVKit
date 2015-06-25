@@ -8,6 +8,7 @@
 
 #import "OGVKit.h"
 #import "OGVDecoderWebM.h"
+#import "OGVDecoderWebMPacket.h"
 
 #include <nestegg/nestegg.h>
 
@@ -21,8 +22,6 @@
 #include <ogg/ogg.h>
 #include <vorbis/codec.h>
 #endif
-
-#define PACKET_QUEUE_MAX 1280
 
 static void logCallback(nestegg *context, unsigned int severity, char const * format, ...)
 {
@@ -77,43 +76,6 @@ static int64_t tellCallback(void * userdata)
     return (int64_t)stream.bytePosition;
 }
 
-static nestegg_packet *packet_queue_shift(nestegg_packet **queue, unsigned int *count)
-{
-    if (*count > 0) {
-        nestegg_packet *first = queue[0];
-        memcpy(&(queue[0]), &(queue[1]), sizeof(nestegg_packet *) * (*count - 1));
-        (*count)--;
-        return first;
-    } else {
-        return NULL;
-    }
-}
-
-#ifdef OGVKIT_HAVE_VORBIS_DECODER
-static void data_to_ogg_packet(unsigned char *data, size_t data_size, ogg_packet *dest)
-{
-    dest->packet = data;
-    dest->bytes = data_size;
-    dest->b_o_s = 0;
-    dest->e_o_s = 0;
-    dest->granulepos = 0; // ?
-    dest->packetno = 0; // ?
-}
-
-static void ne_packet_to_ogg_packet(nestegg_packet *src, ogg_packet *dest)
-{
-    unsigned int count;
-    nestegg_packet_count(src, &count);
-    assert(count == 1);
-    
-    unsigned char *data;
-    size_t data_size;
-    nestegg_packet_data(src, 0, &data, &data_size);
-    
-    data_to_ogg_packet(data, data_size, dest);
-}
-#endif
-
 @implementation OGVDecoderWebM
 {
     nestegg        *demuxContext;
@@ -124,13 +86,12 @@ static void ne_packet_to_ogg_packet(nestegg_packet *src, ogg_packet *dest)
     
     unsigned int    videoTrack;
     int             videoCodec;
-    unsigned int    videoPacketCount;
-    nestegg_packet *videoPackets[PACKET_QUEUE_MAX];
+    OGVQueue       *videoPackets;
     
     unsigned int    audioTrack;
     int             audioCodec;
     unsigned int    audioPacketCount;
-    nestegg_packet *audioPackets[PACKET_QUEUE_MAX];
+    OGVQueue       *audioPackets;
     
 
 #ifdef OGVKIT_HAVE_VP8_DECODER
@@ -149,7 +110,6 @@ static void ne_packet_to_ogg_packet(nestegg_packet *src, ogg_packet *dest)
 
 #ifdef OGVKIT_HAVE_VORBIS_DECODER
     /* Audio decode state */
-    ogg_packet        audioPacket;
     int               vorbisHeaders;
     int               vorbisProcessingHeaders;
     vorbis_info       vorbisInfo;
@@ -174,7 +134,9 @@ enum AppState {
         //
         appState = STATE_BEGIN;
         videoCodec = -1;
+        videoPackets = [[OGVQueue alloc] init];
         audioCodec = -1;
+        audioPackets = [[OGVQueue alloc] init];
 
         ioCallbacks.read = readCallback;
         ioCallbacks.seek = seekCallback;
@@ -262,21 +224,26 @@ enum AppState {
             return NO;
         } else {
 #ifdef OGVKIT_HAVE_VORBIS_DECODER
-            unsigned int codecDataCount;
-            nestegg_track_codec_data_count(demuxContext, audioTrack, &codecDataCount);
-            
-            for (unsigned int i = 0; i < codecDataCount; i++) {
-                unsigned char *data;
-                size_t len;
-                int ret = nestegg_track_codec_data(demuxContext, audioTrack, i, &data, &len);
-                if (ret < 0) {
-                    NSLog(@"failed to read codec data %d", i);
-                    return NO;
-                }
-                data_to_ogg_packet(data, len, &audioPacket);
-                audioPacket.b_o_s = (i == 0); // haaaaaack
-                
-                if (audioCodec == NESTEGG_CODEC_VORBIS) {
+            if (audioCodec == NESTEGG_CODEC_VORBIS) {
+                unsigned int codecDataCount;
+                nestegg_track_codec_data_count(demuxContext, audioTrack, &codecDataCount);
+
+                for (unsigned int i = 0; i < codecDataCount; i++) {
+                    unsigned char *data;
+                    size_t len;
+                    int ret = nestegg_track_codec_data(demuxContext, audioTrack, i, &data, &len);
+                    if (ret < 0) {
+                        NSLog(@"failed to read codec data %d", i);
+                        return NO;
+                    }
+                    ogg_packet audioPacket;
+                    audioPacket.packet = data;
+                    audioPacket.bytes = len;
+                    audioPacket.b_o_s = (i == 0);
+                    audioPacket.e_o_s = 0;
+                    audioPacket.granulepos = 0;
+                    audioPacket.packetno = i;
+
                     ret = vorbis_synthesis_headerin(&vorbisInfo, &vorbisComment, &audioPacket);
                     if (ret == 0) {
                         vorbisHeaders++;
@@ -323,28 +290,23 @@ enum AppState {
     if (needData) {
         // Do the nestegg_read_packet dance until it fails to read more data,
         // at which point we ask for more. Hope it doesn't explode.
-        nestegg_packet *packet = NULL;
-        int ret = nestegg_read_packet(demuxContext, &packet);
+        nestegg_packet *nepacket = NULL;
+        int ret = nestegg_read_packet(demuxContext, &nepacket);
         if (ret == 0) {
             // end of stream?
             return NO;
         } else if (ret > 0) {
+            OGVDecoderWebMPacket *packet = [[OGVDecoderWebMPacket alloc] initWithNesteggPacket:nepacket];
+
             unsigned int track;
-            nestegg_packet_track(packet, &track);
-            
+            nestegg_packet_track(packet.nesteggPacket, &track);
+
             if (self.hasVideo && track == videoTrack) {
-                if (videoPacketCount >= PACKET_QUEUE_MAX) {
-                    // that's not good
-                }
-                videoPackets[videoPacketCount++] = packet;
+                [videoPackets queue:packet];
             } else if (self.hasAudio && track == audioTrack) {
-                if (audioPacketCount >= PACKET_QUEUE_MAX) {
-                    // that's not good
-                }
-                audioPackets[audioPacketCount++] = packet;
+                [audioPackets queue:packet];
             } else {
                 // throw away unknown packets
-                nestegg_free_packet(packet);
             }
         }
     }
@@ -354,22 +316,19 @@ enum AppState {
 
 -(BOOL)decodeFrame
 {
-    nestegg_packet *packet = packet_queue_shift(videoPackets, &videoPacketCount);
+    OGVDecoderWebMPacket *packet = [videoPackets dequeue];
     
     if (packet) {
-        unsigned int chunks;
-        nestegg_packet_count(packet, &chunks);
+        unsigned int chunks = packet.count;
 
-        videobufTime = [self packetTimestamp:packet];
+        videobufTime = packet.timestamp;
 
 #ifdef OGVKIT_HAVE_VP8_DECODER
         // uh, can this happen? curiouser :D
         for (unsigned int chunk = 0; chunk < chunks; ++chunk) {
-            unsigned char *data;
-            size_t data_size;
-            nestegg_packet_data(packet, chunk, &data, &data_size);
-            
-            vpx_codec_decode(&vpxContext, data, (unsigned int)data_size, NULL, 1);
+            NSData *data = [packet dataAtIndex:chunk];
+
+            vpx_codec_decode(&vpxContext, data.bytes, (unsigned int)[data length], NULL, 1);
             // @todo check return value
         }
         // last chunk!
@@ -409,25 +368,25 @@ enum AppState {
         }
 #endif
         
-        nestegg_free_packet(packet);
-        return 1; // ??
+        return YES;
     }
 
-	return 0;
+    return NO;
 }
 
 -(BOOL)decodeAudio
 {
-    int foundSome = 0;
+    BOOL foundSome = NO;
     
-    nestegg_packet *packet = packet_queue_shift(audioPackets, &audioPacketCount);
+    OGVDecoderWebMPacket *packet = [audioPackets dequeue];
 
     if (packet) {
 
 #ifdef OGVKIT_HAVE_VORBIS_DECODER
         if (audioCodec == NESTEGG_CODEC_VORBIS) {
-            ne_packet_to_ogg_packet(packet, &audioPacket);
-            
+            ogg_packet audioPacket;
+            [packet synthesizeOggPacket:&audioPacket];
+
             int ret = vorbis_synthesis(&vorbisBlock, &audioPacket);
             if (ret == 0) {
                 vorbis_synthesis_blockin(&vorbisDspState, &vorbisBlock);
@@ -452,9 +411,8 @@ enum AppState {
             }
         }
 #endif
-        nestegg_free_packet(packet);
     }
-    
+
     return foundSome;
 }
 
@@ -504,12 +462,12 @@ enum AppState {
 {
     if (self.hasVideo) {
         queuedFrame = nil;
-        videoPacketCount = 0;
+        [videoPackets flush];
     }
     
     if (self.hasAudio) {
         queuedAudio = nil;
-        audioPacketCount = 0;
+        [audioPackets flush];
 
 #ifdef OGVKIT_HAVE_VORBIS_DECODER
         if (audioCodec == NESTEGG_CODEC_VORBIS) {
@@ -537,24 +495,18 @@ enum AppState {
     }
 }
 
--(float)packetTimestamp:(nestegg_packet *)packet
-{
-    uint64_t timestamp;
-    nestegg_packet_tstamp(packet, &timestamp);
-    return (float)timestamp / NSEC_PER_SEC;
-}
-
 #pragma mark - property getters
 
 - (BOOL)frameReady
 {
-    return appState == STATE_DECODING && (videoPacketCount > 0);
+    return appState == STATE_DECODING && !videoPackets.empty;
 }
 
 - (float)frameTimestamp
 {
     if (self.frameReady) {
-        return [self packetTimestamp:videoPackets[0]];
+        OGVDecoderWebMPacket *packet = [videoPackets peek];
+        return packet.timestamp;
     } else {
         return -1;
     }
@@ -562,13 +514,14 @@ enum AppState {
 
 - (BOOL)audioReady
 {
-    return appState == STATE_DECODING && (audioPacketCount > 0);
+    return appState == STATE_DECODING && !audioPackets.empty;
 }
 
 - (float)audioTimestamp
 {
     if (self.audioReady) {
-        return [self packetTimestamp:audioPackets[0]];
+        OGVDecoderWebMPacket *packet = [audioPackets peek];
+        return packet.timestamp;
     } else {
         return -1;
     }
