@@ -354,8 +354,23 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
 
 -(BOOL)waitForBytesAvailable:(NSUInteger)nBytes
 {
-    const int maxTries = 8;
-    for (int tries = 0; tries < maxTries; tries++) {
+    const NSTimeInterval timeout = 10.0;
+    int tries = 0;
+
+    for (NSDate *start = [NSDate date]; fabs([start timeIntervalSinceNow]) < timeout; tries++) {
+        if (tries > 0) {
+            assert(waitingForDataSemaphore == NULL);
+            waitingForDataSemaphore = dispatch_semaphore_create(0);
+
+            NSLog(@"waiting: at %ld/%ld: have %ld, want %ld; done %d, state %d, rangeSize %d, remaining %d", (long)self.bytePosition, (long)(long)self.length, self.bytesAvailable, (long)nBytes, (int)doneDownloading, (int)self.state, (int)rangeSize, (int)remainingBytesInRange);
+
+            dispatch_time_t timeout = dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC);
+            dispatch_semaphore_wait(waitingForDataSemaphore,
+                                    timeout);
+
+            waitingForDataSemaphore = nil;
+        }
+
         @synchronized (timeLock) {
             if (self.bytesAvailable >= nBytes ||
                 doneDownloading ||
@@ -368,19 +383,6 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
                 }
                 return YES;
             }
-        }
-
-        if (tries < maxTries - 1) {
-            assert(waitingForDataSemaphore == NULL);
-            waitingForDataSemaphore = dispatch_semaphore_create(0);
-            
-            NSLog(@"waiting: at %ld/%ld: have %ld, want %ld; done %d, state %d, rangeSize %d, remaining %d", (long)self.bytePosition, (long)(long)self.length, self.bytesAvailable, (long)nBytes, (int)doneDownloading, (int)self.state, (int)rangeSize, (int)remainingBytesInRange);
-
-            dispatch_time_t timeout = dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC);
-            dispatch_semaphore_wait(waitingForDataSemaphore,
-                                    timeout);
-
-            waitingForDataSemaphore = nil;
         }
     }
 
