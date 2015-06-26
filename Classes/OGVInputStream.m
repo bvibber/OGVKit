@@ -211,16 +211,15 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
 -(void)cancel
 {
     @synchronized (timeLock) {
+        self.state = OGVInputStreamStateCanceled;
         [connection cancel];
         connection = nil;
-        self.state = OGVInputStreamStateCanceled;
     }
 }
 
 -(NSData *)readBytes:(NSUInteger)nBytes blocking:(BOOL)blocking
 {
     NSData *data = nil;
-    BOOL blockingWait = NO;
 
     @synchronized (timeLock) {
         switch (self.state) {
@@ -238,46 +237,35 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
                 NSLog(@"OGVInputStream reading in invalid state %d", (int)self.state);
                 return nil;
         }
-
-        NSUInteger bytesAvailable = self.bytesAvailable;
-        //NSLog(@"nBytes: %ld; bytesAvailable: %ld", (long)nBytes, (long)bytesAvailable);
-        if (bytesAvailable >= nBytes) {
-            data = [self dequeueBytes:nBytes];
-        } else if (blocking) {
-            // ...
-            blockingWait = YES;
-        } else if (bytesAvailable) {
-            // Non-blocking, return as much data as we have.
-            data = [self dequeueBytes:bytesAvailable];
-        } else {
-            // Non-blocking, and there is no data.
-            data = nil;
-        }
     }
 
-    if (blockingWait) {
+    if (blocking) {
         [self waitForBytesAvailable:nBytes];
-        data = [self dequeueBytes:nBytes];
     }
+    data = [self dequeueBytes:nBytes];
 
     return data;
 }
 
 -(void)seek:(int64_t)offset blocking:(BOOL)blocking
 {
-    rangeSize = kOGVInputStreamBufferSizeSeeking;
-
     if (blocking) {
         // Canceling lots of small connections tends to explode.
         // Try not exploding them yet.
         [self waitForBytesAvailable:remainingBytesInRange];
-        
-        if (self.state != OGVInputStreamStateReading) {
-            NSLog(@"Unexpected input stream state after seeking: %d", self.state);
-        }
     }
 
     @synchronized (timeLock) {
+        switch (self.state) {
+            case OGVInputStreamStateReading:
+            case OGVInputStreamStateDone:
+                // ok
+                break;
+            default:
+                NSLog(@"Unexpected input stream state for seeking: %d", self.state);
+                return;
+        }
+
         self.state = OGVInputStreamStateSeeking;
 
         [connection cancel];
@@ -288,6 +276,8 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
         self.dataAvailable = NO;
 
         self.bytePosition = offset;
+        rangeSize = kOGVInputStreamBufferSizeSeeking;
+        
         [self startDownload];
     }
 
@@ -362,30 +352,41 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
     return [NSString stringWithFormat:@"bytes=%lld-%lld", start, end - 1];
 }
 
--(void)waitForBytesAvailable:(NSUInteger)nBytes
+-(BOOL)waitForBytesAvailable:(NSUInteger)nBytes
 {
-    assert(waitingForDataSemaphore == NULL);
-    waitingForDataSemaphore = dispatch_semaphore_create(0);
-    while (YES) {
+    const int maxTries = 8;
+    for (int tries = 0; tries < maxTries; tries++) {
         @synchronized (timeLock) {
-            NSLog(@"waiting: at %ld/%ld: have %ld, want %ld; done %d, state %d, rangeSize %d, remaining %d", (long)self.bytePosition, (long)(long)self.length, self.bytesAvailable, (long)nBytes, (int)doneDownloading, (int)self.state, (int)rangeSize, (int)remainingBytesInRange);
             if (self.bytesAvailable >= nBytes ||
                 doneDownloading ||
                 self.state == OGVInputStreamStateDone ||
                 self.state == OGVInputStreamStateFailed ||
                 self.state == OGVInputStreamStateCanceled) {
 
-                NSLog(@"data received; continuing!");
-                waitingForDataSemaphore = nil;
-                break;
+                if (tries) {
+                    NSLog(@"data received; continuing!");
+                }
+                return YES;
             }
         }
 
-        dispatch_time_t timeout = dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC);
-        dispatch_semaphore_wait(waitingForDataSemaphore,
-                                timeout);
+        if (tries < maxTries - 1) {
+            assert(waitingForDataSemaphore == NULL);
+            waitingForDataSemaphore = dispatch_semaphore_create(0);
+            
+            NSLog(@"waiting: at %ld/%ld: have %ld, want %ld; done %d, state %d, rangeSize %d, remaining %d", (long)self.bytePosition, (long)(long)self.length, self.bytesAvailable, (long)nBytes, (int)doneDownloading, (int)self.state, (int)rangeSize, (int)remainingBytesInRange);
 
+            dispatch_time_t timeout = dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC);
+            dispatch_semaphore_wait(waitingForDataSemaphore,
+                                    timeout);
+
+            waitingForDataSemaphore = nil;
+        }
     }
+
+    NSLog(@"Blocking i/o timed out; may be wonky");
+    self.state = OGVInputStreamStateFailed;
+    return NO;
 }
 
 -(void)queueData:(NSData *)data

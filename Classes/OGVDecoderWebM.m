@@ -38,12 +38,16 @@ static int readCallback(void * buffer, size_t length, void *userdata)
     OGVDecoderWebM *decoder = (__bridge OGVDecoderWebM *)userdata;
     OGVInputStream *stream = decoder.inputStream;
     NSData *data = [stream readBytes:length blocking:YES];
-    if (data) {
-        assert([data length] <= length);
+
+    if (stream.state == OGVInputStreamStateFailed) {
+        return 0;
+    } else if ([data length] < length) {
+        // out of data unexpectedly
+        return 0;
+    } else {
+        assert([data length] == length);
         memcpy(buffer, [data bytes], [data length]);
         return 1;
-    } else {
-        return 0;
     }
 }
 
@@ -66,7 +70,11 @@ static int seekCallback(int64_t offset, int whence, void * userdata)
             return -1;
     }
     [stream seek:position blocking:YES];
-    return 0;
+    if (stream.state == OGVInputStreamStateFailed) {
+        return -1;
+    } else {
+        return 0;
+    }
 }
 
 static int64_t tellCallback(void * userdata)

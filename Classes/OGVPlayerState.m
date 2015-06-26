@@ -263,6 +263,12 @@
     while (true) {
         more = [decoder process];
         if (!more) {
+            if (decoder.inputStream.state == OGVInputStreamStateFailed) {
+                NSLog(@"Hey! The input stream failed. Handle this more gracefully.");
+                [self pause];
+                return;
+            }
+
             // Wait for audio to run out, then close up shop!
             float timeLeft;
             if (audioFeeder) {
