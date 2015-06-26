@@ -394,12 +394,12 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
     // Beware this will be slow over the network.
     if (self.inputStream.seekable) {
         long endChunkSize = 256 * 1024;
-        //oggz_off_t currentPosition = oggz_tell(oggz);
-
-        oggz_off_t ret = oggz_seek(oggz, -endChunkSize, SEEK_END);
-        if (ret < 0) {
-            NSLog(@"Unable to seek to end of Ogg file for duration check.");
-            return NO;
+        if (self.inputStream.length > endChunkSize) {
+            oggz_off_t ret = oggz_seek(oggz, -endChunkSize, SEEK_END);
+            if (ret < 0) {
+                NSLog(@"Unable to seek to end of Ogg file for duration check.");
+                return NO;
+            }
         }
         
         while (true) {
@@ -431,7 +431,7 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
         duration = (float)finalTime / 1000.0f;
         NSLog(@"duration: %f", duration);
 
-        ret = oggz_seek(oggz, 0, SEEK_SET);
+        oggz_off_t ret = oggz_seek(oggz, 0, SEEK_SET);
         if (ret < 0) {
             NSLog(@"Unable to seek back to current Ogg position in duration check: %d", (int)ret);
             return NO;
