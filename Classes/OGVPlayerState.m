@@ -22,6 +22,7 @@
     
     BOOL playing;
     BOOL playAfterLoad;
+    BOOL seeking;
     
     dispatch_queue_t decodeQueue;
     dispatch_queue_t drawingQueue;
@@ -103,6 +104,11 @@
 
 -(void)seek:(float)time
 {
+    if (seeking) {
+        // this feels very hacky!
+        [decoder.inputStream cancel];
+        [decoder.inputStream restart];
+    }
     dispatch_async(decodeQueue, ^() {
         if (decoder && decoder.seekable) {
             BOOL wasPlaying = !self.paused;

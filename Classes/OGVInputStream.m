@@ -37,7 +37,6 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
     NSUInteger _bytesAvailable;
 
     NSUInteger rangeSize;
-    NSUInteger remainingBytesInRange;
 
     NSURLConnection *connection;
     NSMutableArray *inputDataQueue;
@@ -185,7 +184,6 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
         _state = OGVInputStreamStateInit;
         _dataAvailable = NO;
         rangeSize = kOGVInputStreamBufferSizeSeeking; // start small, we may need to seek away
-        remainingBytesInRange = 0;
         inputDataQueue = [[NSMutableArray alloc] init];
     }
     return self;
@@ -258,12 +256,6 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
 
 -(void)seek:(int64_t)offset blocking:(BOOL)blocking
 {
-    if (blocking) {
-        // Canceling lots of small connections tends to explode.
-        // Try not exploding them yet.
-        [self waitForBytesAvailable:remainingBytesInRange];
-    }
-
     @synchronized (timeLock) {
         switch (self.state) {
             case OGVInputStreamStateReading:
@@ -286,7 +278,9 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
     }
 
     if (blocking) {
-        [self waitForBytesAvailable:1];
+        // Actually fetch some data before we return, or we're likely to get
+        // lots of short hung connections when jumping about.
+        [self waitForBytesAvailable:kOGVInputStreamBufferSizeSeeking];
         
         if (self.state != OGVInputStreamStateReading) {
             NSLog(@"Unexpected input stream state after seeking: %d", self.state);
@@ -326,7 +320,6 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
 
         [req addValue:[self nextRange] forHTTPHeaderField:@"Range"];
         NSLog(@"Range %lld: %@", (int64_t)rangeSize, [self nextRange]);
-        remainingBytesInRange = rangeSize;
 
         doneDownloading = NO;
         connection = [[NSURLConnection alloc] initWithRequest:req delegate:self startImmediately:NO];
@@ -382,7 +375,7 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
                 waitingForDataSemaphore = dispatch_semaphore_create(0);
             }
 
-            NSLog(@"waiting: at %ld/%ld: have %ld, want %ld; done %d, state %d, rangeSize %d, remaining %d", (long)self.bytePosition, (long)(long)self.length, self.bytesAvailable, (long)nBytes, (int)doneDownloading, (int)self.state, (int)rangeSize, (int)remainingBytesInRange);
+            NSLog(@"waiting: at %ld/%ld: have %ld, want %ld; done %d, state %d, rangeSize %d", (long)self.bytePosition, (long)(long)self.length, self.bytesAvailable, (long)nBytes, (int)doneDownloading, (int)self.state, (int)rangeSize);
 
             dispatch_time_t timeout = dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC);
             dispatch_semaphore_wait(waitingForDataSemaphore,
@@ -418,11 +411,6 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
     @synchronized (timeLock) {
         [inputDataQueue addObject:data];
         self.bytesAvailable += [data length];
-        if (remainingBytesInRange > [data length]) {
-            remainingBytesInRange -= [data length];
-        } else {
-            remainingBytesInRange = 0;
-        }
 
         if ([inputDataQueue count] == 1) {
             self.dataAvailable = YES;
@@ -528,13 +516,6 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
 
             if (statusCode == 206) {
                 range = [[OGVHTTPContentRange alloc] initWithString:rangeHeader];
-                if (range.valid) {
-                    remainingBytesInRange = range.end - range.start;
-                } else {
-                    remainingBytesInRange = 0;
-                }
-            } else {
-                remainingBytesInRange = 0;
             }
 
             switch (self.state) {
