@@ -381,8 +381,9 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
             }
         }
 
+        dispatch_time_t timeout = dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC);
         dispatch_semaphore_wait(waitingForDataSemaphore,
-                                DISPATCH_TIME_FOREVER);
+                                timeout);
 
     }
 }
