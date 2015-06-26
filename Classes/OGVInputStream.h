@@ -43,6 +43,7 @@ typedef NS_ENUM(int, OGVInputStreamState) {
 
 -(instancetype)initWithURL:(NSURL *)URL;
 -(void)start;
+-(void)restart;
 -(void)cancel;
 
 /**

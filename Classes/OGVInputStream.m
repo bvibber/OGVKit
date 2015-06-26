@@ -208,6 +208,15 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
     }
 }
 
+-(void)restart
+{
+    @synchronized (timeLock) {
+        self.state = OGVInputStreamStateInit;
+        [self resetState];
+        [self startDownload];
+    }
+}
+
 -(void)cancel
 {
     @synchronized (timeLock) {
@@ -267,17 +276,8 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
         }
 
         self.state = OGVInputStreamStateSeeking;
-
-        [connection cancel];
-        connection = nil;
-
-        [inputDataQueue removeAllObjects];
-        self.bytesAvailable = 0;
-        self.dataAvailable = NO;
-
         self.bytePosition = offset;
-        rangeSize = kOGVInputStreamBufferSizeSeeking;
-        
+        [self resetState];
         [self startDownload];
     }
 
@@ -291,6 +291,20 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
 }
 
 #pragma mark - private methods
+
+-(void)resetState
+{
+    @synchronized (timeLock) {
+        [connection cancel];
+        connection = nil;
+        
+        [inputDataQueue removeAllObjects];
+        self.bytesAvailable = 0;
+        self.dataAvailable = NO;
+        
+        rangeSize = kOGVInputStreamBufferSizeSeeking;
+    }
+}
 
 -(void)startDownload
 {
@@ -354,13 +368,15 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
 
 -(BOOL)waitForBytesAvailable:(NSUInteger)nBytes
 {
-    const NSTimeInterval timeout = 10.0;
+    const NSTimeInterval maxTimeout = 10.0;
     int tries = 0;
 
-    for (NSDate *start = [NSDate date]; fabs([start timeIntervalSinceNow]) < timeout; tries++) {
+    for (NSDate *start = [NSDate date]; fabs([start timeIntervalSinceNow]) < maxTimeout; tries++) {
         if (tries > 0) {
-            assert(waitingForDataSemaphore == NULL);
-            waitingForDataSemaphore = dispatch_semaphore_create(0);
+            @synchronized (timeLock) {
+                assert(waitingForDataSemaphore == NULL);
+                waitingForDataSemaphore = dispatch_semaphore_create(0);
+            }
 
             NSLog(@"waiting: at %ld/%ld: have %ld, want %ld; done %d, state %d, rangeSize %d, remaining %d", (long)self.bytePosition, (long)(long)self.length, self.bytesAvailable, (long)nBytes, (int)doneDownloading, (int)self.state, (int)rangeSize, (int)remainingBytesInRange);
 
@@ -368,7 +384,9 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
             dispatch_semaphore_wait(waitingForDataSemaphore,
                                     timeout);
 
-            waitingForDataSemaphore = nil;
+            @synchronized (timeLock) {
+                waitingForDataSemaphore = nil;
+            }
         }
 
         @synchronized (timeLock) {
