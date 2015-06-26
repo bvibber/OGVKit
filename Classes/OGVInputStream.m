@@ -358,7 +358,7 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
 -(NSString *)nextRange
 {
     int64_t start = self.bytePosition + self.bytesAvailable;
-    int64_t end = start + rangeSize;
+    int64_t end = MAX(start + rangeSize, self.length);
     return [NSString stringWithFormat:@"bytes=%lld-%lld", start, end - 1];
 }
 
