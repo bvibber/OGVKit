@@ -42,28 +42,30 @@
                                              filename:@"¿Qué es Wikipedia?.ogv"],
 
                 // Third-party stuff
-                [[OGVExampleItem alloc] initWithTitle:@"Open Access Empowers"
+                [[OGVExampleItem alloc] initWithTitle:@"Open Access: Empowering Discovery"
                                              filename:@"How_Open_Access_Empowered_a_16-Year-Old_to_Make_Cancer_Breakthrough.ogv"],
-                [[OGVExampleItem alloc] initWithTitle:@"Curiosity (NASA)"
+                [[OGVExampleItem alloc] initWithTitle:@"Curiosity's Seven Minutes of Terror"
                                              filename:@"Curiosity's Seven Minutes of Terror.ogv"],
+                [[OGVExampleItem alloc] initWithTitle:@"Alaskan Huskies (heavy motion)"
+                                             filename:@"Alaskan_Huskies_-_Sled_Dogs_-_Ivalo_2013.ogv"],
 
                 // Blender open movies
                 [[OGVExampleItem alloc] initWithTitle:@"Tears of Steel (sci-fi)"
                                              filename:@"Tears_of_Steel_1080p.webm"],
                 [[OGVExampleItem alloc] initWithTitle:@"Sintel (animation)"
                                              filename:@"Sintel_movie_4K.webm"],
-
-                // Very busy/heavy motion
-                [[OGVExampleItem alloc] initWithTitle:@"Alaskan Huskies (high motion)"
-                                             filename:@"Alaskan_Huskies_-_Sled_Dogs_-_Ivalo_2013.ogv"],
+                [[OGVExampleItem alloc] initWithTitle:@"Caminandes - Llama Drama (animation)"
+                                             filename:@"Caminandes- Llama Drama - Short Movie.ogv"],
+                [[OGVExampleItem alloc] initWithTitle:@"Caminandes - Gran Dillama (animation)"
+                                             filename:@"Caminandes - Gran Dillama - Blender Foundation's new Open Movie.webm"],
 
                 // High frame rate
+                [[OGVExampleItem alloc] initWithTitle:@"Big Buck Bunny (60fps animation)"
+                                             filename:@"Big_Buck_Bunny_4K.webm"],
                 [[OGVExampleItem alloc] initWithTitle:@"Wiki Makes Video (60fps)"
                                              filename:@"Wiki Makes Video Intro 4 26.webm"],
                 [[OGVExampleItem alloc] initWithTitle:@"Hamilton Mixtape (60fps)"
                                              filename:@"Hamilton_Mixtape_(12_May_2009_live_at_the_White_House)_Lin-Manuel_Miranda.ogv"],
-                [[OGVExampleItem alloc] initWithTitle:@"Big Buck Bunny (60fps animation)"
-                                             filename:@"Big_Buck_Bunny_4K.webm"],
 
                 // Video-only tests
                 [[OGVExampleItem alloc] initWithTitle:@"Myopa (video only)"
