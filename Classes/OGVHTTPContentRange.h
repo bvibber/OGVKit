@@ -11,6 +11,7 @@
 @property (readonly) int64_t start;
 @property (readonly) int64_t end;
 @property (readonly) int64_t total;
+@property (readonly) BOOL valid;
 
 - (instancetype)initWithString:(NSString *)string;
 

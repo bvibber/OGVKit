@@ -41,6 +41,9 @@
         _start = [start longLongValue];
         _end = [end longLongValue];
         _total = [total longLongValue];
+        _valid = YES;
+    } else {
+        _valid = NO;
     }
 }
 

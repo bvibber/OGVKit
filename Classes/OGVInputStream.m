@@ -358,7 +358,7 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
 -(NSString *)nextRange
 {
     int64_t start = self.bytePosition + self.bytesAvailable;
-    int64_t end = MAX(start + rangeSize, self.length);
+    int64_t end = start + rangeSize; // if this exceeds the file end, that's ok. we'll find out when response comes back
     return [NSString stringWithFormat:@"bytes=%lld-%lld", start, end - 1];
 }
 
@@ -368,7 +368,7 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
     waitingForDataSemaphore = dispatch_semaphore_create(0);
     while (YES) {
         @synchronized (timeLock) {
-            NSLog(@"waiting: have %ld, want %ld; done %d, state %d, rangeSize %d, remaining %d", (long)self.bytesAvailable, (long)nBytes, (int)doneDownloading, (int)self.state, (int)rangeSize, (int)remainingBytesInRange);
+            NSLog(@"waiting: at %ld/%ld: have %ld, want %ld; done %d, state %d, rangeSize %d, remaining %d", (long)self.bytePosition, (long)(long)self.length, self.bytesAvailable, (long)nBytes, (int)doneDownloading, (int)self.state, (int)rangeSize, (int)remainingBytesInRange);
             if (self.bytesAvailable >= nBytes ||
                 doneDownloading ||
                 self.state == OGVInputStreamStateDone ||
@@ -393,7 +393,11 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
     @synchronized (timeLock) {
         [inputDataQueue addObject:data];
         self.bytesAvailable += [data length];
-        remainingBytesInRange -= [data length];
+        if (remainingBytesInRange > [data length]) {
+            remainingBytesInRange -= [data length];
+        } else {
+            remainingBytesInRange = 0;
+        }
 
         if ([inputDataQueue count] == 1) {
             self.dataAvailable = YES;
@@ -487,57 +491,74 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
 
 #pragma mark - NSURLConnectionDataDelegate methods
 
-- (void)connection:(NSURLConnection *)sender didReceiveResponse:(NSURLResponse *)response
+- (void)connection:(NSURLConnection *)sender didReceiveResponse:(NSHTTPURLResponse *)response
 {
     @synchronized (timeLock) {
         if (sender == connection) {
+            int statusCode = (int)response.statusCode;
+            NSDictionary *headers = response.allHeaderFields;
+            NSString *contentLength = headers[@"Content-Length"];
+            NSString *rangeHeader = headers[@"Content-Range"];
+            OGVHTTPContentRange *range = nil;
+
+            if (statusCode == 206) {
+                range = [[OGVHTTPContentRange alloc] initWithString:rangeHeader];
+                if (range.valid) {
+                    remainingBytesInRange = range.end - range.start;
+                } else {
+                    remainingBytesInRange = 0;
+                }
+            } else {
+                remainingBytesInRange = 0;
+            }
+
             switch (self.state) {
                 case OGVInputStreamStateConnecting:
                     self.mediaType = [[OGVMediaType alloc] initWithString:response.MIMEType];
 
-                    if ([response isKindOfClass:[NSHTTPURLResponse class]]) {
-                        NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
-                        NSDictionary *headers = httpResponse.allHeaderFields;
-                        NSInteger statusCode = httpResponse.statusCode;
-                        
-                        if (statusCode == 206) {
-                            NSString *rangeHeader = headers[@"Content-Range"];
-                            OGVHTTPContentRange *range = [[OGVHTTPContentRange alloc] initWithString:rangeHeader];
-                            if (range.total) {
-                                self.length = range.total;
-                                self.seekable = YES;
-                            }
-                        } else if (statusCode == 200) {
-                            NSString *contentLength = headers[@"Content-Length"];
+                    switch (statusCode) {
+                        case 200: // 'OK' - non-seekable stream
                             if (contentLength) {
                                 self.length = [contentLength longLongValue];
                             }
-                            remainingBytesInRange = 0;
                             self.seekable = NO;
-                        } else {
-                            NSLog(@"Unexpected HTTP status %d in OGVInputStream", (int)statusCode);
-                            [connection cancel];
-                            connection = nil;
+                            self.state = OGVInputStreamStateReading;
+                            break;
+
+                        case 206: // 'Partial Content' - Range: requests work
+                            if (range.valid) {
+                                self.length = range.total;
+                                self.seekable = YES;
+                                self.state = OGVInputStreamStateReading;
+                            } else {
+                                self.state = OGVInputStreamStateFailed;
+                            }
+                            break;
+
+                        default:
                             self.state = OGVInputStreamStateFailed;
-                            return;
-                        }
-                    } else {
-                        self.seekable = NO;
-                        if (response.expectedContentLength != NSURLResponseUnknownLength) {
-                            self.length = response.expectedContentLength;
-                        }
                     }
-                    self.state = OGVInputStreamStateReading;
+
                     break;
-                case OGVInputStreamStateReading:
-                    // We're just continuing a stream already connected to.
-                    break;
+
                 case OGVInputStreamStateSeeking:
                     // Reconnected. THE BYTES MUST FLOW
                     self.state = OGVInputStreamStateReading;
                     break;
+
+                case OGVInputStreamStateReading:
+                    // We're just continuing a stream already connected to.
+                    break;
+
                 default:
                     NSLog(@"invalid state %d in -[OGVInputStream connection:didReceiveResponse:]", (int)self.state);
+                    self.state = OGVInputStreamStateFailed;
+            }
+
+            if (self.state == OGVInputStreamStateFailed) {
+                NSLog(@"Unexpected HTTP status %d in OGVInputStream connection", statusCode);
+                [connection cancel];
+                connection = nil;
             }
         }
 
