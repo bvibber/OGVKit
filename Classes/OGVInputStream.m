@@ -346,11 +346,8 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
         // In case one of our download attempts silently failed while
         // we were waiting on it for a blocking read, it would be nice
         // to know about it.
-        if (waitingForDataSemaphore) {
+        if (connection == obj && waitingForDataSemaphore) {
             NSLog(@"URL download may have failed? poking foreground thread with a stick...");
-            if (connection == obj) {
-                NSLog(@"yeah def");
-            }
             dispatch_semaphore_signal(waitingForDataSemaphore);
         }
     }
