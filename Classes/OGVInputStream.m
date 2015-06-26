@@ -249,9 +249,12 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
     if (blocking) {
         [self waitForBytesAvailable:nBytes];
     }
-    data = [self dequeueBytes:nBytes];
 
-    return data;
+    @synchronized (timeLock) {
+        data = [self dequeueBytes:nBytes];
+        [self continueDownloadIfNeeded];
+        return data;
+    }
 }
 
 -(void)seek:(int64_t)offset blocking:(BOOL)blocking
@@ -368,6 +371,8 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
     for (NSDate *start = [NSDate date]; fabs([start timeIntervalSinceNow]) < maxTimeout; tries++) {
         if (tries > 0) {
             @synchronized (timeLock) {
+                [self continueDownloadIfNeeded];
+
                 assert(waitingForDataSemaphore == NULL);
                 waitingForDataSemaphore = dispatch_semaphore_create(0);
             }
@@ -476,6 +481,13 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
 
         self.bytePosition += [outputData length];
 
+        return outputData;
+    }
+}
+
+-(void)continueDownloadIfNeeded
+{
+    @synchronized (timeLock) {
         if (!connection) {
             if (doneDownloading) {
                 if (self.bytesAvailable == 0) {
@@ -493,11 +505,8 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
                 }
             }
         }
-
-        return outputData;
     }
 }
-
 
 #pragma mark - NSURLConnectionDataDelegate methods
 
