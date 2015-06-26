@@ -514,7 +514,7 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
             if (statusCode == 206) {
                 range = [[OGVHTTPContentRange alloc] initWithString:rangeHeader];
             }
-
+            
             switch (self.state) {
                 case OGVInputStreamStateConnecting:
                     self.mediaType = [[OGVMediaType alloc] initWithString:response.MIMEType];
@@ -563,10 +563,11 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
                 [connection cancel];
                 connection = nil;
             }
-        }
 
-        if (waitingForDataSemaphore) {
-            dispatch_semaphore_signal(waitingForDataSemaphore);
+            NSLog(@"RESPONSE %d RECEIVED (%d available)", statusCode, (int)self.bytesAvailable);
+            if (waitingForDataSemaphore) {
+                dispatch_semaphore_signal(waitingForDataSemaphore);
+            }
         }
     }
 }
@@ -576,10 +577,11 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
     @synchronized (timeLock) {
         if (sender == connection) {
             [self queueData:data];
-        }
 
-        if (waitingForDataSemaphore) {
-            dispatch_semaphore_signal(waitingForDataSemaphore);
+            NSLog(@"didReceiveData: %d (%d available)", (int)[data length], (int)self.bytesAvailable);
+            if (waitingForDataSemaphore) {
+                dispatch_semaphore_signal(waitingForDataSemaphore);
+            }
         }
     }
 }
@@ -597,10 +599,11 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
                 self.dataAvailable = ([inputDataQueue count] > 0);
             }
             connection = nil;
-        }
 
-        if (waitingForDataSemaphore) {
-            dispatch_semaphore_signal(waitingForDataSemaphore);
+            NSLog(@"didFinishLoading! (%d available)", (int)self.bytesAvailable);
+            if (waitingForDataSemaphore) {
+                dispatch_semaphore_signal(waitingForDataSemaphore);
+            }
         }
     }
 }
@@ -613,10 +616,11 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
             // already fetched!
             self.state = OGVInputStreamStateFailed;
             self.dataAvailable = ([inputDataQueue count] > 0);
-        }
 
-        if (waitingForDataSemaphore) {
-            dispatch_semaphore_signal(waitingForDataSemaphore);
+            NSLog(@"didFailWithError!");
+            if (waitingForDataSemaphore) {
+                dispatch_semaphore_signal(waitingForDataSemaphore);
+            }
         }
     }
 }
