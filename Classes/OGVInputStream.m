@@ -270,6 +270,10 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
             case OGVInputStreamStateDone:
                 // ok
                 break;
+            case OGVInputStreamStateFailed:
+            case OGVInputStreamStateCanceled:
+                // todo: make sure we actually got initial state on the stream somewheres
+                break;
             default:
                 NSLog(@"Unexpected input stream state for seeking: %d", self.state);
                 return;
