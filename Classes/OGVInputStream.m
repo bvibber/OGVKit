@@ -587,7 +587,7 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
         if (sender == connection) {
             [self queueData:data];
 
-            NSLog(@"didReceiveData: %d (%d available)", (int)[data length], (int)self.bytesAvailable);
+            //NSLog(@"didReceiveData: %d (%d available)", (int)[data length], (int)self.bytesAvailable);
             if (waitingForDataSemaphore) {
                 dispatch_semaphore_signal(waitingForDataSemaphore);
             }
@@ -609,7 +609,7 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
             }
             connection = nil;
 
-            NSLog(@"didFinishLoading! (%d available)", (int)self.bytesAvailable);
+            //NSLog(@"didFinishLoading! (%d available)", (int)self.bytesAvailable);
             if (waitingForDataSemaphore) {
                 dispatch_semaphore_signal(waitingForDataSemaphore);
             }
@@ -626,7 +626,7 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
             self.state = OGVInputStreamStateFailed;
             self.dataAvailable = ([inputDataQueue count] > 0);
 
-            NSLog(@"didFailWithError!");
+            //NSLog(@"didFailWithError!");
             if (waitingForDataSemaphore) {
                 dispatch_semaphore_signal(waitingForDataSemaphore);
             }
