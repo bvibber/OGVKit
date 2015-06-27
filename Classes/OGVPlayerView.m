@@ -349,9 +349,9 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
             self.timeRemainingLabel.text = [self formatTime:position - duration];
             if (!seeking) {
                 self.progressSlider.value = position / duration;
-                self.progressSlider.hidden = NO;
-                self.progressSlider.enabled = state.seekable;
             }
+            self.progressSlider.enabled = state.seekable;
+            self.progressSlider.hidden = NO;
         } else {
             self.timeRemainingLabel.text = @"";
             self.progressSlider.value = 0;
