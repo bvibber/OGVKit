@@ -351,7 +351,8 @@
                     nextDelay = 0;
                 } else {
                     // Check in when the audio buffer runs low again...
-                    nextDelay = fminf(nextDelay, bufferDuration / 2.0f);
+                    nextDelay = fminf(nextDelay, bufferDuration / 4.0f);
+                    // @todo revisit this checkin frequency, it's pretty made up
                 }
             }
             if (decoder.hasVideo) {
