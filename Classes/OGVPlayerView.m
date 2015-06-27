@@ -238,6 +238,8 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
 
             float targetTime = self.progressSlider.value * state.duration;
             [state seek:targetTime];
+            [self.activityIndicator startAnimating];
+            self.activityIndicator.hidden = NO;
             // we'll pick this up in ogvPlayerStateDidSeek
         }
     }
@@ -448,6 +450,8 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
 {
     if (sender == state) {
         seeking = NO;
+        self.activityIndicator.hidden = YES;
+        [self.activityIndicator stopAnimating];
         [self updateTimeLabel];
 
         if ([self.delegate respondsToSelector:@selector(ogvPlayerDidSeek:)]) {

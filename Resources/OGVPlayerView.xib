@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="7706" systemVersion="14D136" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="8121.20" systemVersion="14D136" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES">
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="7703"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="8101.16"/>
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
     </dependencies>
     <customFonts key="customFonts">
@@ -13,6 +13,7 @@
     <objects>
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="OGVPlayerView">
             <connections>
+                <outlet property="activityIndicator" destination="8cC-Nm-KrY" id="y3f-eP-vTD"/>
                 <outlet property="controlBar" destination="EsP-BZ-Yz6" id="kZr-a1-Teq"/>
                 <outlet property="frameView" destination="Gcs-fE-inA" id="mUz-Pm-SAA"/>
                 <outlet property="pausePlayButton" destination="C1P-af-wnM" id="11x-Mz-MjO"/>
@@ -47,20 +48,20 @@
                                 <action selector="togglePausePlay:" destination="-1" eventType="touchUpInside" id="Fy0-YV-N06"/>
                             </connections>
                         </button>
-                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="-:--" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="I5T-iC-1VI">
+                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="-:--" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="I5T-iC-1VI">
                             <rect key="frame" x="56" y="17" width="18.5" height="14.5"/>
                             <fontDescription key="fontDescription" type="system" pointSize="12"/>
                             <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
                             <nil key="highlightedColor"/>
                         </label>
-                        <slider opaque="NO" contentMode="scaleToFill" enabled="NO" contentHorizontalAlignment="center" contentVerticalAlignment="center" minValue="0.0" maxValue="1" translatesAutoresizingMaskIntoConstraints="NO" id="E0L-Vt-d1P">
+                        <slider opaque="NO" contentMode="scaleToFill" misplaced="YES" enabled="NO" contentHorizontalAlignment="center" contentVerticalAlignment="center" minValue="0.0" maxValue="1" translatesAutoresizingMaskIntoConstraints="NO" id="E0L-Vt-d1P">
                             <rect key="frame" x="80.5" y="9" width="486.5" height="31"/>
                             <connections>
                                 <action selector="onProgressSliderChanged:" destination="-1" eventType="valueChanged" id="RQ5-SO-kBh"/>
                                 <action selector="onProgressSliderReleased:" destination="-1" eventType="touchUpInside" id="Edt-eQ-oYj"/>
                             </connections>
                         </slider>
-                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="-:--" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="qHJ-2z-FME">
+                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="-:--" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="qHJ-2z-FME">
                             <rect key="frame" x="573" y="17" width="18.5" height="14.5"/>
                             <fontDescription key="fontDescription" type="system" pointSize="12"/>
                             <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
@@ -81,12 +82,17 @@
                         <constraint firstAttribute="trailingMargin" secondItem="qHJ-2z-FME" secondAttribute="trailing" id="qSW-YX-bhl"/>
                     </constraints>
                 </view>
+                <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="whiteLarge" translatesAutoresizingMaskIntoConstraints="NO" id="8cC-Nm-KrY">
+                    <rect key="frame" x="281.5" y="281.5" width="37" height="37"/>
+                </activityIndicatorView>
             </subviews>
             <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
             <constraints>
                 <constraint firstItem="Gcs-fE-inA" firstAttribute="leading" secondItem="ATs-0k-oX4" secondAttribute="leading" id="2Nd-AA-nnT"/>
                 <constraint firstItem="Gcs-fE-inA" firstAttribute="top" secondItem="ATs-0k-oX4" secondAttribute="top" id="GKb-Ni-0kD"/>
+                <constraint firstItem="8cC-Nm-KrY" firstAttribute="centerY" secondItem="ATs-0k-oX4" secondAttribute="centerY" id="J4R-8r-wlu"/>
                 <constraint firstAttribute="trailing" secondItem="EsP-BZ-Yz6" secondAttribute="trailing" id="Qei-3a-XbC"/>
+                <constraint firstItem="8cC-Nm-KrY" firstAttribute="centerX" secondItem="ATs-0k-oX4" secondAttribute="centerX" id="geV-u9-g5f"/>
                 <constraint firstAttribute="trailing" secondItem="Gcs-fE-inA" secondAttribute="trailing" id="kXj-HG-yYM"/>
                 <constraint firstAttribute="bottom" secondItem="EsP-BZ-Yz6" secondAttribute="bottom" id="rtE-Lg-gjo"/>
                 <constraint firstAttribute="bottom" secondItem="Gcs-fE-inA" secondAttribute="bottom" id="wWB-WW-gnz"/>
