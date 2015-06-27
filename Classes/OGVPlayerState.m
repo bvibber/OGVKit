@@ -129,6 +129,12 @@
                     frameEndTimestamp = decoder.frameTimestamp;
                     initialAudioTimestamp = decoder.audioTimestamp;
 
+                    dispatch_async(drawingQueue, ^() {
+                        if ([delegate respondsToSelector:@selector(ogvPlayerStateDidSeek:)]) {
+                            [delegate ogvPlayerStateDidSeek:self];
+                        }
+                    });
+
                     if (wasPlaying) {
                         [self play];
                     }

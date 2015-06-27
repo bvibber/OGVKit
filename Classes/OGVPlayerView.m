@@ -236,9 +236,8 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
 
             float targetTime = self.progressSlider.value * state.duration;
             [state seek:targetTime];
+            // we'll pick this up in ogvPlayerStateDidSeek
         }
-
-        seeking = NO;
     }
 }
 
@@ -436,6 +435,18 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
     if (sender == state) {
         if ([self.delegate respondsToSelector:@selector(ogvPlayerDidEnd:)]) {
             [self.delegate ogvPlayerDidEnd:self];
+        }
+    }
+}
+
+- (void)ogvPlayerStateDidSeek:(OGVPlayerState *)sender
+{
+    if (sender == state) {
+        seeking = NO;
+        [self updateTimeLabel];
+
+        if ([self.delegate respondsToSelector:@selector(ogvPlayerDidSeek:)]) {
+            [self.delegate ogvPlayerDidSeek:self];
         }
     }
 }

@@ -24,6 +24,9 @@
 @optional
 -(void)ogvPlayerDidEnd:(OGVPlayerView *)sender;
 
+@optional
+-(void)ogvPlayerDidSeek:(OGVPlayerView *)sender;
+
 @end
 
 

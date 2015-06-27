@@ -25,6 +25,8 @@
 @optional
 -(void)ogvPlayerStateDidEnd:(OGVPlayerState *)state;
 
+@optional
+-(void)ogvPlayerStateDidSeek:(OGVPlayerState *)state;
 @end
 
 
