@@ -127,7 +127,7 @@ Pod::Spec.new do |s|
                          "libskeleton/include/skeleton/skeleton_query.h",
                          "libskeleton/src/skeleton.c",
                          "libskeleton/src/skeleton_macros.h",
-                         "libskeleton/src/skeleton_privte.h",
+                         "libskeleton/src/skeleton_private.h",
                          "libskeleton/src/skeleton_query.c",
                          "libskeleton/src/skeleton_vector.h",
                          "libskeleton/src/skeleton_vector.c"
