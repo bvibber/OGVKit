@@ -225,6 +225,8 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
         }
         seekTimeout = [NSTimer timerWithTimeInterval:0.25f target:self selector:@selector(onSeekTimeout:) userInfo:state repeats:NO];
         [[NSRunLoop currentRunLoop] addTimer:seekTimeout forMode:NSRunLoopCommonModes];
+
+        [self updateTimeLabel];
     }
 }
 
@@ -341,15 +343,18 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
 -(void)updateTimeLabel
 {
     if (state) {
-        float position = state.playbackPosition;
+        float duration = state.duration;
+        float position;
+        if (seeking) {
+            position = self.progressSlider.value * duration;
+        } else {
+            position = state.playbackPosition;
+            self.progressSlider.value = position / duration;
+        }
         self.timeLabel.text = [self formatTime:position];
 
-        float duration = state.duration;
         if (duration < INFINITY) {
             self.timeRemainingLabel.text = [self formatTime:position - duration];
-            if (!seeking) {
-                self.progressSlider.value = position / duration;
-            }
             self.progressSlider.enabled = state.seekable;
             self.progressSlider.hidden = NO;
         } else {
