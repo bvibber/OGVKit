@@ -73,7 +73,7 @@ Now open OGVKit.xcworkspace -- the workspace NOT the project! And build.
 
 ## Adding to your project
 
-To use the current release (once released!) in your project, set up some stuff in your Podfile like so:
+To use the current release in your project, set up some stuff in your Podfile like so:
 
 ```
 source 'https://github.com/CocoaPods/Specs.git'
