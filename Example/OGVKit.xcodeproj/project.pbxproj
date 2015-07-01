@@ -18,7 +18,7 @@
 		6003F5A9195388D20070C39A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6003F5A8195388D20070C39A /* Images.xcassets */; };
 		82BEF7EFD8645F15C612253D /* libPods-OGVKit.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 18E11BB9E1126F7739B28631 /* libPods-OGVKit.a */; };
 		D434585D1B3C106B0073DBD9 /* OGVExampleItem.m in Sources */ = {isa = PBXBuildFile; fileRef = D434585C1B3C106B0073DBD9 /* OGVExampleItem.m */; };
-		D4B182DA1B3CD52A0077B638 /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D4B182D91B3CD52A0077B638 /* Launch Screen.storyboard */; };
+		D4F6495B1B444F29002B1F4B /* Launch Screen.xib in Resources */ = {isa = PBXBuildFile; fileRef = D4F6495A1B444F29002B1F4B /* Launch Screen.xib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -47,7 +47,7 @@
 		CC6FEBB370C0E161C450A5DB /* README.md */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../README.md; sourceTree = "<group>"; };
 		D434585B1B3C106B0073DBD9 /* OGVExampleItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVExampleItem.h; sourceTree = "<group>"; };
 		D434585C1B3C106B0073DBD9 /* OGVExampleItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVExampleItem.m; sourceTree = "<group>"; };
-		D4B182D91B3CD52A0077B638 /* Launch Screen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
+		D4F6495A1B444F29002B1F4B /* Launch Screen.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = "Launch Screen.xib"; sourceTree = "<group>"; };
 		FD3D085B2B96FA3398A9E08D /* OGVKit.podspec */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = OGVKit.podspec; path = ../OGVKit.podspec; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -121,7 +121,7 @@
 				6003F594195388D20070C39A /* Supporting Files */,
 				D434585B1B3C106B0073DBD9 /* OGVExampleItem.h */,
 				D434585C1B3C106B0073DBD9 /* OGVExampleItem.m */,
-				D4B182D91B3CD52A0077B638 /* Launch Screen.storyboard */,
+				D4F6495A1B444F29002B1F4B /* Launch Screen.xib */,
 			);
 			path = OGVKit;
 			sourceTree = "<group>";
@@ -209,8 +209,8 @@
 			files = (
 				6003F5A9195388D20070C39A /* Images.xcassets in Resources */,
 				6003F5A1195388D20070C39A /* Main.storyboard in Resources */,
-				D4B182DA1B3CD52A0077B638 /* Launch Screen.storyboard in Resources */,
 				6003F598195388D20070C39A /* InfoPlist.strings in Resources */,
+				D4F6495B1B444F29002B1F4B /* Launch Screen.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
