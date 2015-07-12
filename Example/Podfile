@@ -10,7 +10,12 @@ end
 # hack for missing resource bundle on iPad build
 # https://github.com/CocoaPods/CocoaPods/issues/2292
 post_install do |installer|
-  installer.project.targets.each do |target|
+  if installer.respond_to?(:project)
+    project = installer.project
+  else
+    project = installer.pods_project
+  end
+  project.targets.each do |target|
     if target.product_reference.name == 'OGVKitResources.bundle' then
       target.build_configurations.each do |config|
         config.build_settings['TARGETED_DEVICE_FAMILY'] = '1,2' # iPhone, iPad

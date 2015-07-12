@@ -90,7 +90,12 @@ end
 # https://github.com/CocoaPods/CocoaPods/issues/2292
 # Remove once bug fixed is better:
 post_install do |installer|
-  installer.project.targets.each do |target|
+  if installer.respond_to?(:project)
+    project = installer.project
+  else
+    project = installer.pods_project
+  end
+  project.targets.each do |target|
     if target.product_reference.name == 'OGVKitResources.bundle' then
       target.build_configurations.each do |config|
         config.build_settings['TARGETED_DEVICE_FAMILY'] = '1,2' # iPhone, iPad
