@@ -18,8 +18,19 @@
 		6003F5A9195388D20070C39A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6003F5A8195388D20070C39A /* Images.xcassets */; };
 		82BEF7EFD8645F15C612253D /* libPods-OGVKit.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 18E11BB9E1126F7739B28631 /* libPods-OGVKit.a */; };
 		D434585D1B3C106B0073DBD9 /* OGVExampleItem.m in Sources */ = {isa = PBXBuildFile; fileRef = D434585C1B3C106B0073DBD9 /* OGVExampleItem.m */; };
+		D4400A7C1B9F4CE400A2356A /* OGVKit_Tests.m in Sources */ = {isa = PBXBuildFile; fileRef = D4400A7B1B9F4CE400A2356A /* OGVKit_Tests.m */; };
 		D4F6495B1B444F29002B1F4B /* Launch Screen.xib in Resources */ = {isa = PBXBuildFile; fileRef = D4F6495A1B444F29002B1F4B /* Launch Screen.xib */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		D4400A7D1B9F4CE400A2356A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6003F582195388D10070C39A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 6003F589195388D20070C39A;
+			remoteInfo = OGVKit;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		1105FFA0B99F316F5DC12739 /* Pods-Tests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Tests.release.xcconfig"; path = "Pods/Target Support Files/Pods-Tests/Pods-Tests.release.xcconfig"; sourceTree = "<group>"; };
@@ -47,6 +58,11 @@
 		CC6FEBB370C0E161C450A5DB /* README.md */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../README.md; sourceTree = "<group>"; };
 		D434585B1B3C106B0073DBD9 /* OGVExampleItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVExampleItem.h; sourceTree = "<group>"; };
 		D434585C1B3C106B0073DBD9 /* OGVExampleItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVExampleItem.m; sourceTree = "<group>"; };
+		D4400A771B9F4CE400A2356A /* OGVKit Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "OGVKit Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		D4400A7A1B9F4CE400A2356A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		D4400A7B1B9F4CE400A2356A /* OGVKit_Tests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = OGVKit_Tests.m; sourceTree = "<group>"; };
+		D4400A821B9F4DBD00A2356A /* libPods-OGVKit.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libPods-OGVKit.a"; path = "Pods/../build/Debug-iphoneos/libPods-OGVKit.a"; sourceTree = "<group>"; };
+		D4400A841B9F500D00A2356A /* libPods-OGVKit.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libPods-OGVKit.a"; path = "Pods/../build/Debug-iphoneos/libPods-OGVKit.a"; sourceTree = "<group>"; };
 		D4F6495A1B444F29002B1F4B /* Launch Screen.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = "Launch Screen.xib"; sourceTree = "<group>"; };
 		FD3D085B2B96FA3398A9E08D /* OGVKit.podspec */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = OGVKit.podspec; path = ../OGVKit.podspec; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -60,6 +76,13 @@
 				6003F592195388D20070C39A /* UIKit.framework in Frameworks */,
 				6003F58E195388D20070C39A /* Foundation.framework in Frameworks */,
 				82BEF7EFD8645F15C612253D /* libPods-OGVKit.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D4400A741B9F4CE400A2356A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -82,6 +105,7 @@
 			children = (
 				60FF7A9C1954A5C5007DD14C /* Podspec Metadata */,
 				6003F593195388D20070C39A /* OGVKit */,
+				D4400A781B9F4CE400A2356A /* OGVKit Tests */,
 				6003F58C195388D20070C39A /* Frameworks */,
 				6003F58B195388D20070C39A /* Products */,
 				451F6AC7EFE7618DAEBBF209 /* Pods */,
@@ -92,6 +116,7 @@
 			isa = PBXGroup;
 			children = (
 				6003F58A195388D20070C39A /* OGVKit.app */,
+				D4400A771B9F4CE400A2356A /* OGVKit Tests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -99,6 +124,8 @@
 		6003F58C195388D20070C39A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				D4400A841B9F500D00A2356A /* libPods-OGVKit.a */,
+				D4400A821B9F4DBD00A2356A /* libPods-OGVKit.a */,
 				6003F58D195388D20070C39A /* Foundation.framework */,
 				6003F58F195388D20070C39A /* CoreGraphics.framework */,
 				6003F591195388D20070C39A /* UIKit.framework */,
@@ -147,6 +174,23 @@
 			name = "Podspec Metadata";
 			sourceTree = "<group>";
 		};
+		D4400A781B9F4CE400A2356A /* OGVKit Tests */ = {
+			isa = PBXGroup;
+			children = (
+				D4400A7B1B9F4CE400A2356A /* OGVKit_Tests.m */,
+				D4400A791B9F4CE400A2356A /* Supporting Files */,
+			);
+			path = "OGVKit Tests";
+			sourceTree = "<group>";
+		};
+		D4400A791B9F4CE400A2356A /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				D4400A7A1B9F4CE400A2356A /* Info.plist */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -169,6 +213,24 @@
 			productReference = 6003F58A195388D20070C39A /* OGVKit.app */;
 			productType = "com.apple.product-type.application";
 		};
+		D4400A761B9F4CE400A2356A /* OGVKit Tests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D4400A811B9F4CE400A2356A /* Build configuration list for PBXNativeTarget "OGVKit Tests" */;
+			buildPhases = (
+				D4400A731B9F4CE400A2356A /* Sources */,
+				D4400A741B9F4CE400A2356A /* Frameworks */,
+				D4400A751B9F4CE400A2356A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D4400A7E1B9F4CE400A2356A /* PBXTargetDependency */,
+			);
+			name = "OGVKit Tests";
+			productName = "OGVKit Tests";
+			productReference = D4400A771B9F4CE400A2356A /* OGVKit Tests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -181,6 +243,10 @@
 				TargetAttributes = {
 					6003F589195388D20070C39A = {
 						DevelopmentTeam = 7LBY3ZCYK9;
+					};
+					D4400A761B9F4CE400A2356A = {
+						CreatedOnToolsVersion = 6.4;
+						TestTargetID = 6003F589195388D20070C39A;
 					};
 				};
 			};
@@ -198,6 +264,7 @@
 			projectRoot = "";
 			targets = (
 				6003F589195388D20070C39A /* OGVKit */,
+				D4400A761B9F4CE400A2356A /* OGVKit Tests */,
 			);
 		};
 /* End PBXProject section */
@@ -211,6 +278,13 @@
 				6003F5A1195388D20070C39A /* Main.storyboard in Resources */,
 				6003F598195388D20070C39A /* InfoPlist.strings in Resources */,
 				D4F6495B1B444F29002B1F4B /* Launch Screen.xib in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D4400A751B9F4CE400A2356A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -261,7 +335,23 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D4400A731B9F4CE400A2356A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D4400A7C1B9F4CE400A2356A /* OGVKit_Tests.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		D4400A7E1B9F4CE400A2356A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 6003F589195388D20070C39A /* OGVKit */;
+			targetProxy = D4400A7D1B9F4CE400A2356A /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		6003F596195388D20070C39A /* InfoPlist.strings */ = {
@@ -398,6 +488,63 @@
 			};
 			name = Release;
 		};
+		D4400A7F1B9F4CE400A2356A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 2D10C849DA95D4674AC686EC /* Pods-OGVKit.debug.xcconfig */;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(SDKROOT)/Developer/Library/Frameworks",
+					"$(inherited)",
+				);
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				INFOPLIST_FILE = "OGVKit Tests/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 8.4;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/build/Debug-iphoneos",
+				);
+				MTL_ENABLE_DEBUG_INFO = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/OGVKit.app/OGVKit";
+			};
+			name = Debug;
+		};
+		D4400A801B9F4CE400A2356A /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 86C767A34B248471BBC0E1ED /* Pods-OGVKit.release.xcconfig */;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(SDKROOT)/Developer/Library/Frameworks",
+					"$(inherited)",
+				);
+				GCC_NO_COMMON_BLOCKS = YES;
+				INFOPLIST_FILE = "OGVKit Tests/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 8.4;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/build/Debug-iphoneos",
+				);
+				MTL_ENABLE_DEBUG_INFO = NO;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/OGVKit.app/OGVKit";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -415,6 +562,15 @@
 			buildConfigurations = (
 				6003F5C0195388D20070C39A /* Debug */,
 				6003F5C1195388D20070C39A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D4400A811B9F4CE400A2356A /* Build configuration list for PBXNativeTarget "OGVKit Tests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D4400A7F1B9F4CE400A2356A /* Debug */,
+				D4400A801B9F4CE400A2356A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

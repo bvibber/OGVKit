@@ -469,7 +469,9 @@ enum AppState {
         vpxDecoder = NULL;
     }
 #endif
-    nestegg_destroy(demuxContext);
+    if (demuxContext) {
+        nestegg_destroy(demuxContext);
+    }
 }
 
 

@@ -3,9 +3,16 @@ source 'https://github.com/CocoaPods/Specs.git'
 # temp hack
 source 'https://github.com/brion/OGVKit-Specs.git'
 
+# needed to link OGVKit libraries into the tests as well as the example itself
+link_with 'OGVKit', 'OGVKit Tests'
+
 target 'OGVKit', :exclusive => true do
   pod "OGVKit", :path => "../"
 end
+
+target 'OGVKit Tests', :exclusive => true do
+end
+
 
 # hack for missing resource bundle on iPad build
 # https://github.com/CocoaPods/CocoaPods/issues/2292
