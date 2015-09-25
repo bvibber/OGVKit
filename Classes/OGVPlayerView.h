@@ -27,6 +27,12 @@
 @optional
 -(void)ogvPlayerDidSeek:(OGVPlayerView *)sender;
 
+@optional
+-(void)ogvPlayerControlsWillHide:(OGVPlayerView *)sender;
+
+@optional
+-(void)ogvPlayerControlsWillShow:(OGVPlayerView *)sender;
+
 @end
 
 
