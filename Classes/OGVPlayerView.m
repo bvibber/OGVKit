@@ -267,6 +267,10 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
 
 -(void)hideControls
 {
+     if ([self.delegate respondsToSelector:@selector(ogvPlayerControlsWillHide:)]) {
+        [self.delegate ogvPlayerControlsWillHide:self];
+    }
+
     [UIView animateWithDuration:0.5f animations:^{
         self.controlBar.alpha = 0.0001f;
     } completion:^(BOOL finished) {
@@ -276,6 +280,10 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
 
 -(void)showControls
 {
+    if ([self.delegate respondsToSelector:@selector(ogvPlayerControlsWillShow:)]) {
+        [self.delegate ogvPlayerControlsWillShow:self];
+    }
+
     if (self.controlBar.alpha == 0.0f) {
         self.controlBar.alpha = 0.0001f;
     }
