@@ -291,10 +291,8 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
         assert([inputBuffers count] >= nBuffers);
 
         isStarting = YES;
-
-        throwIfNSError(^(NSError **err) {
-            [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback error:err];
-        });
+        
+        [self changeAudioSessionCategory];
         
         // Prime the buffers!
         for (int i = 0; i < nBuffers; i++) {
@@ -313,6 +311,27 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
             return AudioQueueStart(queue, NULL);
         });
     }
+}
+
+-(void)changeAudioSessionCategory
+{
+    NSString *category = [[AVAudioSession sharedInstance] category];
+    
+    // if the current category is Playback or PlayAndRecord, we don't have to change anything
+    if ([category isEqualToString:AVAudioSessionCategoryPlayback] || [category isEqualToString:AVAudioSessionCategoryPlayAndRecord]) {
+        return;
+    }
+    
+    throwIfNSError(^(NSError **err) {
+        // if the current category is Record, set it to PlayAndRecord
+        if ([category isEqualToString:AVAudioSessionCategoryRecord]) {
+            [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayAndRecord error:err];
+            return;
+        }
+        
+        // otherwise we just change it to Playback
+        [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback error:err];
+    });
 }
 
 -(int)buffersQueued
