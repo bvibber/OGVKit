@@ -203,6 +203,7 @@
 				6003F587195388D20070C39A /* Frameworks */,
 				6003F588195388D20070C39A /* Resources */,
 				0AC4E0466C1FF5A6A1044525 /* Copy Pods Resources */,
+				02EA227A713B35E0B5B14B1C /* Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -291,6 +292,21 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		02EA227A713B35E0B5B14B1C /* Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Embed Pods Frameworks";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-OGVKit/Pods-OGVKit-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
 		0AC4E0466C1FF5A6A1044525 /* Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
