@@ -17,7 +17,7 @@ Pod::Spec.new do |s|
   s.author             = { "Brion Vibber" => "brion@pobox.com" }
   s.social_media_url   = "https://brionv.com/"
 
-  s.platform     = :ios, "7.0"
+  s.platform     = :ios, "8.0"
 
   s.source       = { :git => "https://github.com/brion/OGVKit.git",
                      :submodules => true }
