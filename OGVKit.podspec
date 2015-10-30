@@ -36,7 +36,14 @@ Pod::Spec.new do |s|
                    "Classes/OGVFrameView.{h,m}",
                    "Classes/OGVAudioFeeder.{h,m}",
                    "Classes/OGVPlayerState.{h,m}",
-                   "Classes/OGVPlayerView.{h,m}"
+                   "Classes/OGVPlayerView.{h,m}",
+                   "Classes/OGVDecoderOgg.h",
+                   "Classes/OGVDecoderOggPacket.h",
+                   "Classes/OGVDecoderWebM.h",
+                   "Classes/OGVDecoderWebMPacket.h",
+                   "libskeleton/includes/skeleton/skeleton.h",
+                   "libskeleton/includes/skeleton/skeleton_constants.h",
+                   "libskeleton/includes/skeleton/skeleton_query.h"
 
   s.public_header_files = "Classes/OGVKit.h",
                           "Classes/OGVQueue.h",
@@ -63,6 +70,9 @@ Pod::Spec.new do |s|
       'Resources/ogvkit-iconfont.ttf'
     ]
   }
+
+  s.module_name = 'OGVKit'
+  s.module_map = 'OGVKit.modulemap'
 
   # File format convenience subspecs
   s.subspec "Ogg" do |sogg|

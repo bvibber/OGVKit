@@ -7,6 +7,7 @@
 //
 
 #import "OGVKit.h"
+#import <ogg/ogg.h>
 #import <oggz/oggz.h>
 
 @interface OGVDecoderOggPacket : NSObject

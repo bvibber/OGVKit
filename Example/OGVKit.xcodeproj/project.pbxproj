@@ -16,7 +16,7 @@
 		6003F5A1195388D20070C39A /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 6003F59F195388D20070C39A /* Main.storyboard */; };
 		6003F5A7195388D20070C39A /* OGVViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 6003F5A6195388D20070C39A /* OGVViewController.m */; };
 		6003F5A9195388D20070C39A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6003F5A8195388D20070C39A /* Images.xcassets */; };
-		82BEF7EFD8645F15C612253D /* libPods-OGVKit.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 18E11BB9E1126F7739B28631 /* libPods-OGVKit.a */; };
+		9250C3574E14856AFEBD059D /* Pods_OGVKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84CD1542E549164449BF9EC9 /* Pods_OGVKit.framework */; };
 		D434585D1B3C106B0073DBD9 /* OGVExampleItem.m in Sources */ = {isa = PBXBuildFile; fileRef = D434585C1B3C106B0073DBD9 /* OGVExampleItem.m */; };
 		D4400A7C1B9F4CE400A2356A /* OGVKit_Tests.m in Sources */ = {isa = PBXBuildFile; fileRef = D4400A7B1B9F4CE400A2356A /* OGVKit_Tests.m */; };
 		D4F6495B1B444F29002B1F4B /* Launch Screen.xib in Resources */ = {isa = PBXBuildFile; fileRef = D4F6495A1B444F29002B1F4B /* Launch Screen.xib */; };
@@ -34,7 +34,6 @@
 
 /* Begin PBXFileReference section */
 		1105FFA0B99F316F5DC12739 /* Pods-Tests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Tests.release.xcconfig"; path = "Pods/Target Support Files/Pods-Tests/Pods-Tests.release.xcconfig"; sourceTree = "<group>"; };
-		18E11BB9E1126F7739B28631 /* libPods-OGVKit.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-OGVKit.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D10C849DA95D4674AC686EC /* Pods-OGVKit.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-OGVKit.debug.xcconfig"; path = "Pods/Target Support Files/Pods-OGVKit/Pods-OGVKit.debug.xcconfig"; sourceTree = "<group>"; };
 		3B2F31ACC5C702377DC1DB90 /* libPods-Tests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Tests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		44C6E3FD6088BDDC6822C589 /* LICENSE */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = LICENSE; path = ../LICENSE; sourceTree = "<group>"; };
@@ -54,6 +53,7 @@
 		6003F5A6195388D20070C39A /* OGVViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = OGVViewController.m; sourceTree = "<group>"; };
 		6003F5A8195388D20070C39A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		6003F5AF195388D20070C39A /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
+		84CD1542E549164449BF9EC9 /* Pods_OGVKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_OGVKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		86C767A34B248471BBC0E1ED /* Pods-OGVKit.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-OGVKit.release.xcconfig"; path = "Pods/Target Support Files/Pods-OGVKit/Pods-OGVKit.release.xcconfig"; sourceTree = "<group>"; };
 		CC6FEBB370C0E161C450A5DB /* README.md */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../README.md; sourceTree = "<group>"; };
 		D434585B1B3C106B0073DBD9 /* OGVExampleItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVExampleItem.h; sourceTree = "<group>"; };
@@ -75,7 +75,7 @@
 				6003F590195388D20070C39A /* CoreGraphics.framework in Frameworks */,
 				6003F592195388D20070C39A /* UIKit.framework in Frameworks */,
 				6003F58E195388D20070C39A /* Foundation.framework in Frameworks */,
-				82BEF7EFD8645F15C612253D /* libPods-OGVKit.a in Frameworks */,
+				9250C3574E14856AFEBD059D /* Pods_OGVKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -130,8 +130,8 @@
 				6003F58F195388D20070C39A /* CoreGraphics.framework */,
 				6003F591195388D20070C39A /* UIKit.framework */,
 				6003F5AF195388D20070C39A /* XCTest.framework */,
-				18E11BB9E1126F7739B28631 /* libPods-OGVKit.a */,
 				3B2F31ACC5C702377DC1DB90 /* libPods-Tests.a */,
+				84CD1542E549164449BF9EC9 /* Pods_OGVKit.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
