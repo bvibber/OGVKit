@@ -354,19 +354,26 @@ enum AppState {
             }
             foundImage = true;
 
+            // In VP8/VP9 the frame size can vary! Update as necessary.
+            OGVVideoFormat *format = [self.videoFormat copy];
+            format.frameWidth = image->w;
+            format.frameHeight = image->h;
+            format.pictureWidth = image->d_w;
+            format.pictureHeight = image->d_h;
+
             OGVVideoPlane *Y = [[OGVVideoPlane alloc] initWithBytes:image->planes[0]
                                                              stride:image->stride[0]
-                                                              lines:self.videoFormat.lumaHeight];
+                                                              lines:format.lumaHeight];
 
             OGVVideoPlane *Cb = [[OGVVideoPlane alloc] initWithBytes:image->planes[1]
                                                               stride:image->stride[1]
-                                                               lines:self.videoFormat.chromaHeight];
+                                                               lines:format.chromaHeight];
 
             OGVVideoPlane *Cr = [[OGVVideoPlane alloc] initWithBytes:image->planes[2]
                                                               stride:image->stride[2]
-                                                               lines:self.videoFormat.chromaHeight];
+                                                               lines:format.chromaHeight];
 
-            OGVVideoBuffer *buffer = [[OGVVideoBuffer alloc] initWithFormat:self.videoFormat
+            OGVVideoBuffer *buffer = [[OGVVideoBuffer alloc] initWithFormat:format
                                                                           Y:Y
                                                                          Cb:Cb
                                                                          Cr:Cr

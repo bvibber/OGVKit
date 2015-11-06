@@ -58,4 +58,17 @@
     return self.lumaHeight >> [self vDecimation];
 }
 
+- (instancetype)copyWithZone:(NSZone *)zone
+{
+    OGVVideoFormat *other = [[OGVVideoFormat alloc] init];
+    other.frameWidth = self.frameWidth;
+    other.frameHeight = self.frameHeight;
+    other.pictureWidth = self.pictureWidth;
+    other.pictureHeight = self.pictureHeight;
+    other.pictureOffsetX = self.pictureOffsetX;
+    other.pictureOffsetY = self.pictureOffsetY;
+    other.pixelFormat = self.pixelFormat;
+    return other;
+}
+
 @end

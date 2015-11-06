@@ -12,7 +12,7 @@ typedef NS_ENUM(NSUInteger, OGVPixelFormat) {
     OGVPixelFormatYCbCr444 = 2
 };
 
-@interface OGVVideoFormat : NSObject
+@interface OGVVideoFormat : NSObject <NSCopying>
 
 @property int frameWidth;
 @property int frameHeight;
