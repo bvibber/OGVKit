@@ -9,6 +9,8 @@
 #import "OGVViewController.h"
 
 #import "OGVExampleItem.h"
+#import "OGVLinkedExampleItem.h"
+#import "OGVCommonsExampleItem.h"
 
 @interface OGVViewController ()
 
@@ -34,48 +36,55 @@
 {
     [super viewDidLoad];
 
+    NSBundle *bundle = [NSBundle bundleForClass:[self class]];
+
     sources = @[
                 // Wikipedia stuff
-                [[OGVExampleItem alloc] initWithTitle:@"Wikipedia VisualEditor"
-                                             filename:@"Sneak Preview - Wikipedia VisualEditor.webm"],
-                [[OGVExampleItem alloc] initWithTitle:@"¿Qué es Wikipedia?"
-                                             filename:@"¿Qué es Wikipedia?.ogv"],
+                [[OGVCommonsExampleItem alloc] initWithTitle:@"Wikipedia VisualEditor"
+                                                    filename:@"Sneak Preview - Wikipedia VisualEditor.webm"],
+                [[OGVCommonsExampleItem alloc] initWithTitle:@"¿Qué es Wikipedia?"
+                                                    filename:@"¿Qué es Wikipedia?.ogv"],
 
                 // Third-party stuff
-                [[OGVExampleItem alloc] initWithTitle:@"Open Access: Empowering Discovery"
-                                             filename:@"How_Open_Access_Empowered_a_16-Year-Old_to_Make_Cancer_Breakthrough.ogv"],
-                [[OGVExampleItem alloc] initWithTitle:@"Curiosity's Seven Minutes of Terror"
-                                             filename:@"Curiosity's Seven Minutes of Terror.ogv"],
-                [[OGVExampleItem alloc] initWithTitle:@"Alaskan Huskies (heavy motion)"
-                                             filename:@"Alaskan_Huskies_-_Sled_Dogs_-_Ivalo_2013.ogv"],
+                [[OGVCommonsExampleItem alloc] initWithTitle:@"Open Access: Empowering Discovery"
+                                                    filename:@"How_Open_Access_Empowered_a_16-Year-Old_to_Make_Cancer_Breakthrough.ogv"],
+                [[OGVCommonsExampleItem alloc] initWithTitle:@"Curiosity's Seven Minutes of Terror"
+                                                    filename:@"Curiosity's Seven Minutes of Terror.ogv"],
+                [[OGVCommonsExampleItem alloc] initWithTitle:@"Alaskan Huskies (heavy motion)"
+                                                    filename:@"Alaskan_Huskies_-_Sled_Dogs_-_Ivalo_2013.ogv"],
 
                 // Blender open movies
-                [[OGVExampleItem alloc] initWithTitle:@"Tears of Steel (sci-fi)"
-                                             filename:@"Tears_of_Steel_1080p.webm"],
-                [[OGVExampleItem alloc] initWithTitle:@"Sintel (animation)"
-                                             filename:@"Sintel_movie_4K.webm"],
-                [[OGVExampleItem alloc] initWithTitle:@"Caminandes - Llama Drama (animation)"
-                                             filename:@"Caminandes- Llama Drama - Short Movie.ogv"],
-                [[OGVExampleItem alloc] initWithTitle:@"Caminandes - Gran Dillama (animation)"
-                                             filename:@"Caminandes - Gran Dillama - Blender Foundation's new Open Movie.webm"],
+                [[OGVCommonsExampleItem alloc] initWithTitle:@"Tears of Steel (sci-fi)"
+                                                    filename:@"Tears_of_Steel_1080p.webm"],
+                [[OGVCommonsExampleItem alloc] initWithTitle:@"Sintel (animation)"
+                                                    filename:@"Sintel_movie_4K.webm"],
+                [[OGVCommonsExampleItem alloc] initWithTitle:@"Caminandes - Llama Drama (animation)"
+                                                    filename:@"Caminandes- Llama Drama - Short Movie.ogv"],
+                [[OGVCommonsExampleItem alloc] initWithTitle:@"Caminandes - Gran Dillama (animation)"
+                                                    filename:@"Caminandes - Gran Dillama - Blender Foundation's new Open Movie.webm"],
 
                 // High frame rate
-                [[OGVExampleItem alloc] initWithTitle:@"Big Buck Bunny (60fps animation)"
-                                             filename:@"Big_Buck_Bunny_4K.webm"],
-                [[OGVExampleItem alloc] initWithTitle:@"Wiki Makes Video (60fps)"
-                                             filename:@"Wiki Makes Video Intro 4 26.webm"],
-                [[OGVExampleItem alloc] initWithTitle:@"Hamilton Mixtape (60fps)"
-                                             filename:@"Hamilton_Mixtape_(12_May_2009_live_at_the_White_House)_Lin-Manuel_Miranda.ogv"],
+                [[OGVCommonsExampleItem alloc] initWithTitle:@"Big Buck Bunny (60fps animation)"
+                                                    filename:@"Big_Buck_Bunny_4K.webm"],
+                [[OGVCommonsExampleItem alloc] initWithTitle:@"Wiki Makes Video (60fps)"
+                                                    filename:@"Wiki Makes Video Intro 4 26.webm"],
+                [[OGVCommonsExampleItem alloc] initWithTitle:@"Hamilton Mixtape (60fps)"
+                                                    filename:@"Hamilton_Mixtape_(12_May_2009_live_at_the_White_House)_Lin-Manuel_Miranda.ogv"],
 
                 // Video-only tests
-                [[OGVExampleItem alloc] initWithTitle:@"Myopa (video only)"
-                                             filename:@"Myopa_-_2015-05-02.webm"],
+                [[OGVCommonsExampleItem alloc] initWithTitle:@"Myopa (video only)"
+                                                    filename:@"Myopa_-_2015-05-02.webm"],
 
                 // Audio-only tests
-                [[OGVExampleItem alloc] initWithTitle:@"Bach C Major (audio)"
-                                             filename:@"Bach_C_Major_Prelude_Werckmeister.ogg"],
-                [[OGVExampleItem alloc] initWithTitle:@"Arigato (short audio)"
-                                             filename:@"Ja-arigato.oga"]];
+                [[OGVCommonsExampleItem alloc] initWithTitle:@"Bach C Major (audio)"
+                                                    filename:@"Bach_C_Major_Prelude_Werckmeister.ogg"],
+                [[OGVCommonsExampleItem alloc] initWithTitle:@"Arigato (short audio)"
+                                                    filename:@"Ja-arigato.oga"],
+                
+                // Local test files
+                [[OGVLinkedExampleItem alloc] initWithTitle:@"Res switching (local)"
+                                                        URL:[NSURL URLWithString:@"https://github.com/brion/OGVKit/raw/master/Example/Samples/vp8-res-switch.webm"]]
+            ];
 
     [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"generic"];
     

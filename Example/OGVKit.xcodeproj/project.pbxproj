@@ -19,6 +19,8 @@
 		9250C3574E14856AFEBD059D /* Pods_OGVKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84CD1542E549164449BF9EC9 /* Pods_OGVKit.framework */; };
 		D434585D1B3C106B0073DBD9 /* OGVExampleItem.m in Sources */ = {isa = PBXBuildFile; fileRef = D434585C1B3C106B0073DBD9 /* OGVExampleItem.m */; };
 		D4400A7C1B9F4CE400A2356A /* OGVKit_Tests.m in Sources */ = {isa = PBXBuildFile; fileRef = D4400A7B1B9F4CE400A2356A /* OGVKit_Tests.m */; };
+		D4E1D3F51BED052000A58076 /* OGVCommonsExampleItem.m in Sources */ = {isa = PBXBuildFile; fileRef = D4E1D3F41BED052000A58076 /* OGVCommonsExampleItem.m */; };
+		D4E1D3F81BED061600A58076 /* OGVLinkedExampleItem.m in Sources */ = {isa = PBXBuildFile; fileRef = D4E1D3F71BED061600A58076 /* OGVLinkedExampleItem.m */; };
 		D4F6495B1B444F29002B1F4B /* Launch Screen.xib in Resources */ = {isa = PBXBuildFile; fileRef = D4F6495A1B444F29002B1F4B /* Launch Screen.xib */; };
 /* End PBXBuildFile section */
 
@@ -63,6 +65,10 @@
 		D4400A7B1B9F4CE400A2356A /* OGVKit_Tests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = OGVKit_Tests.m; sourceTree = "<group>"; };
 		D4400A821B9F4DBD00A2356A /* libPods-OGVKit.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libPods-OGVKit.a"; path = "Pods/../build/Debug-iphoneos/libPods-OGVKit.a"; sourceTree = "<group>"; };
 		D4400A841B9F500D00A2356A /* libPods-OGVKit.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libPods-OGVKit.a"; path = "Pods/../build/Debug-iphoneos/libPods-OGVKit.a"; sourceTree = "<group>"; };
+		D4E1D3F31BED052000A58076 /* OGVCommonsExampleItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVCommonsExampleItem.h; sourceTree = "<group>"; };
+		D4E1D3F41BED052000A58076 /* OGVCommonsExampleItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVCommonsExampleItem.m; sourceTree = "<group>"; };
+		D4E1D3F61BED061600A58076 /* OGVLinkedExampleItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVLinkedExampleItem.h; sourceTree = "<group>"; };
+		D4E1D3F71BED061600A58076 /* OGVLinkedExampleItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVLinkedExampleItem.m; sourceTree = "<group>"; };
 		D4F6495A1B444F29002B1F4B /* Launch Screen.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = "Launch Screen.xib"; sourceTree = "<group>"; };
 		FD3D085B2B96FA3398A9E08D /* OGVKit.podspec */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = OGVKit.podspec; path = ../OGVKit.podspec; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -149,6 +155,10 @@
 				D434585B1B3C106B0073DBD9 /* OGVExampleItem.h */,
 				D434585C1B3C106B0073DBD9 /* OGVExampleItem.m */,
 				D4F6495A1B444F29002B1F4B /* Launch Screen.xib */,
+				D4E1D3F31BED052000A58076 /* OGVCommonsExampleItem.h */,
+				D4E1D3F41BED052000A58076 /* OGVCommonsExampleItem.m */,
+				D4E1D3F61BED061600A58076 /* OGVLinkedExampleItem.h */,
+				D4E1D3F71BED061600A58076 /* OGVLinkedExampleItem.m */,
 			);
 			path = OGVKit;
 			sourceTree = "<group>";
@@ -345,7 +355,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				6003F59E195388D20070C39A /* OGVAppDelegate.m in Sources */,
+				D4E1D3F51BED052000A58076 /* OGVCommonsExampleItem.m in Sources */,
 				6003F5A7195388D20070C39A /* OGVViewController.m in Sources */,
+				D4E1D3F81BED061600A58076 /* OGVLinkedExampleItem.m in Sources */,
 				D434585D1B3C106B0073DBD9 /* OGVExampleItem.m in Sources */,
 				6003F59A195388D20070C39A /* main.m in Sources */,
 			);
