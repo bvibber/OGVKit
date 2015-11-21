@@ -464,10 +464,10 @@ enum AppState {
 #ifdef OGVKIT_HAVE_VORBIS_DECODER
     if (vorbisHeaders) {
         //ogg_stream_clear(&vorbisStreamState);
-        vorbis_info_clear(&vorbisInfo);
         vorbis_dsp_clear(&vorbisDspState);
         vorbis_block_clear(&vorbisBlock);
         vorbis_comment_clear(&vorbisComment);
+        vorbis_info_clear(&vorbisInfo);
     }
 #endif
 #ifdef OGVKIT_HAVE_VP8_DECODER
