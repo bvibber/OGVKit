@@ -417,8 +417,10 @@
     frameEndTimestamp = buffer.timestamp;
     //NSLog(@"frame: %f %f", frameEndTimestamp, self.playbackPosition);
     dispatch_async(drawingQueue, ^() {
-        [delegate ogvPlayerState:self drawFrame:buffer];
-        [self pingProcessing:0];
+        if (decoder) {
+            [delegate ogvPlayerState:self drawFrame:buffer];
+            [self pingProcessing:0];
+        }
     });
 }
 
