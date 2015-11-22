@@ -357,10 +357,10 @@ static int64_t tellCallback(void * userdata)
 
             // In VP8/VP9 the frame size can vary! Update as necessary.
             OGVVideoFormat *format = [self.videoFormat copy];
-            format.frameWidth = image->w;
-            format.frameHeight = image->h;
-            format.pictureWidth = image->d_w;
-            format.pictureHeight = image->d_h;
+            format.frameWidth = image->d_w;
+            format.frameHeight = image->d_h;
+            format.pictureWidth = image->r_w;
+            format.pictureHeight = image->r_h;
 
             OGVVideoPlane *Y = [[OGVVideoPlane alloc] initWithBytes:image->planes[0]
                                                              stride:image->stride[0]
