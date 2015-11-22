@@ -128,12 +128,13 @@ static int64_t tellCallback(void * userdata)
 
     OGVAudioBuffer *queuedAudio;
     OGVVideoBuffer *queuedFrame;
+
+    enum AppState {
+        STATE_BEGIN,
+        STATE_DECODING
+    } appState;
 }
 
-enum AppState {
-    STATE_BEGIN,
-    STATE_DECODING
-} appState;
 
 -(instancetype)init
 {
