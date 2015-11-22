@@ -356,11 +356,12 @@ static int64_t tellCallback(void * userdata)
             foundImage = true;
 
             // In VP8/VP9 the frame size can vary! Update as necessary.
+            // vpx_image is pre-cropped; use only the display size
             OGVVideoFormat *format = [self.videoFormat copy];
             format.frameWidth = image->d_w;
             format.frameHeight = image->d_h;
-            format.pictureWidth = image->r_w;
-            format.pictureHeight = image->r_h;
+            format.pictureWidth = image->d_w;
+            format.pictureHeight = image->d_h;
 
             OGVVideoPlane *Y = [[OGVVideoPlane alloc] initWithBytes:image->planes[0]
                                                              stride:image->stride[0]
