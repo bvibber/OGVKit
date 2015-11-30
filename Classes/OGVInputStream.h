@@ -16,6 +16,9 @@
 @optional
 -(void)OGVInputStreamStateChanged:(OGVInputStream *)sender;
 
+@optional
+-(void)OGVInputStream:(OGVInputStream *)sender customizeURLRequest:(NSMutableURLRequest *)request;
+
 @end
 
 typedef NS_ENUM(int, OGVInputStreamState) {

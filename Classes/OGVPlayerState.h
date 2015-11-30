@@ -27,6 +27,10 @@
 
 @optional
 -(void)ogvPlayerStateDidSeek:(OGVPlayerState *)state;
+
+@optional
+-(void)ogvPlayerState:(OGVPlayerState *)state customizeURLRequest:(NSMutableURLRequest *)request;
+
 @end
 
 

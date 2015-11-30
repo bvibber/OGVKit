@@ -468,4 +468,11 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
     }
 }
 
+- (void)ogvPlayerState:(OGVPlayerState *)state customizeURLRequest:(NSMutableURLRequest *)request
+{
+    if ([self.delegate respondsToSelector:@selector(ogvPlayer:customizeURLRequest:)]) {
+        [self.delegate ogvPlayer:self customizeURLRequest:request];
+    }
+}
+
 @end

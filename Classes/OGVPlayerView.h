@@ -33,6 +33,9 @@
 @optional
 -(void)ogvPlayerControlsWillShow:(OGVPlayerView *)sender;
 
+@optional
+-(void)ogvPlayer:(OGVPlayerView *)sender customizeURLRequest:(NSMutableURLRequest *)request;
+
 @end
 
 

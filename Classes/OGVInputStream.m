@@ -324,6 +324,11 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
         [req addValue:[self nextRange] forHTTPHeaderField:@"Range"];
         NSLog(@"Range %lld: %@", (int64_t)rangeSize, [self nextRange]);
 
+        // Allow caller to add custom HTTP headers etc
+        if ([self.delegate respondsToSelector:@selector(OGVInputStream:customizeURLRequest:)]) {
+            [self.delegate OGVInputStream:self customizeURLRequest:req];
+        }
+
         doneDownloading = NO;
         connection = [[NSURLConnection alloc] initWithRequest:req delegate:self startImmediately:NO];
         [NSThread detachNewThreadSelector:@selector(startDownloadThread:)

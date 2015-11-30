@@ -480,4 +480,11 @@
     }
 }
 
+-(void)OGVInputStream:(OGVInputStream *)sender customizeURLRequest:(NSMutableURLRequest *)request
+{
+    if ([delegate respondsToSelector:@selector(ogvPlayerState:customizeURLRequest:)]) {
+        [delegate ogvPlayerState:self customizeURLRequest:request];
+    }
+}
+
 @end
