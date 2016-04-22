@@ -7,6 +7,7 @@
 //
 
 #import "OGVKit.h"
+#import "OGVQueue.h"
 #import "OGVDecoderWebM.h"
 #import "OGVDecoderWebMPacket.h"
 

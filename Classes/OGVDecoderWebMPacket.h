@@ -9,6 +9,10 @@
 #import "OGVKit.h"
 #import <nestegg/nestegg.h>
 
+#ifdef OGVKIT_HAVE_VORBIS_DECODER
+#import <ogg/ogg.h>
+#endif
+
 @interface OGVDecoderWebMPacket : NSObject
 
 /**

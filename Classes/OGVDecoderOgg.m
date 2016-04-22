@@ -7,6 +7,7 @@
 //
 
 #import "OGVKit.h"
+#import "OGVQueue.h"
 
 #define OV_EXCLUDE_STATIC_CALLBACKS
 #include <ogg/ogg.h>

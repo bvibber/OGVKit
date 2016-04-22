@@ -7,7 +7,6 @@
 //
 
 #import "OGVKit.h"
-#import "OGVDecoderOggPacket.h"
 
 @interface OGVQueue : NSObject
 

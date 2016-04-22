@@ -12,7 +12,6 @@
 
 @class OGVKit;
 
-#import "OGVQueue.h"
 #import "OGVMediaType.h"
 
 #import "OGVAudioFormat.h"
