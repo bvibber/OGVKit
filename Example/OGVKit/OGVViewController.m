@@ -36,8 +36,6 @@
 {
     [super viewDidLoad];
 
-    NSBundle *bundle = [NSBundle bundleForClass:[self class]];
-
     sources = @[
                 // Wikipedia stuff
                 [[OGVCommonsExampleItem alloc] initWithTitle:@"Wikipedia VisualEditor"
