@@ -95,6 +95,8 @@ Pod::Spec.new do |s|
     soggdemuxer.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_OGG_DEMUXER' }
     soggdemuxer.source_files = "Classes/OGVDecoderOgg.{h,m}",
                                "Classes/OGVDecoderOggPacket.{h,m}"
+    soggdemuxer.private_header_files = "Classes/OGVDecoderOgg.h",
+                                       "Classes/OGVDecoderOggPacket.h"
     soggdemuxer.dependency 'OGVKit/Core'
     soggdemuxer.dependency 'liboggz'
     soggdemuxer.dependency 'OGVKit/libskeleton', '~>0.4'
@@ -103,6 +105,8 @@ Pod::Spec.new do |s|
     swebmdemuxer.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_WEBM_DEMUXER' }
     swebmdemuxer.source_files = "Classes/OGVDecoderWebM.{h,m}",
                                 "Classes/OGVDecoderWebMPacket.{h,m}"
+    swebmdemuxer.private_header_files = "Classes/OGVDecoderWebM.h",
+                                        "Classes/OGVDecoderWebMPacket.h"
     swebmdemuxer.dependency 'OGVKit/Core'
     swebmdemuxer.dependency 'libnestegg'
   end
@@ -116,7 +120,7 @@ Pod::Spec.new do |s|
   s.subspec "VP8Decoder" do |svp8decoder|
     svp8decoder.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_VP8_DECODER' }
     svp8decoder.dependency 'OGVKit/Core'
-    svp8decoder.dependency 'libvpx', '~>1.4.0-snapshot-20151029-shared-xcode71c'
+    svp8decoder.dependency 'libvpx', '~>1.5.0-snapshot-20150502b'
   end
 
   # Audio decoder module subspecs
