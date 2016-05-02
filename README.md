@@ -76,6 +76,8 @@ Now open OGVKit.xcworkspace -- the workspace NOT the project! And build.
 To use the current release in your project, set up some stuff in your Podfile like so:
 
 ```
+use_frameworks!
+
 source 'https://github.com/CocoaPods/Specs.git'
 
 # This line is needed until OGVKit is fully published to CocoaPods
@@ -84,24 +86,6 @@ source 'https://github.com/brion/OGVKit-Specs.git'
 
 target 'MyXcodeProjectName' do
   pod "OGVKit"
-end
-
-# hack for missing resource bundle on iPad builds
-# https://github.com/CocoaPods/CocoaPods/issues/2292
-# Remove once bug fixed is better:
-post_install do |installer|
-  if installer.respond_to?(:project)
-    project = installer.project
-  else
-    project = installer.pods_project
-  end
-  project.targets.each do |target|
-    if target.product_reference.name == 'OGVKitResources.bundle' then
-      target.build_configurations.each do |config|
-        config.build_settings['TARGETED_DEVICE_FAMILY'] = '1,2' # iPhone, iPad
-      end
-    end
-  end
 end
 ```
 
