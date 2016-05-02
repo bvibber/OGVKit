@@ -7,7 +7,7 @@ source 'https://github.com/CocoaPods/Specs.git'
 # temp hack
 source 'https://github.com/brion/OGVKit-Specs.git'
 
-target 'OGVKit' do
+target 'OGVKit Example' do
   pod "OGVKit", :path => "../"
 
   target 'OGVKit Tests' do

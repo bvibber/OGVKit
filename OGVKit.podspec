@@ -23,10 +23,10 @@ Pod::Spec.new do |s|
                      :submodules => true }
 
   s.header_dir = 'OGVKit'
+  s.module_name = 'OGVKit'
 
 
-  s.subspec "Core" do |score|
-    score.source_files = "Classes/OGVKit.{h,m}",
+    s.source_files = "Classes/OGVKit.{h,m}",
                      "Classes/OGVQueue.{h,m}",
                      "Classes/OGVMediaType.{h,m}",
                      "Classes/OGVAudioFormat.{h,m}",
@@ -42,7 +42,7 @@ Pod::Spec.new do |s|
                      "Classes/OGVPlayerState.{h,m}",
                      "Classes/OGVPlayerView.{h,m}"
 
-    score.public_header_files = "Classes/OGVKit.h",
+    s.public_header_files = "Classes/OGVKit.h",
                             "Classes/OGVMediaType.h",
                             "Classes/OGVAudioFormat.h",
                             "Classes/OGVAudioBuffer.h",
@@ -56,7 +56,7 @@ Pod::Spec.new do |s|
                             "Classes/OGVPlayerState.h",
                             "Classes/OGVPlayerView.h"
 
-    score.resource_bundle = {
+    s.resource_bundle = {
       'OGVKitResources' => [
         'Resources/OGVFrameView.fsh',
         'Resources/OGVFrameView.vsh',
@@ -64,7 +64,6 @@ Pod::Spec.new do |s|
         'Resources/ogvkit-iconfont.ttf'
       ]
     }
-  end
 
   # File format convenience subspecs
   s.subspec "Ogg" do |sogg|
@@ -97,7 +96,6 @@ Pod::Spec.new do |s|
                                "Classes/OGVDecoderOggPacket.{h,m}"
     soggdemuxer.private_header_files = "Classes/OGVDecoderOgg.h",
                                        "Classes/OGVDecoderOggPacket.h"
-    soggdemuxer.dependency 'OGVKit/Core'
     soggdemuxer.dependency 'liboggz'
     soggdemuxer.dependency 'OGVKit/libskeleton', '~>0.4'
   end
@@ -107,26 +105,22 @@ Pod::Spec.new do |s|
                                 "Classes/OGVDecoderWebMPacket.{h,m}"
     swebmdemuxer.private_header_files = "Classes/OGVDecoderWebM.h",
                                         "Classes/OGVDecoderWebMPacket.h"
-    swebmdemuxer.dependency 'OGVKit/Core'
     swebmdemuxer.dependency 'libnestegg'
   end
 
   # Video decoder module subspecs
   s.subspec "TheoraDecoder" do |stheoradecoder|
     stheoradecoder.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_THEORA_DECODER' }
-    stheoradecoder.dependency 'OGVKit/Core'
     stheoradecoder.dependency 'libtheora'
   end
   s.subspec "VP8Decoder" do |svp8decoder|
     svp8decoder.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_VP8_DECODER' }
-    svp8decoder.dependency 'OGVKit/Core'
     svp8decoder.dependency 'libvpx', '~>1.5.0-snapshot-20150502b'
   end
 
   # Audio decoder module subspecs
   s.subspec "VorbisDecoder" do |svorbisdecoder|
     svorbisdecoder.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_VORBIS_DECODER' }
-    svorbisdecoder.dependency 'OGVKit/Core'
     svorbisdecoder.dependency 'libvorbis'
   end
 
@@ -147,7 +141,6 @@ Pod::Spec.new do |s|
     sskel.public_header_files = "libskeleton/include/skeleton/skeleton.h",
                                 "libskeleton/include/skeleton/skeleton_constants.h",
                                 "libskeleton/include/skeleton/skeleton_query.h"
-    sskel.header_dir = 'skeleton'
 
     sskel.dependency 'libogg'
   end
