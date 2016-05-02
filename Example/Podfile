@@ -1,3 +1,5 @@
+# This example requires CocoaPods 1.0
+
 use_frameworks!
 
 source 'https://github.com/CocoaPods/Specs.git'
@@ -5,15 +7,14 @@ source 'https://github.com/CocoaPods/Specs.git'
 # temp hack
 source 'https://github.com/brion/OGVKit-Specs.git'
 
-# needed to link OGVKit libraries into the tests as well as the example itself
-link_with 'OGVKit', 'OGVKit Tests'
-
-target 'OGVKit', :exclusive => true do
+target 'OGVKit' do
   pod "OGVKit", :path => "../"
+
+  target 'OGVKit Tests' do
+    inherit! :search_paths
+  end
 end
 
-target 'OGVKit Tests', :exclusive => true do
-end
 
 
 # hack for missing resource bundle on iPad build
