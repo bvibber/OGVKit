@@ -22,7 +22,7 @@
 #include <theora/theoradec.h>
 #endif
 
-#include <skeleton/skeleton.h>
+#include "skeleton.h"
 
 #import "OGVDecoderOgg.h"
 #import "OGVDecoderOggPacket.h"
