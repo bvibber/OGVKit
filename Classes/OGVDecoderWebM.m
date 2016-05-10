@@ -15,8 +15,8 @@
 
 #ifdef OGVKIT_HAVE_VP8_DECODER
 #define VPX_CODEC_DISABLE_COMPAT 1
-#include <vpx/vpx_decoder.h>
-#include <vpx/vp8dx.h>
+#include <VPX/vpx/vpx_decoder.h>
+#include <VPX/vpx/vp8dx.h>
 #endif
 
 #ifdef OGVKIT_HAVE_VORBIS_DECODER
