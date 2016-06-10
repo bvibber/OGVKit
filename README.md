@@ -85,7 +85,7 @@ source 'https://github.com/CocoaPods/Specs.git'
 source 'https://github.com/brion/OGVKit-Specs.git'
 
 target 'MyXcodeProjectName' do
-  pod "OGVKit"
+  pod "OGVKit", "0.5pre"
 end
 ```
 
