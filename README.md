@@ -106,6 +106,18 @@ Just Ogg files with Vorbis audio, with no video codecs enabled:
   pod "OGVKit/Ogg/Vorbis"
 ```
 
+It may be necessary to disable bitcode on the entire project. To ensure that generated pods projects have bitcode disabled, add to the Podfile a section:
+
+```
+  post_install do |installer|
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |config|
+        config.build_settings['ENABLE_BITCODE'] = 'NO'
+      end
+    end
+  end
+```
+
 
 ## Instantiating a player programmatically
 
