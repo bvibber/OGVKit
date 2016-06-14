@@ -115,7 +115,7 @@ Pod::Spec.new do |s|
   end
   s.subspec "VP8Decoder" do |svp8decoder|
     svp8decoder.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_VP8_DECODER' }
-    svp8decoder.dependency 'libvpx', '~>1.5.0-937-g5994023'
+    svp8decoder.dependency 'libvpx', '~>1.5.0-1021-g59ae167'
   end
 
   # Audio decoder module subspecs
