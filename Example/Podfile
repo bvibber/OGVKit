@@ -7,6 +7,18 @@ source 'https://github.com/CocoaPods/Specs.git'
 # temp hack
 source 'https://github.com/brion/OGVKit-Specs.git'
 
+# Needed since bitcode cannot be included for assembly portions
+# of the VPX framework, so we don't have complete bitcode for
+# everything. As of June 2016, Apple's validation rules require
+# an app to have the same bitcode setting as its libraries.
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      config.build_settings['ENABLE_BITCODE'] = 'NO'
+    end
+  end
+end
+
 target 'OGVKit Example' do
   pod "OGVKit", :path => "../"
 
