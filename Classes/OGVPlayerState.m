@@ -88,8 +88,9 @@
 -(void)pause
 {
     dispatch_async(decodeQueue, ^() {
+        float newBaseTime = self.baseTime;
         offsetTime = self.playbackPosition;
-
+        initTime = newBaseTime;
         if (audioFeeder) {
             [self stopAudio];
         }
@@ -177,7 +178,7 @@
     if (playing) {
         position = self.baseTime - initTime + offsetTime;
     } else {
-        position = offsetTime - initTime;
+        position = offsetTime;
     }
     
     return (position > 0.0) ? position : 0.0;
