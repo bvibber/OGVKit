@@ -174,12 +174,12 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = D4F61F821CD7ADAD00898F7F /* Build configuration list for PBXNativeTarget "OGVKit Example" */;
 			buildPhases = (
-				D9A0615AF21CE3D945D36BEC /* 📦 Check Pods Manifest.lock */,
+				D9A0615AF21CE3D945D36BEC /* [CP] Check Pods Manifest.lock */,
 				D4F61F5C1CD7ADAC00898F7F /* Sources */,
 				D4F61F5D1CD7ADAC00898F7F /* Frameworks */,
 				D4F61F5E1CD7ADAC00898F7F /* Resources */,
-				C9204C917B1F00D234526E4E /* 📦 Embed Pods Frameworks */,
-				5591F1C6635D2A54630693F6 /* 📦 Copy Pods Resources */,
+				C9204C917B1F00D234526E4E /* [CP] Embed Pods Frameworks */,
+				5591F1C6635D2A54630693F6 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -194,12 +194,12 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = D4F61F851CD7ADAD00898F7F /* Build configuration list for PBXNativeTarget "OGVKit Tests" */;
 			buildPhases = (
-				8F88E7EA12DBABE6B51C9A47 /* 📦 Check Pods Manifest.lock */,
+				8F88E7EA12DBABE6B51C9A47 /* [CP] Check Pods Manifest.lock */,
 				D4F61F751CD7ADAD00898F7F /* Sources */,
 				D4F61F761CD7ADAD00898F7F /* Frameworks */,
 				D4F61F771CD7ADAD00898F7F /* Resources */,
-				006856319B8410E95E6EC09B /* 📦 Embed Pods Frameworks */,
-				3629D3AAF3736F18FF11CDF4 /* 📦 Copy Pods Resources */,
+				006856319B8410E95E6EC09B /* [CP] Embed Pods Frameworks */,
+				3629D3AAF3736F18FF11CDF4 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -272,14 +272,14 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		006856319B8410E95E6EC09B /* 📦 Embed Pods Frameworks */ = {
+		006856319B8410E95E6EC09B /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputPaths = (
 			);
-			name = "📦 Embed Pods Frameworks";
+			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -287,14 +287,14 @@
 			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-OGVKit Tests/Pods-OGVKit Tests-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		3629D3AAF3736F18FF11CDF4 /* 📦 Copy Pods Resources */ = {
+		3629D3AAF3736F18FF11CDF4 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputPaths = (
 			);
-			name = "📦 Copy Pods Resources";
+			name = "[CP] Copy Pods Resources";
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -302,14 +302,14 @@
 			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-OGVKit Tests/Pods-OGVKit Tests-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		5591F1C6635D2A54630693F6 /* 📦 Copy Pods Resources */ = {
+		5591F1C6635D2A54630693F6 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputPaths = (
 			);
-			name = "📦 Copy Pods Resources";
+			name = "[CP] Copy Pods Resources";
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -317,14 +317,14 @@
 			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-OGVKit Example/Pods-OGVKit Example-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		8F88E7EA12DBABE6B51C9A47 /* 📦 Check Pods Manifest.lock */ = {
+		8F88E7EA12DBABE6B51C9A47 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputPaths = (
 			);
-			name = "📦 Check Pods Manifest.lock";
+			name = "[CP] Check Pods Manifest.lock";
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -332,14 +332,14 @@
 			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [[ $? != 0 ]] ; then\n    cat << EOM\nerror: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\nEOM\n    exit 1\nfi\n";
 			showEnvVarsInLog = 0;
 		};
-		C9204C917B1F00D234526E4E /* 📦 Embed Pods Frameworks */ = {
+		C9204C917B1F00D234526E4E /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputPaths = (
 			);
-			name = "📦 Embed Pods Frameworks";
+			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -347,14 +347,14 @@
 			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-OGVKit Example/Pods-OGVKit Example-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		D9A0615AF21CE3D945D36BEC /* 📦 Check Pods Manifest.lock */ = {
+		D9A0615AF21CE3D945D36BEC /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputPaths = (
 			);
-			name = "📦 Check Pods Manifest.lock";
+			name = "[CP] Check Pods Manifest.lock";
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
