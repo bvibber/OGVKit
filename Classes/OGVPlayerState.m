@@ -299,7 +299,9 @@
 - (void)processNextFrame
 {
     BOOL more;
-    
+    if (!playing) {
+        return;
+    }
     while (true) {
         more = [decoder process];
         if (!more) {
@@ -371,33 +373,35 @@
             }
         }
         
-        if (readyToDecodeFrame && decoder.frameReady) {
-            //NSLog(@"%f ms frame delay", frameDelay * 1000);
-            BOOL ok = [decoder decodeFrame];
-            if (ok) {
-                // Check if it's time to draw (AKA the frame timestamp is at or past the playhead)
-                if (readyToDrawFrame) {
-                    // If we're already playing, DRAW!
-                    [self drawFrame];
-                    
-                    // End the processing loop, we'll ping again after drawing
-                    return;
+        if (decoder.hasVideo) {
+            if (readyToDecodeFrame && decoder.frameReady) {
+                //NSLog(@"%f ms frame delay", frameDelay * 1000);
+                BOOL ok = [decoder decodeFrame];
+                if (ok) {
+                    // Check if it's time to draw (AKA the frame timestamp is at or past the playhead)
+                    if (readyToDrawFrame) {
+                        // If we're already playing, DRAW!
+                        [self drawFrame];
+                        
+                        // End the processing loop, we'll ping again after drawing
+                        return;
+                    } else {
+                        // Not ready to draw yet, update the timestamp and keep on chuggin
+                        OGVVideoBuffer *buffer = [decoder frameBuffer];
+                        frameEndTimestamp = buffer.timestamp;
+                        continue;
+                    }
                 } else {
-                    // Not ready to draw yet, update the timestamp and keep on chuggin
-                    OGVVideoBuffer *buffer = [decoder frameBuffer];
-                    frameEndTimestamp = buffer.timestamp;
-                    continue;
+                    NSLog(@"Bad video packet or something");
+                    [self pingProcessing:(1.0f / 30)];
                 }
+            } else if (!playing) {
+                // We're all caught up but paused, will be pinged when played
+                return;
             } else {
-                NSLog(@"Bad video packet or something");
-                [self pingProcessing:(1.0f / 30)];
+                // Need more processing; continue the loop
+                continue;
             }
-        } else if (!playing) {
-            // We're all caught up but paused, will be pinged when played
-            return;
-        } else {
-            // Need more processing; continue the loop
-            continue;
         }
         
         if (nextDelay < INFINITY) {
