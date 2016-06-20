@@ -487,8 +487,6 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
 #ifdef OGVKIT_HAVE_THEORA_DECODER
 -(void)doDecodeTheora:(float)timestamp
 {
-    assert(queuedFrame == nil);
-
     th_ycbcr_buffer ycbcr;
     th_decode_ycbcr_out(theoraDecoderContext, ycbcr);
 
