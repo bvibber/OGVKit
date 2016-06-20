@@ -151,6 +151,11 @@
                     });
                     if (wasPlaying) {
                         [self play];
+                    } else if (decoder.hasVideo) {
+                        // Show where we left off
+                        if ([decoder decodeFrame]) {
+                            [self drawFrame];
+                        }
                     }
                 }
             });
@@ -447,16 +452,12 @@
 
 -(BOOL)syncAfterSeek:(float)target exact:(BOOL)exact
 {
-    while ((decoder.hasAudio && !decoder.audioReady) || (decoder.hasVideo && !decoder.frameReady)) {
-        if (![decoder process]) {
-            NSLog(@"Got to end of file before found data again after seek.");
-            break;
-        }
-    }
     while (YES) {
-        if (![decoder process]) {
-            NSLog(@"Got to end of file before found data again after seek.");
-            break;
+        while ((decoder.hasAudio && !decoder.audioReady) || (decoder.hasVideo && !decoder.frameReady)) {
+            if (![decoder process]) {
+                NSLog(@"Got to end of file before found data again after seek.");
+                return NO;
+            }
         }
         if (exact) {
             if (decoder.hasAudio && decoder.audioReady && decoder.audioTimestamp < target) {
@@ -467,24 +468,12 @@
             }
             if ((!decoder.hasVideo || decoder.frameTimestamp >= target) &&
                 (!decoder.hasAudio || decoder.audioTimestamp >= target)) {
-                break;
+                return YES;
             }
         } else {
             // We're ok leaving off after the keyframe
-            break;
+            return YES;
         }
-    }
-
-    if (decoder.hasVideo) {
-        // Show where we left off
-        BOOL ok = [decoder decodeFrame];
-        if (ok) {
-            [self drawFrame];
-        }
-        return ok;
-    } else {
-        // If audio-only there's nothing to do after seeking.
-        return YES;
     }
 }
 
