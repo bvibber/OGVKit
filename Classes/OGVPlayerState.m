@@ -19,13 +19,10 @@
 
     float frameEndTimestamp;
     float initialAudioTimestamp;
-    CFTimeInterval initTime;
-    CFTimeInterval offsetTime;
     
     BOOL playing;
     BOOL playAfterLoad;
     BOOL seeking;
-    BOOL wasPlayingBeforeSeek;
     
     dispatch_queue_t decodeQueue;
     dispatch_queue_t drawingQueue;
@@ -48,10 +45,8 @@
 
         stream = [[OGVInputStream alloc] initWithURL:URL];
 
-        initTime = -1;
         playing = NO;
         playAfterLoad = NO;
-        wasPlayingBeforeSeek = NO;
 
         // Start loading the URL and processing header data
         dispatch_async(decodeQueue, ^() {
@@ -69,9 +64,6 @@
         if (playing) {
             // Already playing
         } else if (decoder.dataReady) {
-            if (initTime != -1) {
-                offsetTime -= CACurrentMediaTime();
-            }
             [self startPlayback];
         } else {
             playAfterLoad = YES;
@@ -88,7 +80,6 @@
 
         if (playing) {
             playing = NO;
-            offsetTime += CACurrentMediaTime();
             dispatch_async(drawingQueue, ^() {
                 if ([delegate respondsToSelector:@selector(ogvPlayerStateDidPause:)]) {
                     [delegate ogvPlayerStateDidPause:self];
@@ -120,13 +111,14 @@
     }
     dispatch_async(decodeQueue, ^() {
         if (decoder && decoder.seekable) {
-            wasPlayingBeforeSeek = !self.paused;
-            if (wasPlayingBeforeSeek) {
+            BOOL wasPlaying = !self.paused;
+            if (wasPlaying) {
                 [self pause];
             }
             dispatch_async(decodeQueue, ^() {
-                // Adjust the offset for the seek
-                offsetTime += (time - frameEndTimestamp);
+                // Save our approximate time...
+                frameEndTimestamp = time;
+                initialAudioTimestamp = time;
 
                 BOOL ok = [decoder seek:time];
 
@@ -134,12 +126,18 @@
                     // Find out the actual time we seeked to!
                     // We may have gone to a keyframe nearby.
                     [self syncAfterSeek];
+                    frameEndTimestamp = decoder.frameTimestamp;
+                    initialAudioTimestamp = decoder.audioTimestamp;
 
                     dispatch_async(drawingQueue, ^() {
                         if ([delegate respondsToSelector:@selector(ogvPlayerStateDidSeek:)]) {
                             [delegate ogvPlayerStateDidSeek:self];
                         }
                     });
+
+                    if (wasPlaying) {
+                        [self play];
+                    }
                 }
             });
         }
@@ -156,14 +154,12 @@
 
 -(float)playbackPosition
 {
-    double position = 0.0;
+    // @todo use alternate clock provider for video-only files
     if (playing) {
-        position = CACurrentMediaTime() - initTime + offsetTime;
+        return audioFeeder.playbackPosition + initialAudioTimestamp;
     } else {
-        position = offsetTime - initTime;
+        return initialAudioTimestamp;
     }
-    
-    return (position > 0.0) ? position : 0.0;
 }
 
 -(float)duration
@@ -206,11 +202,7 @@
     if (decoder.hasAudio) {
         [self startAudio];
     }
-    
-    // If this is the first time playing
-    if (initTime < 0) {
-        [self initPlaybackState];
-    }
+    [self initPlaybackState];
 
     dispatch_async(drawingQueue, ^() {
         if ([delegate respondsToSelector:@selector(ogvPlayerStateDidPlay:)]) {
@@ -225,8 +217,12 @@
     assert(decoder.dataReady);
     
     frameEndTimestamp = 0.0f;
-    initTime = CACurrentMediaTime();
-    offsetTime = 0.0;
+    
+    dispatch_async(drawingQueue, ^() {
+        if ([delegate respondsToSelector:@selector(ogvPlayerStateDidPlay:)]) {
+            [delegate ogvPlayerStateDidPlay:self];
+        }
+    });
 }
 
 -(void)startAudio
@@ -271,6 +267,9 @@
 
 - (void)processNextFrame
 {
+    if (!playing) {
+        return;
+    }
     BOOL more;
     
     while (true) {
@@ -281,7 +280,7 @@
                 [self pause];
                 return;
             }
-            
+
             // Wait for audio to run out, then close up shop!
             float timeLeft;
             if (audioFeeder) {
@@ -289,7 +288,7 @@
             } else {
                 timeLeft = 0;
             }
-            
+
             dispatch_time_t closeTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(timeLeft * NSEC_PER_SEC));
             dispatch_after(closeTime, drawingQueue, ^{
                 [self cancel];
@@ -300,26 +299,24 @@
                     [delegate ogvPlayerStateDidEnd:self];
                 }
             });
-            
+
             return;
         }
-        
-        float nextDelay = INFINITY;
-        const float fudgeDelta = 0.1f;
-        float playbackPosition = self.playbackPosition;
-        float frameDelay = (frameEndTimestamp - playbackPosition);
-        
-        // See if the frame timestamp is behind the playhead
-        BOOL readyToDecodeFrame = (frameDelay <= 0.0);
-        BOOL readyToDrawFrame = (fabsf(frameDelay) <= fudgeDelta);
-        
+
         if (decoder.hasAudio) {
             // Drive on the audio clock!
+            const float fudgeDelta = 0.001f;
             const int bufferSize = 8192;
             const float bufferDuration = (float)bufferSize / decoder.audioFormat.sampleRate;
             
             float audioBufferedDuration = [audioFeeder secondsQueued];
             BOOL readyForAudio = (audioBufferedDuration <= bufferDuration * 4) || ![audioFeeder isStarted];
+            
+            float playbackPosition = self.playbackPosition;
+            float frameDelay = (frameEndTimestamp - playbackPosition);
+            //NSLog(@"%f = %f - %f", frameDelay, frameEndTimestamp, playbackPosition);
+            
+            BOOL readyForFrame = (frameDelay <= fudgeDelta);
             
             //NSLog(@"%d %d / %d %d (%f - %f)", readyForAudio, decoder.audioReady, readyForFrame, decoder.frameReady, frameEndTimestamp, playbackPosition);
             if (readyForAudio && decoder.audioReady) {
@@ -334,67 +331,70 @@
                 }
             }
             
-            if (audioBufferedDuration <= bufferDuration) {
-                // NEED MOAR BUFFERS
-                nextDelay = 0;
-            } else {
-                // Check in when the audio buffer runs low again...
-                nextDelay = fminf(nextDelay, bufferDuration / 4.0f);
-                // @todo revisit this checkin frequency, it's pretty made up
-            }
-        }
-        
-        if (readyToDecodeFrame && decoder.frameReady) {
-            //NSLog(@"%f ms frame delay", frameDelay * 1000);
-            BOOL ok = [decoder decodeFrame];
-            if (ok) {
-                // Check if it's time to draw (AKA the frame timestamp is at or past the playhead)
-                if (readyToDrawFrame) {
-                    
-                    // If we got here after pausing for a seek, just play
-                    if (wasPlayingBeforeSeek) {
-                        wasPlayingBeforeSeek = NO;
-                        [self play];
-                        return;
-                    }
-                    
-                    // If we're already playing, DRAW!
-                    if (playing) {
-                        [self drawFrame];
-                    }
+            if (readyForFrame && decoder.frameReady) {
+                //NSLog(@"%f ms frame delay", frameDelay * 1000);
+                BOOL ok = [decoder decodeFrame];
+                if (ok) {
+                    [self drawFrame];
                     
                     // End the processing loop, we'll ping again after drawing
                     return;
                 } else {
-                    // Not ready to draw yet, update the timestamp and keep on chuggin
-                    OGVVideoBuffer *buffer = [decoder frameBuffer];
-                    frameEndTimestamp = buffer.timestamp;
-                    continue;
+                    NSLog(@"Bad video packet or something");
+                }
+            }
+            
+            float nextDelay = INFINITY;
+            if (decoder.hasAudio) {
+                if (audioBufferedDuration <= bufferDuration) {
+                    // NEED MOAR BUFFERS
+                    nextDelay = 0;
+                } else {
+                    // Check in when the audio buffer runs low again...
+                    nextDelay = fminf(nextDelay, bufferDuration / 4.0f);
+                    // @todo revisit this checkin frequency, it's pretty made up
+                }
+            }
+            if (decoder.hasVideo) {
+                // Check in when the next frame is due
+                // todo: Subtract time we already spent decoding
+                // todo: remove that / 2 hack
+                nextDelay = fminf(nextDelay, frameDelay / 2);
+            }
+            
+            if (nextDelay < INFINITY) {
+                [self pingProcessing:nextDelay];
+                
+                // End the processing loop and wait for next ping.
+                return;
+            } else {
+                // Continue the processing loop...
+                continue;
+            }
+        } else {
+            // Drive on the video clock
+            // @fixme replace this with the audio code-path using an alternate clock provider?
+            BOOL readyForFrame = YES; // check time?
+
+            if (readyForFrame && decoder.frameReady) {
+                // it's time to draw
+                BOOL ok = [decoder decodeFrame];
+                if (ok) {
+                    [self drawFrame];
+                    // end the processing loop, we'll continue after drawing the frame
+                } else {
+                    NSLog(@"Bad video packet or something");
+                    // @todo finish replacing this path! we no longer record a frame rate
+                    [self pingProcessing:(1.0f / 30)];
                 }
             } else {
-                NSLog(@"Bad video packet or something");
-                [self pingProcessing:(1.0f / 30)];
+                // Need more processing; continue the loop
+                continue;
             }
-        } else if (!playing) {
-            // We're all caught up but paused, will be pinged when played
-            return;
-        } else {
-            // Need more processing; continue the loop
-            continue;
-        }
-        
-        if (nextDelay < INFINITY) {
-            [self pingProcessing:nextDelay];
             
             // End the processing loop and wait for next ping.
             return;
-        } else {
-            // Continue the processing loop...
-            continue;
         }
-        
-        // End the processing loop and wait for next ping.
-        return;
     }
 }
 
