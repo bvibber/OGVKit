@@ -796,14 +796,15 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
 
 - (float)frameTimestamp
 {
+#ifdef OGVKIT_HAVE_THEORA_DECODER
     OGVDecoderOggPacket *packet = [videoPackets peek];
     if (packet) {
         ogg_int64_t videobuf_granulepos = packet.oggzPacket->pos.calc_granulepos;
         float videobuf_time = th_granule_time(theoraDecoderContext, videobuf_granulepos);
         return videobuf_time;
-    } else {
-        return -1;
     }
+#endif
+    return -1;
 }
 
 - (BOOL)audioReady
@@ -813,14 +814,15 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
 
 - (float)audioTimestamp
 {
+#ifdef OGVKIT_HAVE_VORBIS_DECODER
     OGVDecoderOggPacket *packet = [audioPackets peek];
     if (packet) {
         ogg_int64_t audiobuf_granulepos = packet.oggzPacket->pos.calc_granulepos;
         float audiobuf_time = vorbis_granule_time(&vd, audiobuf_granulepos);
         return audiobuf_time;
-    } else {
-        return -1;
     }
+#endif
+    return -1;
 }
 
 - (float)duration
