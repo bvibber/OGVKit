@@ -127,7 +127,7 @@
 
 - (NSString *)encodeParam:(NSString *)str
 {
-    str = [str stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+    str = [str stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
     str = [str stringByReplacingOccurrencesOfString:@":" withString:@"%3A"];
     str = [str stringByReplacingOccurrencesOfString:@"?" withString:@"%3F"];
     return str;
