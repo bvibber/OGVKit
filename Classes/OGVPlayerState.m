@@ -9,6 +9,10 @@
 
 #import "OGVKit.h"
 
+@interface OGVPlayerState ()
+@property (readonly) float baseTime;
+@end
+
 @implementation OGVPlayerState
 {
     __weak id<OGVPlayerStateDelegate> delegate;
@@ -19,13 +23,13 @@
 
     float frameEndTimestamp;
     float initialAudioTimestamp;
+    float audioPausePosition;
     CFTimeInterval initTime;
     CFTimeInterval offsetTime;
-    
+
     BOOL playing;
     BOOL playAfterLoad;
     BOOL seeking;
-    BOOL wasPlayingBeforeSeek;
     
     dispatch_queue_t decodeQueue;
     dispatch_queue_t drawingQueue;
@@ -48,10 +52,15 @@
 
         stream = [[OGVInputStream alloc] initWithURL:URL];
 
-        initTime = -1;
+        initTime = 0;
+        offsetTime = 0;
         playing = NO;
+        seeking = NO;
         playAfterLoad = NO;
-        wasPlayingBeforeSeek = NO;
+
+        frameEndTimestamp = 0;
+        initialAudioTimestamp = 0;
+        audioPausePosition = 0;
 
         // Start loading the URL and processing header data
         dispatch_async(decodeQueue, ^() {
@@ -69,10 +78,7 @@
         if (playing) {
             // Already playing
         } else if (decoder.dataReady) {
-            if (initTime != -1) {
-                offsetTime -= CACurrentMediaTime();
-            }
-            [self startPlayback];
+            [self startPlayback:decoder.hasAudio ? initialAudioTimestamp : frameEndTimestamp];
         } else {
             playAfterLoad = YES;
         }
@@ -82,13 +88,14 @@
 -(void)pause
 {
     dispatch_async(decodeQueue, ^() {
+        offsetTime = self.playbackPosition;
+
         if (audioFeeder) {
             [self stopAudio];
         }
 
         if (playing) {
             playing = NO;
-            offsetTime += CACurrentMediaTime();
             dispatch_async(drawingQueue, ^() {
                 if ([delegate respondsToSelector:@selector(ogvPlayerStateDidPause:)]) {
                     [delegate ogvPlayerStateDidPause:self];
@@ -120,8 +127,8 @@
     }
     dispatch_async(decodeQueue, ^() {
         if (decoder && decoder.seekable) {
-            wasPlayingBeforeSeek = !self.paused;
-            if (wasPlayingBeforeSeek) {
+            BOOL wasPlaying = !self.paused;
+            if (wasPlaying) {
                 [self pause];
             }
             dispatch_async(decodeQueue, ^() {
@@ -133,13 +140,18 @@
                 if (ok) {
                     // Find out the actual time we seeked to!
                     // We may have gone to a keyframe nearby.
-                    [self syncAfterSeek];
+                    [self syncAfterSeek:time exact:YES];
+                    frameEndTimestamp = decoder.frameTimestamp;
+                    initialAudioTimestamp = decoder.audioTimestamp;
 
                     dispatch_async(drawingQueue, ^() {
                         if ([delegate respondsToSelector:@selector(ogvPlayerStateDidSeek:)]) {
                             [delegate ogvPlayerStateDidSeek:self];
                         }
                     });
+                    if (wasPlaying) {
+                        [self play];
+                    }
                 }
             });
         }
@@ -158,12 +170,25 @@
 {
     double position = 0.0;
     if (playing) {
-        position = CACurrentMediaTime() - initTime + offsetTime;
+        position = self.baseTime - initTime + offsetTime;
     } else {
         position = offsetTime - initTime;
     }
     
     return (position > 0.0) ? position : 0.0;
+}
+
+- (float)baseTime
+{
+    if (decoder.hasAudio) {
+        if (audioFeeder) {
+            return audioFeeder.playbackPosition;
+        } else {
+            return audioPausePosition;
+        }
+    } else {
+        return CACurrentMediaTime();
+    }
 }
 
 -(float)duration
@@ -200,17 +225,17 @@
     // @fixme update our state
 }
 
-- (void)startPlayback
+- (void)startPlayback:(float)offset
 {
+    assert(decoder.dataReady);
+    assert(offset >= 0);
+
     playing = YES;
     if (decoder.hasAudio) {
         [self startAudio];
     }
     
-    // If this is the first time playing
-    if (initTime < 0) {
-        [self initPlaybackState];
-    }
+    [self initPlaybackState:offset];
 
     dispatch_async(drawingQueue, ^() {
         if ([delegate respondsToSelector:@selector(ogvPlayerStateDidPlay:)]) {
@@ -220,13 +245,14 @@
     [self pingProcessing:0];
 }
 
-- (void)initPlaybackState
+- (void)initPlaybackState:(float)offset
 {
     assert(decoder.dataReady);
+    assert(offset >= 0);
     
     frameEndTimestamp = 0.0f;
-    initTime = CACurrentMediaTime();
-    offsetTime = 0.0;
+    initTime = self.baseTime;
+    offsetTime = offset;
 }
 
 -(void)startAudio
@@ -241,6 +267,7 @@
 {
     assert(decoder.hasAudio);
     assert(audioFeeder);
+    audioPausePosition = audioFeeder.playbackPosition;
     initialAudioTimestamp = initialAudioTimestamp + audioFeeder.bufferTailPosition;
     // @fixme let the already-queued audio play out when pausing?
     [audioFeeder close];
@@ -257,7 +284,7 @@
             }
             if (playAfterLoad) {
                 playAfterLoad = NO;
-                [self startPlayback];
+                [self startPlayback:0];
             }
         } else {
             dispatch_async(decodeQueue, ^() {
@@ -303,7 +330,7 @@
             
             return;
         }
-        
+
         float nextDelay = INFINITY;
         const float fudgeDelta = 0.1f;
         float playbackPosition = self.playbackPosition;
@@ -350,18 +377,8 @@
             if (ok) {
                 // Check if it's time to draw (AKA the frame timestamp is at or past the playhead)
                 if (readyToDrawFrame) {
-                    
-                    // If we got here after pausing for a seek, just play
-                    if (wasPlayingBeforeSeek) {
-                        wasPlayingBeforeSeek = NO;
-                        [self play];
-                        return;
-                    }
-                    
                     // If we're already playing, DRAW!
-                    if (playing) {
-                        [self drawFrame];
-                    }
+                    [self drawFrame];
                     
                     // End the processing loop, we'll ping again after drawing
                     return;
@@ -424,11 +441,32 @@
     });
 }
 
--(BOOL)syncAfterSeek
+-(BOOL)syncAfterSeek:(float)target exact:(BOOL)exact
 {
     while ((decoder.hasAudio && !decoder.audioReady) || (decoder.hasVideo && !decoder.frameReady)) {
         if (![decoder process]) {
             NSLog(@"Got to end of file before found data again after seek.");
+            break;
+        }
+    }
+    while (YES) {
+        if (![decoder process]) {
+            NSLog(@"Got to end of file before found data again after seek.");
+            break;
+        }
+        if (exact) {
+            if (decoder.hasAudio && decoder.audioReady && decoder.audioTimestamp < target) {
+                [decoder decodeAudio];
+            }
+            if (decoder.hasVideo && decoder.frameReady && decoder.frameTimestamp < target) {
+                [decoder decodeFrame];
+            }
+            if ((!decoder.hasVideo || decoder.frameTimestamp >= target) &&
+                (!decoder.hasAudio || decoder.audioTimestamp >= target)) {
+                break;
+            }
+        } else {
+            // We're ok leaving off after the keyframe
             break;
         }
     }
