@@ -44,6 +44,11 @@
 -(float)playbackPosition;
 
 /**
+ * Get amount of time before the current playback & queue run out, in seconds
+ */
+-(float)timeAwaitingPlayback;
+
+/**
  * Get the future playback position at which current audio will run out
  */
 @property (readonly) float bufferTailPosition;

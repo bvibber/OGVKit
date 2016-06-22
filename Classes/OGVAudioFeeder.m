@@ -187,6 +187,11 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
     return (float)[self samplesQueued] / self.format.sampleRate;
 }
 
+-(float)timeAwaitingPlayback
+{
+    return [self bufferTailPosition] - [self playbackPosition];
+}
+
 -(float)playbackPosition
 {
     @synchronized (timeLock) {
@@ -209,7 +214,7 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
 -(float)bufferTailPosition
 {
     @synchronized (timeLock) {
-        return samplesQueued / self.format.sampleRate;
+        return (samplesQueued - samplesOfSilence) / self.format.sampleRate;
     }
 }
 

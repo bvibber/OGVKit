@@ -30,6 +30,7 @@
     BOOL playing;
     BOOL playAfterLoad;
     BOOL seeking;
+    BOOL ended;
     
     dispatch_queue_t decodeQueue;
     dispatch_queue_t drawingQueue;
@@ -314,29 +315,40 @@
             if (decoder.inputStream.state == OGVInputStreamStateFailed) {
                 NSLog(@"Hey! The input stream failed. Handle this more gracefully.");
                 [self pause];
+                playing = NO;
                 return;
             }
             
-            // Wait for audio to run out, then close up shop!
-            float timeLeft;
-            if (audioFeeder) {
-                timeLeft = [audioFeeder secondsQueued];
+            if ((!decoder.hasAudio || decoder.audioReady) && (!decoder.hasVideo || decoder.frameReady)) {
+                // More packets already demuxed, just keep running them.
             } else {
-                timeLeft = 0;
+                // Wait for audio to run out, then close up shop!
+                float timeLeft;
+                if (audioFeeder) {
+                    timeLeft = [audioFeeder timeAwaitingPlayback];
+                } else {
+                    timeLeft = 0;
+                }
+                NSLog(@"ended? time left %f", timeLeft);
+                if (timeLeft > 0) {
+                    [self pingProcessing:timeLeft];
+                } else {
+                    if (audioFeeder) {
+                        [self stopAudio];
+                    }
+                    playing = NO;
+                    dispatch_async(drawingQueue, ^{
+                        [self cancel];
+                        if ([delegate respondsToSelector:@selector(ogvPlayerStateDidPause:)]) {
+                            [delegate ogvPlayerStateDidPause:self];
+                        }
+                        if ([delegate respondsToSelector:@selector(ogvPlayerStateDidEnd:)]) {
+                            [delegate ogvPlayerStateDidEnd:self];
+                        }
+                    });
+                }
+                return;
             }
-            
-            dispatch_time_t closeTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(timeLeft * NSEC_PER_SEC));
-            dispatch_after(closeTime, drawingQueue, ^{
-                [self cancel];
-                if ([delegate respondsToSelector:@selector(ogvPlayerStateDidPause:)]) {
-                    [delegate ogvPlayerStateDidPause:self];
-                }
-                if ([delegate respondsToSelector:@selector(ogvPlayerStateDidEnd:)]) {
-                    [delegate ogvPlayerStateDidEnd:self];
-                }
-            });
-            
-            return;
         }
 
         float nextDelay = INFINITY;
