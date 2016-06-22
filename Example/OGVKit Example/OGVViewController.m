@@ -66,8 +66,6 @@
                                                     filename:@"Big_Buck_Bunny_4K.webm"],
                 [[OGVCommonsExampleItem alloc] initWithTitle:@"Wiki Makes Video (60fps)"
                                                     filename:@"Wiki Makes Video Intro 4 26.webm"],
-                [[OGVCommonsExampleItem alloc] initWithTitle:@"Hamilton Mixtape (60fps)"
-                                                    filename:@"Hamilton_Mixtape_(12_May_2009_live_at_the_White_House)_Lin-Manuel_Miranda.ogv"],
 
                 // Video-only tests
                 [[OGVCommonsExampleItem alloc] initWithTitle:@"Myopa (video only)"
