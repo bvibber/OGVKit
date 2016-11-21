@@ -160,7 +160,9 @@ Pod::Spec.new do |s|
 
   s.subspec "EncoderCore" do |scoreenc|
     scoreenc.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_ENCODER' }
-    scoreenc.source_files = "Classes/OGVMuxer.h",
+    scoreenc.source_files = "Classes/OGVPacket.h",
+                            "Classes/OGVPacket.m",
+                            "Classes/OGVMuxer.h",
                             "Classes/OGVMuxer.m",
                             "Classes/OGVAudioEncoder.h",
                             "Classes/OGVAudioEncoder.m",
