@@ -148,6 +148,47 @@ Pod::Spec.new do |s|
     savdecoder.private_header_files = "Classes/OGVDecoderAV.h"
   end
 
+  s.subspec "Encoder" do |sencoder|
+    sencoder.dependency "OGVKit/WebMEncoder"
+  end
+
+  s.subspec "WebMEncoder" do |swebmenc|
+    swebmenc.dependency "OGVKit/VorbisEncoder"
+    swebmenc.dependency "OGVKit/VP8Encoder"
+    swebmenc.dependency "OGVKit/WebMMuxer"
+  end
+
+  s.subspec "EncoderCore" do |scoreenc|
+    scoreenc.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_ENCODER' }
+    scoreenc.source_files = "Classes/OGVMuxer.h",
+                            "Classes/OGVMuxer.m",
+                            "Classes/OGVAudioEncoder.h",
+                            "Classes/OGVAudioEncoder.m",
+                            "Classes/OGVVideoEncoder.h",
+                            "Classes/OGVVideoEncoder.m"
+  end
+
+  s.subspec "VorbisEncoder" do |svorbisenc|
+    svorbisenc.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_VORBIS_ENCODER' }
+    svorbisenc.dependency 'OGVKit/EncoderCore'
+    svorbisenc.source_files = "Classes/OGVVorbisEncoder.h",
+                              "Classes/OGVVorbisEncoder.m"
+  end
+
+  s.subspec "VP8Encoder" do |svp8enc|
+    svp8enc.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_VP8_ENCODER' }
+    svp8enc.dependency 'OGVKit/EncoderCore'
+    svp8enc.source_files = "Classes/OGVVP8Encoder.h",
+                           "Classes/OGVVP8Encoder.m"
+  end
+
+  s.subspec "WebMMuxer" do |swebmmux|
+    swebmmux.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_WEBM_MUXER' }
+    swebmmux.dependency 'OGVKit/EncoderCore'
+    swebmmux.source_files = "Classes/OGVWebMMuxer.h",
+                            "Classes/OGVWebMMuxer.m"
+  end
+
   # Additional libraries not ready to package separately
   s.subspec "libskeleton" do |sskel|
     sskel.source_files = "libskeleton/include/skeleton/skeleton.h",
