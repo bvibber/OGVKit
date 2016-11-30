@@ -36,6 +36,8 @@ Pod::Spec.new do |s|
                          "Classes/OGVVideoBuffer.{h,m}",
                          "Classes/OGVHTTPContentRange.{h,m}",
                          "Classes/OGVInputStream.{h,m}",
+                         "Classes/OGVFileInputStream.{h,m}",
+                         "Classes/OGVHTTPInputStream.{h,m}",
                          "Classes/OGVDecoder.{h,m}",
                          "Classes/OGVFrameView.{h,m}",
                          "Classes/OGVAudioFeeder.{h,m}",

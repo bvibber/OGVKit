@@ -1,7 +1,8 @@
 Lightweight iOS media player widget for free Ogg Theora/Vorbis and WebM VP8/VP9 codecs.
 
 Currently provides a basic high-level player widget (OGVPlayerView) that can stream
-audio and video files over HTTP(S), including seeking if Range: header is supported.
+audio and video files over HTTP(S), including seeking if Range: header is supported,
+or from the local filesystem.
 
 Will continue to improve this interface, add support for Opus audio codec, and add
 lower-level interfaces suitable for transcoding to/from AVFoundation formats. See the

@@ -20,6 +20,8 @@
 		D474D5C21CD7AFFE00D8BBE3 /* OGVKit Example-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = D474D5B51CD7AFFE00D8BBE3 /* OGVKit Example-Info.plist */; };
 		D474D5C31CD7AFFE00D8BBE3 /* OGVLinkedExampleItem.m in Sources */ = {isa = PBXBuildFile; fileRef = D474D5B81CD7AFFE00D8BBE3 /* OGVLinkedExampleItem.m */; };
 		D474D5C41CD7AFFE00D8BBE3 /* OGVViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D474D5BA1CD7AFFE00D8BBE3 /* OGVViewController.m */; };
+		D48929FC1DEE9C60008E662A /* bunny.ogv in Resources */ = {isa = PBXBuildFile; fileRef = D48929FA1DEE9C60008E662A /* bunny.ogv */; };
+		D48929FD1DEE9C60008E662A /* vp8-res-switch.webm in Resources */ = {isa = PBXBuildFile; fileRef = D48929FB1DEE9C60008E662A /* vp8-res-switch.webm */; };
 		D4F61F651CD7ADAD00898F7F /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = D4F61F641CD7ADAD00898F7F /* main.m */; };
 /* End PBXBuildFile section */
 
@@ -58,6 +60,8 @@
 		D474D5BA1CD7AFFE00D8BBE3 /* OGVViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVViewController.m; sourceTree = "<group>"; };
 		D474D5C51CD7B04C00D8BBE3 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = "OGVKit Tests/Info.plist"; sourceTree = SOURCE_ROOT; };
 		D474D5C61CD7B04C00D8BBE3 /* OGVKit_Tests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OGVKit_Tests.m; path = "OGVKit Tests/OGVKit_Tests.m"; sourceTree = SOURCE_ROOT; };
+		D48929FA1DEE9C60008E662A /* bunny.ogv */ = {isa = PBXFileReference; lastKnownFileType = file; name = bunny.ogv; path = Samples/bunny.ogv; sourceTree = SOURCE_ROOT; };
+		D48929FB1DEE9C60008E662A /* vp8-res-switch.webm */ = {isa = PBXFileReference; lastKnownFileType = file; name = "vp8-res-switch.webm"; path = "Samples/vp8-res-switch.webm"; sourceTree = SOURCE_ROOT; };
 		D4F61F601CD7ADAC00898F7F /* OGVKit Example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "OGVKit Example.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D4F61F641CD7ADAD00898F7F /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		D4F61F741CD7ADAD00898F7F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -127,6 +131,8 @@
 		D4F61F621CD7ADAD00898F7F /* OGVKit Example */ = {
 			isa = PBXGroup;
 			children = (
+				D48929FA1DEE9C60008E662A /* bunny.ogv */,
+				D48929FB1DEE9C60008E662A /* vp8-res-switch.webm */,
 				D42B384A1CD7B17B00529092 /* Main.storyboard */,
 				D42B38471CD7B17500529092 /* InfoPlist.strings */,
 				D474D5AD1CD7AFFE00D8BBE3 /* Images.xcassets */,
@@ -257,8 +263,10 @@
 				D474D5C21CD7AFFE00D8BBE3 /* OGVKit Example-Info.plist in Resources */,
 				D42B384C1CD7B17B00529092 /* Main.storyboard in Resources */,
 				D42B38491CD7B17500529092 /* InfoPlist.strings in Resources */,
+				D48929FD1DEE9C60008E662A /* vp8-res-switch.webm in Resources */,
 				D474D5BD1CD7AFFE00D8BBE3 /* Images.xcassets in Resources */,
 				D474D5BE1CD7AFFE00D8BBE3 /* Launch Screen.xib in Resources */,
+				D48929FC1DEE9C60008E662A /* bunny.ogv in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -329,7 +337,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [[ $? != 0 ]] ; then\n    cat << EOM\nerror: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\nEOM\n    exit 1\nfi\n";
+			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n";
 			showEnvVarsInLog = 0;
 		};
 		C9204C917B1F00D234526E4E /* [CP] Embed Pods Frameworks */ = {
@@ -359,7 +367,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [[ $? != 0 ]] ; then\n    cat << EOM\nerror: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\nEOM\n    exit 1\nfi\n";
+			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */

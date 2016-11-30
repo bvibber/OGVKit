@@ -79,7 +79,12 @@
                 
                 // Local test files
                 [[OGVLinkedExampleItem alloc] initWithTitle:@"Res switching (local)"
-                                                        URL:[NSURL URLWithString:@"https://github.com/brion/OGVKit/raw/master/Example/Samples/vp8-res-switch.webm"]]
+                                                        URL:[[NSBundle mainBundle] URLForResource:@"vp8-res-switch"
+                                                                                    withExtension:@"webm"]],
+
+                [[OGVLinkedExampleItem alloc] initWithTitle:@"Bunny low-res intro (local)"
+                                                        URL:[[NSBundle mainBundle] URLForResource:@"bunny"
+                                                                                    withExtension:@"ogv"]]
             ];
 
     [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"generic"];

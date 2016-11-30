@@ -31,7 +31,7 @@ typedef NS_ENUM(int, OGVInputStreamState) {
     OGVInputStreamStateCanceled = 6
 };
 
-@interface OGVInputStream : NSObject <NSURLConnectionDataDelegate>
+@interface OGVInputStream : NSObject
 
 @property (weak) id<OGVInputStreamDelegate> delegate;
 

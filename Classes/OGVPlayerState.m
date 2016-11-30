@@ -9,6 +9,9 @@
 
 #import "OGVKit.h"
 
+#import "OGVFileInputStream.h"
+#import "OGVHTTPInputStream.h"
+
 @interface OGVPlayerState ()
 @property (readonly) float baseTime;
 @end
@@ -51,7 +54,11 @@
         // draw on UI thread
         drawingQueue = dispatch_get_main_queue();
 
-        stream = [[OGVInputStream alloc] initWithURL:URL];
+        if (URL.isFileURL) {
+            stream = [[OGVFileInputStream alloc] initWithURL:URL];
+        } else {
+            stream = [[OGVHTTPInputStream alloc] initWithURL:URL];
+        }
 
         initTime = 0;
         offsetTime = 0;
