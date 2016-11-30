@@ -86,7 +86,7 @@ source 'https://github.com/CocoaPods/Specs.git'
 source 'https://github.com/brion/OGVKit-Specs.git'
 
 target 'MyXcodeProjectName' do
-  pod "OGVKit", "0.5pre"
+  pod "OGVKit", "0.5.1pre"
 end
 ```
 
@@ -155,7 +155,8 @@ OGVPlayerView supports a delegate protocol, OGVPlayerDelegate. *This is not a fi
 
 See [milestones in issue tracker](https://github.com/brion/OGVKit/milestones) for details:
 
-* v0.5 initial CocoaPods release
+* v0.5 initial CocoaPods-compatible release
+* v0.5.1 added local filesystem URL support
 * v1 stable player API
 * v1.1 extras: fullscreen, AirPlay, etc
 * v1.2 performance
