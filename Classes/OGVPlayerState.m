@@ -84,6 +84,10 @@
     dispatch_async(decodeQueue, ^() {
         if (playing) {
             // Already playing
+        } else if (ended) {
+            ended = NO;
+            playing = YES;
+            [self seek:0.0f];
         } else if (decoder.dataReady) {
             [self startPlayback:decoder.hasAudio ? initialAudioTimestamp : frameEndTimestamp];
         } else {
@@ -128,6 +132,7 @@
 
 -(void)seek:(float)time
 {
+    ended = NO;
     if (seeking) {
         // this feels very hacky!
         [decoder.inputStream cancel];
@@ -339,15 +344,9 @@
                 if (timeLeft > 0) {
                     [self pingProcessing:timeLeft];
                 } else {
-                    if (audioFeeder) {
-                        [self stopAudio];
-                    }
-                    playing = NO;
+                    [self pause];
+                    ended = YES;
                     dispatch_async(drawingQueue, ^{
-                        [self cancel];
-                        if ([delegate respondsToSelector:@selector(ogvPlayerStateDidPause:)]) {
-                            [delegate ogvPlayerStateDidPause:self];
-                        }
                         if ([delegate respondsToSelector:@selector(ogvPlayerStateDidEnd:)]) {
                             [delegate ogvPlayerStateDidEnd:self];
                         }
