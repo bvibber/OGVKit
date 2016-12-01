@@ -182,7 +182,7 @@ static int64_t tellCallback(void * userdata)
         
         if (trackType == NESTEGG_TRACK_VIDEO && !hasVideo) {
 #ifdef OGVKIT_HAVE_VP8_DECODER
-            if (codec == NESTEGG_CODEC_VP8 /* || codec == NESTEGG_CODEC_VP9 */) {
+            if (codec == NESTEGG_CODEC_VP8 || codec == NESTEGG_CODEC_VP9) {
                 hasVideo = YES;
                 videoTrack = track;
                 videoCodec = codec;

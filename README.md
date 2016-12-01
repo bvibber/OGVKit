@@ -86,7 +86,7 @@ source 'https://github.com/CocoaPods/Specs.git'
 source 'https://github.com/brion/OGVKit-Specs.git'
 
 target 'MyXcodeProjectName' do
-  pod "OGVKit", "0.5.1pre"
+  pod "OGVKit", "0.5.2pre"
 end
 ```
 
@@ -168,7 +168,7 @@ See [milestones in issue tracker](https://github.com/brion/OGVKit/milestones) fo
 
 * v0.5 initial CocoaPods-compatible release
 * v0.5.1 added local filesystem URL support
-* v0.5.2 exposed inputStream and memory data input
+* v0.5.2 exposed inputStream and memory data input, fixed VP9
 * v1 stable player API
 * v1.1 extras: fullscreen, AirPlay, etc
 * v1.2 performance

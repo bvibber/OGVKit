@@ -87,7 +87,11 @@
 
                 [[OGVLinkedExampleItem alloc] initWithTitle:@"Bunny low-res intro (local)"
                                                         URL:[[NSBundle mainBundle] URLForResource:@"bunny"
-                                                                                    withExtension:@"ogv"]]
+                                                                                    withExtension:@"ogv"]],
+
+                [[OGVLinkedExampleItem alloc] initWithTitle:@"Bunny low-res VP9 (local)"
+                                                        URL:[[NSBundle mainBundle] URLForResource:@"bunny"
+                                                                                    withExtension:@"webm"]]
             ];
 
     [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"generic"];
