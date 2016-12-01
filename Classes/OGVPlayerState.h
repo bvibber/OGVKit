@@ -36,6 +36,7 @@
 
 @interface OGVPlayerState : NSObject <OGVInputStreamDelegate>
 
+-(instancetype)initWithInputStream:(OGVInputStream *)inputStream delegate:(id<OGVPlayerStateDelegate>)delegate;
 -(instancetype)initWithURL:(NSURL *)URL delegate:(id<OGVPlayerStateDelegate>)delegate;
 
 -(void)play;

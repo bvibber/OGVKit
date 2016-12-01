@@ -52,6 +52,7 @@
 @property (weak, nonatomic) IBOutlet UIActivityIndicatorView *activityIndicator;
 
 @property (nonatomic) NSURL *sourceURL;
+@property (nonatomic) OGVInputStream *inputStream;
 
 @property (readonly) BOOL paused;
 @property (readonly) float playbackPosition;

@@ -43,7 +43,11 @@
 
 -(instancetype)initWithURL:(NSURL *)URL delegate:(id<OGVPlayerStateDelegate>)aDelegate
 {
-    assert(URL);
+    return [self initWithInputStream:[OGVInputStream inputStreamWithURL:URL] delegate:delegate];
+}
+
+-(instancetype)initWithInputStream:(OGVInputStream *)inputStream delegate:(id<OGVPlayerStateDelegate>)aDelegate
+{
     self = [super init];
     if (self) {
         delegate = aDelegate;
@@ -54,12 +58,7 @@
         // draw on UI thread
         drawingQueue = dispatch_get_main_queue();
 
-        if (URL.isFileURL) {
-            stream = [[OGVFileInputStream alloc] initWithURL:URL];
-        } else {
-            stream = [[OGVHTTPInputStream alloc] initWithURL:URL];
-        }
-
+        stream = inputStream;
         initTime = 0;
         offsetTime = 0;
         playing = NO;

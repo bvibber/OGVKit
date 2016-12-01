@@ -40,6 +40,7 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
 
 {
     NSURL *_sourceURL;
+    OGVInputStream *_inputStream;
     OGVPlayerState *state;
     NSTimer *timeTimer;
     NSTimer *controlsTimeout;
@@ -74,15 +75,26 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
 
 - (void)setSourceURL:(NSURL *)sourceURL
 {
+    self.inputStream = [OGVInputStream inputStreamWithURL:sourceURL];
+}
+
+- (OGVInputStream *)inputStream
+{
+    return _inputStream;
+}
+
+- (void)setInputStream:(OGVInputStream *)inputStream
+{
     if (state) {
         [state cancel];
         [self.frameView clearFrame];
         state = nil;
     }
-    _sourceURL = [sourceURL copy];
+    _inputStream = inputStream;
+    _sourceURL = inputStream.URL;
     [self updateTimeLabel];
-    if (_sourceURL) {
-        state = [[OGVPlayerState alloc] initWithURL:_sourceURL delegate:self];
+    if (_inputStream) {
+        state = [[OGVPlayerState alloc] initWithInputStream:_inputStream delegate:self];
     }
 }
 

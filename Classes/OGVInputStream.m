@@ -8,6 +8,9 @@
 
 #import "OGVKit.h"
 
+#import "OGVFileInputStream.h"
+#import "OGVHTTPInputStream.h"
+
 @interface OGVInputStream (Private)
 @property (readonly) NSObject *timeLock;
 @property (nonatomic) NSURL *URL;
@@ -210,5 +213,24 @@
 {
     // no-op
 }
+
+#pragma mark - class methods
+
++(OGVInputStream *)inputStreamWithURL:(NSURL *)URL
+{
+    if (URL.isFileURL) {
+        return [[OGVFileInputStream alloc] initWithURL:URL];
+    } else {
+        // @fixme will fail on non-HTTP(S)
+        return [[OGVHTTPInputStream alloc] initWithURL:URL];
+    }
+}
+
++(OGVInputStream *)inputStreamWithData:(NSData *)data
+{
+    // @fixme implement
+    return nil;
+}
+
 
 @end

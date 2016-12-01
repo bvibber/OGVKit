@@ -59,4 +59,10 @@ typedef NS_ENUM(int, OGVInputStreamState) {
 
 -(void)seek:(int64_t)offset blocking:(BOOL)blocking;
 
+/**
+ * Fetch the appropriate subclass
+ */
++(OGVInputStream *)inputStreamWithURL:(NSURL *)URL;
++(OGVInputStream *)inputStreamWithData:(NSData *)data;
+
 @end
