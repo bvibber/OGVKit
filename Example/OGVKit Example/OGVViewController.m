@@ -12,6 +12,9 @@
 #import "OGVLinkedExampleItem.h"
 #import "OGVCommonsExampleItem.h"
 
+// Uncomment to run the '(local)' file tests via NSData buffer instead of filesystem
+//#define TEST_DATA_INPUT 1
+
 @interface OGVViewController ()
 
 @end
@@ -106,11 +109,25 @@
         [self updateFormats];
         [self updateResolutions];
 
+        NSURL *url;
         if ([resolutions count]) {
-            self.player.sourceURL = [source URLforVideoFormat:format resolution:resolution];
+            url = [source URLforVideoFormat:format resolution:resolution];
         } else {
-            self.player.sourceURL = [source URLforAudioFormat:format];
+            url = [source URLforAudioFormat:format];
         }
+
+#ifdef TEST_DATA_INPUT
+        if (url.isFileURL) {
+            NSData *data = [NSData dataWithContentsOfURL:url];
+            NSLog(@"testing data with %d bytes", (int)data.length);
+            self.player.inputStream = [OGVInputStream inputStreamWithData:data];
+        } else {
+            self.player.sourceURL = url;
+        }
+#else
+        self.player.sourceURL = url;
+#endif
+
         // @todo separate load & play...
         //[self.player play];
     }

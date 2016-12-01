@@ -8,6 +8,7 @@
 
 #import "OGVKit.h"
 
+#import "OGVDataInputStream.h"
 #import "OGVFileInputStream.h"
 #import "OGVHTTPInputStream.h"
 
@@ -228,8 +229,7 @@
 
 +(OGVInputStream *)inputStreamWithData:(NSData *)data
 {
-    // @fixme implement
-    return nil;
+    return [[OGVDataInputStream alloc] initWithData:data];
 }
 
 

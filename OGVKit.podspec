@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = "OGVKit"
-  s.version      = "0.5.1pre"
+  s.version      = "0.5.2pre"
   s.summary      = "Ogg Vorbis/Theora and WebM media playback widget for iOS."
 
   s.description  = <<-DESC
@@ -36,6 +36,7 @@ Pod::Spec.new do |s|
                          "Classes/OGVVideoBuffer.{h,m}",
                          "Classes/OGVHTTPContentRange.{h,m}",
                          "Classes/OGVInputStream.{h,m}",
+                         "Classes/OGVDataInputStream.{h,m}",
                          "Classes/OGVFileInputStream.{h,m}",
                          "Classes/OGVHTTPInputStream.{h,m}",
                          "Classes/OGVDecoder.{h,m}",

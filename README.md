@@ -138,6 +138,17 @@ It may be necessary to disable bitcode on the entire project. To ensure that gen
 }
 ```
 
+If Ogg or WebM data has been previously downloaded into an NSData memory blob, you can read this memory directly instead of reading via a file:
+
+```
+// from live HTTP(S) or file URL:
+playerView.inputStream = [OGVInputStream inputStreamWithURL:@"http://example.com/path/to/file.webm"];
+
+// from NSData
+NSData *data = ...;
+playerView.inputStream = [OGVInputStream inputStreamWithData:data];
+```
+
 ## Instantiating a player in Interface Builder
 
 *TODO: make easier to use in IB if possible*
@@ -157,6 +168,7 @@ See [milestones in issue tracker](https://github.com/brion/OGVKit/milestones) fo
 
 * v0.5 initial CocoaPods-compatible release
 * v0.5.1 added local filesystem URL support
+* v0.5.2 exposed inputStream and memory data input
 * v1 stable player API
 * v1.1 extras: fullscreen, AirPlay, etc
 * v1.2 performance
