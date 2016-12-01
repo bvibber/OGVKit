@@ -20,6 +20,7 @@ Pod::Spec.new do |s|
   s.platform     = :ios, "8.0"
 
   s.source       = { :git => "https://github.com/brion/OGVKit.git",
+                     :tag => spec.version,
                      :submodules => true }
 
   s.header_dir = 'OGVKit'
