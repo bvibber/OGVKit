@@ -140,12 +140,12 @@
                 [self pause];
             }
             dispatch_async(decodeQueue, ^() {
-                // Adjust the offset for the seek
-                offsetTime += (time - frameEndTimestamp);
-
                 BOOL ok = [decoder seek:time];
 
                 if (ok) {
+                    // Adjust the offset for the seek
+                    offsetTime += (time - frameEndTimestamp);
+
                     // Find out the actual time we seeked to!
                     // We may have gone to a keyframe nearby.
                     [self syncAfterSeek:time exact:YES];
