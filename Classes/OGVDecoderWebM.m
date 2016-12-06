@@ -24,6 +24,9 @@
 #include <vorbis/codec.h>
 #endif
 
+// Does a brute-force seek when asked to seek WebM files without cues
+#define OGVKIT_WEBM_SEEK_BRUTE_FORCE 1
+
 static void logCallback(nestegg *context, unsigned int severity, char const * format, ...)
 {
     if (severity >= NESTEGG_LOG_INFO) {
@@ -306,22 +309,25 @@ static int64_t tellCallback(void * userdata)
             // end of stream?
             return NO;
         } else if (ret > 0) {
-            OGVDecoderWebMPacket *packet = [[OGVDecoderWebMPacket alloc] initWithNesteggPacket:nepacket];
-
-            unsigned int track;
-            nestegg_packet_track(packet.nesteggPacket, &track);
-
-            if (self.hasVideo && track == videoTrack) {
-                [videoPackets queue:packet];
-            } else if (self.hasAudio && track == audioTrack) {
-                [audioPackets queue:packet];
-            } else {
-                // throw away unknown packets
-            }
+            [self _queue:[[OGVDecoderWebMPacket alloc] initWithNesteggPacket:nepacket]];
         }
     }
     
     return YES;
+}
+
+-(void)_queue:(OGVDecoderWebMPacket *)packet
+{
+    unsigned int track;
+    nestegg_packet_track(packet.nesteggPacket, &track);
+
+    if (self.hasVideo && track == videoTrack) {
+        [videoPackets queue:packet];
+    } else if (self.hasAudio && track == audioTrack) {
+        [audioPackets queue:packet];
+    } else {
+        // throw away unknown packets
+    }
 }
 
 -(BOOL)decodeFrame
@@ -508,11 +514,44 @@ static int64_t tellCallback(void * userdata)
 {
     if (self.seekable) {
         int64_t nanoseconds = (int64_t)(seconds * NSEC_PER_SEC);
-        int ret = nestegg_track_seek(demuxContext, videoTrack, nanoseconds);
+        int ret = nestegg_track_seek(demuxContext, self.hasVideo ? videoTrack : audioTrack, nanoseconds);
         if (ret < 0) {
             // uhhh.... not good.
+#ifdef OGVKIT_WEBM_SEEK_BRUTE_FORCE
+            NSLog(@"brute force WebM seek; restarting file");
+            [self.inputStream seek:0L blocking:YES];
+            ret = nestegg_init(&demuxContext, ioCallbacks, logCallback, -1);
+            if (ret < 0) {
+                NSLog(@"nestegg_init returned %d", ret);
+            }
+            while (YES) {
+                nestegg_packet *nepacket;
+                ret = nestegg_read_packet(demuxContext, &nepacket);
+                if (ret == 0) {
+                    // end of stream?
+                    NSLog(@"End of stream during brute-force WebM seek");
+                    return NO;
+                } else if (ret > 0) {
+                    OGVDecoderWebMPacket *packet = [[OGVDecoderWebMPacket alloc] initWithNesteggPacket:nepacket];
+                    if (packet.timestamp < seconds) {
+                        // keep going
+                        continue;
+                    } else {
+                        // We found it!
+                        NSLog(@"brute force WebM seek found destination!");
+                        [self _queue:packet];
+                        return YES;
+                    }
+                } else {
+                    // err
+                    NSLog(@"nestegg_read_packet returned %d", ret);
+                    return NO;
+                }
+            }
+#else
             NSLog(@"OGVDecoderWebM failed to seek to time position within file");
             return NO;
+#endif /* OGVKIT_WEBM_SEEK_BRUTE_FORCE */
         } else {
             [self flush];
             return YES;
@@ -558,8 +597,8 @@ static int64_t tellCallback(void * userdata)
 {
     return self.dataReady &&
         self.inputStream.seekable &&
-        demuxContext &&
-        nestegg_has_cues(demuxContext);
+        demuxContext/* &&
+        nestegg_has_cues(demuxContext)*/;
 }
 
 -(float)duration
