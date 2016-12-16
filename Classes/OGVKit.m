@@ -16,6 +16,10 @@
 #import "OGVDecoderWebM.h"
 #endif
 
+#ifdef OGVKIT_HAVE_AV_DECODER
+#import "OGVDecoderAV.h"
+#endif
+
 @implementation OGVKit
 {
     NSMutableArray *decoderClasses;
@@ -33,6 +37,10 @@
 
 #ifdef OGVKIT_HAVE_WEBM_DEMUXER
         [self registerDecoderClass:[OGVDecoderWebM class]];
+#endif
+
+#ifdef OGVKIT_HAVE_AV_DECODER
+        [self registerDecoderClass:[OGVDecoderAV class]];
 #endif
 
     }

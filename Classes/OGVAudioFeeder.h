@@ -58,4 +58,14 @@
  */
 -(BOOL)isStarted;
 
+/**
+ * Are we closing out after end?
+ */
+-(BOOL)isClosing;
+
+/**
+ * Are we closed?
+ */
+-(BOOL)isClosed;
+
 @end

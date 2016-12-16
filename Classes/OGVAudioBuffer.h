@@ -10,8 +10,9 @@
 
 @property (readonly) OGVAudioFormat *format;
 @property (readonly) unsigned int samples;
+@property (readonly) float timestamp;
 
-- (id)initWithPCM:(float **)pcm samples:(unsigned int)samples format:(OGVAudioFormat *)format;
+- (id)initWithPCM:(float **)pcm samples:(unsigned int)samples format:(OGVAudioFormat *)format timestamp:(float)timestamp;
 - (const float *)PCMForChannel:(unsigned int)channel;
 
 @end

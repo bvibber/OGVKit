@@ -12,6 +12,7 @@
 		D42B38461CD7B12D00529092 /* OGVKit_Tests.m in Sources */ = {isa = PBXBuildFile; fileRef = D474D5C61CD7B04C00D8BBE3 /* OGVKit_Tests.m */; };
 		D42B38491CD7B17500529092 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = D42B38471CD7B17500529092 /* InfoPlist.strings */; };
 		D42B384C1CD7B17B00529092 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D42B384A1CD7B17B00529092 /* Main.storyboard */; };
+		D43498031E03864700085E6E /* kitty-short.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = D43498021E03864700085E6E /* kitty-short.mp4 */; };
 		D474D5BD1CD7AFFE00D8BBE3 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D474D5AD1CD7AFFE00D8BBE3 /* Images.xcassets */; };
 		D474D5BE1CD7AFFE00D8BBE3 /* Launch Screen.xib in Resources */ = {isa = PBXBuildFile; fileRef = D474D5AE1CD7AFFE00D8BBE3 /* Launch Screen.xib */; };
 		D474D5BF1CD7AFFE00D8BBE3 /* OGVAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = D474D5B01CD7AFFE00D8BBE3 /* OGVAppDelegate.m */; };
@@ -45,6 +46,7 @@
 		CBFEF16242285C7F28CBAFD5 /* Pods-OGVKit Tests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-OGVKit Tests.release.xcconfig"; path = "Pods/Target Support Files/Pods-OGVKit Tests/Pods-OGVKit Tests.release.xcconfig"; sourceTree = "<group>"; };
 		D42B38481CD7B17500529092 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		D42B384B1CD7B17B00529092 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		D43498021E03864700085E6E /* kitty-short.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; name = "kitty-short.mp4"; path = "Samples/kitty-short.mp4"; sourceTree = SOURCE_ROOT; };
 		D474D5AD1CD7AFFE00D8BBE3 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		D474D5AE1CD7AFFE00D8BBE3 /* Launch Screen.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = "Launch Screen.xib"; sourceTree = "<group>"; };
 		D474D5AF1CD7AFFE00D8BBE3 /* OGVAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVAppDelegate.h; sourceTree = "<group>"; };
@@ -133,6 +135,7 @@
 		D4F61F621CD7ADAD00898F7F /* OGVKit Example */ = {
 			isa = PBXGroup;
 			children = (
+				D43498021E03864700085E6E /* kitty-short.mp4 */,
 				D4D8E6A51DEFE0B20020F1A6 /* bunny.webm */,
 				D48929FA1DEE9C60008E662A /* bunny.ogv */,
 				D48929FB1DEE9C60008E662A /* vp8-res-switch.webm */,
@@ -266,6 +269,7 @@
 				D474D5C21CD7AFFE00D8BBE3 /* OGVKit Example-Info.plist in Resources */,
 				D42B384C1CD7B17B00529092 /* Main.storyboard in Resources */,
 				D42B38491CD7B17500529092 /* InfoPlist.strings in Resources */,
+				D43498031E03864700085E6E /* kitty-short.mp4 in Resources */,
 				D48929FD1DEE9C60008E662A /* vp8-res-switch.webm in Resources */,
 				D474D5BD1CD7AFFE00D8BBE3 /* Images.xcassets in Resources */,
 				D474D5BE1CD7AFFE00D8BBE3 /* Launch Screen.xib in Resources */,

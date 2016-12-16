@@ -91,8 +91,12 @@
 
                 [[OGVLinkedExampleItem alloc] initWithTitle:@"Bunny low-res VP9 (local)"
                                                         URL:[[NSBundle mainBundle] URLForResource:@"bunny"
-                                                                                    withExtension:@"webm"]]
-            ];
+                                                                                    withExtension:@"webm"]],
+
+                [[OGVLinkedExampleItem alloc] initWithTitle:@"Kitty cat MP4 (local)"
+                                                        URL:[[NSBundle mainBundle] URLForResource:@"kitty-short"
+                                                                                    withExtension:@"mp4"]]
+];
 
     [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"generic"];
     

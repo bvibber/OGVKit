@@ -13,12 +13,13 @@
     NSArray *_pcm;
 }
 
-- (id)initWithPCM:(float **)pcm samples:(unsigned int )samples format:(OGVAudioFormat *)format
+- (id)initWithPCM:(float **)pcm samples:(unsigned int )samples format:(OGVAudioFormat *)format timestamp:(float)timestamp
 {
     self = [super init];
     if (self) {
         _format = format;
         _samples = samples;
+        _timestamp = timestamp;
 
         NSMutableArray *dataArr = [[NSMutableArray alloc] init];
         for (unsigned int i = 0; i < format.channels; i++) {

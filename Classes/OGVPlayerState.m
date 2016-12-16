@@ -363,9 +363,53 @@
         
         // See if the frame timestamp is behind the playhead
         BOOL readyToDecodeFrame = (frameDelay <= 0.0);
-        BOOL readyToDrawFrame = (fabsf(frameDelay) <= fudgeDelta);
+        BOOL readyToDrawFrame = readyToDecodeFrame; // hack hack
+        
         
         if (decoder.hasAudio) {
+            
+            if ([audioFeeder isClosed]) {
+                // Switch to raw clock when audio is done.
+                [self stopAudio];
+            }
+
+            if (decoder.audioReady) {
+                if (!audioFeeder) {
+                    [self startAudio];
+                }
+                if ([audioFeeder isClosing]) {
+                    // Don't decode audio during closing down, it'll go to /dev/null
+                } else {
+                    // Drive on the audio clock!
+                    const int bufferSize = 1024;
+                    const float bufferDuration = (float)bufferSize / decoder.audioFormat.sampleRate;
+                    
+                    float audioBufferedDuration = [audioFeeder secondsQueued];
+                    BOOL readyForAudio = (audioBufferedDuration <= bufferDuration * 4);
+
+                    if (readyForAudio) {
+                        BOOL ok = [decoder decodeAudio];
+                        if (ok) {
+                            //NSLog(@"Buffering audio...");
+                            OGVAudioBuffer *audioBuffer = [decoder audioBuffer];
+                            [audioFeeder bufferData:audioBuffer];
+                        } else {
+                            NSLog(@"Bad audio packet or something");
+                        }
+                    }
+
+                    if (audioBufferedDuration <= bufferDuration) {
+                        // NEED MOAR BUFFERS
+                        nextDelay = 0;
+                    } else {
+                        // Check in when the audio buffer runs low again...
+                        nextDelay = fminf(nextDelay, bufferDuration / 4.0f);
+                        // @todo revisit this checkin frequency, it's pretty made up
+                    }
+                }
+            }
+            
+            /*
             // Drive on the audio clock!
             const int bufferSize = 8192;
             const float bufferDuration = (float)bufferSize / decoder.audioFormat.sampleRate;
@@ -394,6 +438,7 @@
                 nextDelay = fminf(nextDelay, bufferDuration / 4.0f);
                 // @todo revisit this checkin frequency, it's pretty made up
             }
+            */
         }
         
         if (decoder.hasVideo) {
@@ -479,10 +524,14 @@
         }
         if (exact) {
             if (decoder.hasAudio && decoder.audioReady && decoder.audioTimestamp < target) {
-                [decoder decodeAudio];
+                if ([decoder decodeAudio]) {
+                    [decoder audioBuffer];
+                }
             }
             if (decoder.hasVideo && decoder.frameReady && decoder.frameTimestamp < target) {
-                [decoder decodeFrame];
+                if ([decoder decodeFrame]) {
+                    [decoder frameBuffer];
+                }
             }
             if ((!decoder.hasVideo || decoder.frameTimestamp >= target) &&
                 (!decoder.hasAudio || decoder.audioTimestamp >= target)) {

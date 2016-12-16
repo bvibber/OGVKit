@@ -54,4 +54,17 @@ static void split(NSString *str, NSString *separator, NSString **first, NSString
     return [self initWithMajor:major minor:minor codecs:codecs];
 }
 
+- (NSString *)asString
+{
+    NSMutableString *buffer = [[NSMutableString alloc] init];
+    [buffer appendString:self.major];
+    [buffer appendString:@"/"];
+    [buffer appendString:self.minor];
+    if (self.codecs.count > 0) {
+        [buffer appendString:@"; codecs="];
+        [buffer appendString:[self.codecs componentsJoinedByString:@","]];
+    }
+    return buffer;
+}
+
 @end

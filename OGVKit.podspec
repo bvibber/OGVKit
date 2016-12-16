@@ -93,6 +93,12 @@ Pod::Spec.new do |s|
       swebmvorbis.dependency 'OGVKit/VorbisDecoder'
     end
   end
+  s.subspec "MP4" do |smp4|
+    smp4.dependency 'OGVKit/AVDecoder'
+  end
+  s.subspec "MP3" do |smp4|
+    smp4.dependency 'OGVKit/AVDecoder'
+  end
 
   # Demuxer module subspecs
   s.subspec "OggDemuxer" do |soggdemuxer|
@@ -132,6 +138,14 @@ Pod::Spec.new do |s|
     svorbisdecoder.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_VORBIS_DECODER' }
     svorbisdecoder.dependency 'OGVKit/Core'
     svorbisdecoder.dependency 'libvorbis'
+  end
+
+  # AVFoundation-backed playback for MP4, MP3
+  s.subspec "AVDecoder" do |savdecoder|
+    savdecoder.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_AV_DECODER' }
+    savdecoder.dependency 'OGVKit/Core'
+    savdecoder.source_files = "Classes/OGVDecoderAV.{h,m}"
+    savdecoder.private_header_files = "Classes/OGVDecoderAV.h"
   end
 
   # Additional libraries not ready to package separately

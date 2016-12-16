@@ -524,7 +524,10 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
             float **pcm;
             int sampleCount = vorbis_synthesis_pcmout(&vd, &pcm);
             if (sampleCount > 0) {
-                queuedAudio = [[OGVAudioBuffer alloc] initWithPCM:pcm samples:sampleCount format:self.audioFormat];
+                ogg_int64_t audiobuf_granulepos = packet.oggzPacket->pos.calc_granulepos;
+                float audiobuf_time = vorbis_granule_time(&vd, audiobuf_granulepos);
+
+                queuedAudio = [[OGVAudioBuffer alloc] initWithPCM:pcm samples:sampleCount format:self.audioFormat timestamp:audiobuf_time];
                 vorbis_synthesis_read(&vd, sampleCount);
                 return YES;
             } else {

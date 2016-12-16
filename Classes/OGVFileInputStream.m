@@ -51,6 +51,12 @@
         self.mediaType = [[OGVMediaType alloc] initWithString:@"audio/ogg"];
     } else if ([ext isEqualToString:@"ogv"]) {
         self.mediaType = [[OGVMediaType alloc] initWithString:@"video/ogg"];
+    } else if ([ext isEqualToString:@"mp4"]) {
+        self.mediaType = [[OGVMediaType alloc] initWithString:@"video/mp4"];
+    } else if ([ext isEqualToString:@"m4a"]) {
+        self.mediaType = [[OGVMediaType alloc] initWithString:@"audio/mp4"];
+    } else if ([ext isEqualToString:@"m4v"]) {
+        self.mediaType = [[OGVMediaType alloc] initWithString:@"video/mp4"];
     }
 
     file = fopen([self.URL.path UTF8String], "rb");

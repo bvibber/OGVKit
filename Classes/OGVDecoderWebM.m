@@ -419,7 +419,7 @@ static int64_t tellCallback(void * userdata)
                 int sampleCount = vorbis_synthesis_pcmout(&vorbisDspState, &pcm);
                 if (sampleCount > 0) {
                     foundSome = YES;
-                    queuedAudio = [[OGVAudioBuffer alloc] initWithPCM:pcm samples:sampleCount format:self.audioFormat];
+                    queuedAudio = [[OGVAudioBuffer alloc] initWithPCM:pcm samples:sampleCount format:self.audioFormat timestamp:packet.timestamp];
                     
                     vorbis_synthesis_read(&vorbisDspState, sampleCount);
                     if (audiobufGranulepos != -1) {
