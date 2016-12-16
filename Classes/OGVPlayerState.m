@@ -154,8 +154,18 @@
                     // Find out the actual time we seeked to!
                     // We may have gone to a keyframe nearby.
                     [self syncAfterSeek:time exact:YES];
-                    frameEndTimestamp = decoder.frameTimestamp;
-                    initialAudioTimestamp = decoder.audioTimestamp;
+                    if (decoder.frameReady) {
+                        frameEndTimestamp = decoder.frameTimestamp;
+                    } else {
+                        // probably at end?
+                        frameEndTimestamp = time;
+                    }
+                    if (decoder.audioReady) {
+                        initialAudioTimestamp = decoder.audioTimestamp;
+                    } else {
+                        // probably at end?
+                        initialAudioTimestamp = time;
+                    }
 
                     dispatch_async(drawingQueue, ^() {
                         if ([delegate respondsToSelector:@selector(ogvPlayerStateDidSeek:)]) {
