@@ -112,6 +112,19 @@
                                                                             (id)kCVPixelBufferPixelFormatTypeKey: @(kCVPixelFormatType_420YpCbCr8Planar)
                                                                             }];
             [assetReader addOutput:videoOutput];
+            
+            self.hasVideo = YES;
+
+            // hacko temp
+            CMFormatDescriptionRef desc = (__bridge CMFormatDescriptionRef)(videoTrack.formatDescriptions.firstObject);
+            CMVideoDimensions dim = CMVideoFormatDescriptionGetDimensions(desc);
+            CGSize size = CMVideoFormatDescriptionGetPresentationDimensions(desc, YES, YES);
+            self.videoFormat = [[OGVVideoFormat alloc] init];
+            self.videoFormat.frameWidth = dim.width;
+            self.videoFormat.frameHeight = dim.height;
+            self.videoFormat.pictureWidth = size.width;
+            self.videoFormat.pictureHeight = size.height;
+            self.videoFormat.pixelFormat = OGVPixelFormatYCbCr420;
         }
         if (audioTrack) {
             audioOutput = [[AVAssetReaderTrackOutput alloc] initWithTrack:audioTrack
@@ -122,20 +135,20 @@
                                                                             AVLinearPCMIsNonInterleaved: @YES
                                                                             }];
             [assetReader addOutput:audioOutput];
-        }
 
-        [assetReader startReading];
-
-        if ([self doDecodeFrame]) {
-            self.hasVideo = YES;
-            self.videoFormat = ((OGVVideoBuffer *)[frameBuffers peek]).format;
-        }
-        if ([self doDecodeAudio]) {
             self.hasAudio = YES;
-            self.audioFormat = ((OGVAudioBuffer *)[audioBuffers peek]).format;
+
+            CMFormatDescriptionRef desc = (__bridge CMFormatDescriptionRef)(audioTrack.formatDescriptions.firstObject);
+            AudioStreamBasicDescription *basic = CMAudioFormatDescriptionGetStreamBasicDescription(desc);
+            self.audioFormat = [[OGVAudioFormat alloc] initWithChannels:basic->mChannelsPerFrame sampleRate:basic->mSampleRate];
+        }
+
+        if (![assetReader startReading]) {
+            NSLog(@"failed to read AVFoundation asset");
         }
 
         self.dataReady = YES;
+        return YES;
     }
     
     if (![frameBuffers peek]) {
