@@ -163,7 +163,8 @@
         return NO;
     }
     
-    return YES;
+    //return YES;
+    return NO; // will block
 }
 
 - (OGVVideoBuffer *)frameBuffer

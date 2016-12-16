@@ -335,7 +335,9 @@
             } else {
                 // Wait for audio to run out, then close up shop!
                 float timeLeft;
-                if (audioFeeder) {
+                if (audioFeeder && [audioFeeder isStarted]) {
+                    // @fixme if we haven't started and there's time left,
+                    // we should trigger actual playback and pad the buffer.
                     timeLeft = [audioFeeder timeAwaitingPlayback];
                 } else {
                     timeLeft = 0;
