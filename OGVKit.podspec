@@ -187,8 +187,9 @@ Pod::Spec.new do |s|
   s.subspec "WebMMuxer" do |swebmmux|
     swebmmux.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_WEBM_MUXER' }
     swebmmux.dependency 'OGVKit/EncoderCore'
+    swebmmux.dependency 'WebM'
     swebmmux.source_files = "Classes/OGVWebMMuxer.h",
-                            "Classes/OGVWebMMuxer.m"
+                            "Classes/OGVWebMMuxer.mm"
   end
 
   # Additional libraries not ready to package separately
