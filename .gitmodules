@@ -1,3 +1,6 @@
 [submodule "libskeleton"]
 	path = libskeleton
 	url = https://github.com/brion/libskeleton.git
+[submodule "libwebm"]
+	path = libwebm
+	url = https://github.com/brion/libwebm.git

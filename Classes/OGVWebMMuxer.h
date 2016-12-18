@@ -1,10 +1,12 @@
 //
-//  OGVWebmMuxer.h
+//  OGVWebMMuxer.h
 //  OGVKit
 //
 //  Copyright (c) 2016 Brion Vibber. All rights reserved.
 //
 
-@interface OGVWebmMuxer : OGVMuxer
+#include "OGVMuxer.h"
+
+@interface OGVWebMMuxer : OGVMuxer
 
 @end
