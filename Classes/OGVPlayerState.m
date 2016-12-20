@@ -149,19 +149,22 @@
 
                 if (ok) {
                     // Adjust the offset for the seek
-                    offsetTime += (time - frameEndTimestamp);
+                    offsetTime = time;
+                    initTime = self.baseTime;
 
                     // Find out the actual time we seeked to!
                     // We may have gone to a keyframe nearby.
                     [self syncAfterSeek:time exact:YES];
                     if (decoder.frameReady) {
                         frameEndTimestamp = decoder.frameTimestamp;
+                        offsetTime = frameEndTimestamp;
                     } else {
                         // probably at end?
                         frameEndTimestamp = time;
                     }
                     if (decoder.audioReady) {
                         initialAudioTimestamp = decoder.audioTimestamp;
+                        offsetTime = initialAudioTimestamp;
                     } else {
                         // probably at end?
                         initialAudioTimestamp = time;
