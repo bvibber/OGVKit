@@ -45,6 +45,8 @@
                                                     filename:@"Sneak Preview - Wikipedia VisualEditor.webm"],
                 [[OGVCommonsExampleItem alloc] initWithTitle:@"¿Qué es Wikipedia?"
                                                     filename:@"¿Qué es Wikipedia?.ogv"],
+                [[OGVCommonsExampleItem alloc] initWithTitle:@"Wikipedia Edit 2015"
+                                                    filename:@"Wikipedia Edit 2015.webm"],
 
                 // Third-party stuff
                 [[OGVCommonsExampleItem alloc] initWithTitle:@"Open Access: Empowering Discovery"
@@ -53,6 +55,8 @@
                                                     filename:@"Curiosity's Seven Minutes of Terror.ogv"],
                 [[OGVCommonsExampleItem alloc] initWithTitle:@"Alaskan Huskies (heavy motion)"
                                                     filename:@"Alaskan_Huskies_-_Sled_Dogs_-_Ivalo_2013.ogv"],
+                [[OGVCommonsExampleItem alloc] initWithTitle:@"International Space Station"
+                                                    filename:@"Ultra High Definition Video from the International Space Station (Reel 1).webm"],
 
                 // Blender open movies
                 [[OGVCommonsExampleItem alloc] initWithTitle:@"Tears of Steel (sci-fi)"
@@ -69,6 +73,10 @@
                                                     filename:@"Big_Buck_Bunny_4K.webm"],
                 [[OGVCommonsExampleItem alloc] initWithTitle:@"Wiki Makes Video (60fps)"
                                                     filename:@"Wiki Makes Video Intro 4 26.webm"],
+                [[OGVCommonsExampleItem alloc] initWithTitle:@"London apartment (60fps game engine)"
+                                                    filename:@"UE4Arch.com - London apartment.webm"],
+                [[OGVCommonsExampleItem alloc] initWithTitle:@"Job Simulator (60fps game engine)"
+                                                    filename:@"Spectator Mode for Job Simulator - a new way to display social VR footage.webm"],
 
                 // Video-only tests
                 [[OGVCommonsExampleItem alloc] initWithTitle:@"Myopa (video only)"
@@ -272,7 +280,9 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 - (void)ogvPlayerDidEnd:(OGVPlayerView *)sender
 {
     source.playbackPosition = 0;
-
+    
+    // temp: do nothing
+    /*
     NSInteger nextSource = selectedSource + 1;
     if (nextSource < [sources count]) {
         [self.tableView selectRowAtIndexPath:[NSIndexPath indexPathForItem:nextSource inSection:0]
@@ -280,6 +290,7 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
                               scrollPosition:UITableViewScrollPositionNone];
         [self selectSource:nextSource];
     }
+    */
 }
 
 @end
