@@ -401,7 +401,7 @@
                     [self startAudio:audioTimestamp];
                 }
 
-                const int bufferSize = 1024;
+                const int bufferSize = 8192; // fake
                 const float bufferDuration = (float)bufferSize / decoder.audioFormat.sampleRate;
                 
                 float audioBufferedDuration = [audioFeeder secondsQueued];
