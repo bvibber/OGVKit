@@ -155,11 +155,13 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
     }
 }
 
--(void)bufferData:(OGVAudioBuffer *)buffer
+-(BOOL)bufferData:(OGVAudioBuffer *)buffer
 {
     @synchronized (timeLock) {
+        if (isClosing || isClosed) {
+            return NO;
+        }
         //NSLog(@"queuing samples: %d", buffer.samples);
-        assert(!isClosing && !isClosed);
         if (buffer.samples > 0) {
             [self queueInput:buffer];
             //NSLog(@"buffered count: %d", [self circularCount]);
@@ -168,6 +170,7 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
                 [self startAudio];
             }
         }
+        return YES;
     }
 }
 

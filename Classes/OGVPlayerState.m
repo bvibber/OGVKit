@@ -395,45 +395,46 @@
             }
 
             if (decoder.audioReady) {
-                if ([audioFeeder isClosed]) {
-                    // Audio died, perhaps due to starvation during slow decodes
-                    // or something else unexpected. Close it out and we'll start
-                    // up a new one.
-                    NSLog(@"CLOSING OUT CLOSED AUDIO FEEDER");
-                    [self stopAudio];
-                }
+                // Drive on the audio clock!
+                const float audioTimestamp = decoder.audioTimestamp;
                 if (!audioFeeder) {
-                    [self startAudio:decoder.audioTimestamp];
+                    [self startAudio:audioTimestamp];
                 }
-                if ([audioFeeder isClosing]) {
-                    // Don't decode audio during closing down, it'll go to /dev/null
-                } else {
-                    // Drive on the audio clock!
-                    const int bufferSize = 1024;
-                    const float bufferDuration = (float)bufferSize / decoder.audioFormat.sampleRate;
-                    
-                    float audioBufferedDuration = [audioFeeder secondsQueued];
-                    BOOL readyForAudio = (audioBufferedDuration <= bufferDuration * 4);
 
-                    if (readyForAudio) {
-                        BOOL ok = [decoder decodeAudio];
-                        if (ok) {
-                            //NSLog(@"Buffering audio...");
-                            OGVAudioBuffer *audioBuffer = [decoder audioBuffer];
-                            [audioFeeder bufferData:audioBuffer];
-                        } else {
-                            NSLog(@"Bad audio packet or something");
+                const int bufferSize = 1024;
+                const float bufferDuration = (float)bufferSize / decoder.audioFormat.sampleRate;
+                
+                float audioBufferedDuration = [audioFeeder secondsQueued];
+                BOOL readyForAudio = (audioBufferedDuration <= bufferDuration * 4);
+
+                if (readyForAudio) {
+                    BOOL ok = [decoder decodeAudio];
+                    if (ok) {
+                        //NSLog(@"Buffering audio...");
+                        OGVAudioBuffer *audioBuffer = [decoder audioBuffer];
+                        if (![audioFeeder bufferData:audioBuffer]) {
+                            if ([audioFeeder isClosed]) {
+                                // Audio died, perhaps due to starvation during slow decodes
+                                // or something else unexpected. Close it out and we'll start
+                                // up a new one.
+                                NSLog(@"CLOSING OUT CLOSED AUDIO FEEDER");
+                                [self stopAudio];
+                                [self startAudio:audioTimestamp];
+                                [audioFeeder bufferData:audioBuffer];
+                            }
                         }
-                    }
-
-                    if (audioBufferedDuration <= bufferDuration) {
-                        // NEED MOAR BUFFERS
-                        nextDelay = 0;
                     } else {
-                        // Check in when the audio buffer runs low again...
-                        nextDelay = fminf(nextDelay, bufferDuration / 4.0f);
-                        // @todo revisit this checkin frequency, it's pretty made up
+                        NSLog(@"Bad audio packet or something");
                     }
+                }
+
+                if (audioBufferedDuration <= bufferDuration) {
+                    // NEED MOAR BUFFERS
+                    nextDelay = 0;
+                } else {
+                    // Check in when the audio buffer runs low again...
+                    nextDelay = fminf(nextDelay, bufferDuration / 4.0f);
+                    // @todo revisit this checkin frequency, it's pretty made up
                 }
             }
             

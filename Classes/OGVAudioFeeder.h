@@ -20,8 +20,10 @@
  * Queue up a chunk of audio for future output.
  *
  * Audio will start automatically once enough buffers have been queued.
+ * Returns YES if all looks well, NO if something has gone awry
+ * such as a failure of the audio output path to work.
  */
--(void)bufferData:(OGVAudioBuffer *)buffer;
+-(BOOL)bufferData:(OGVAudioBuffer *)buffer;
 
 /**
  * Close this audio channel.
