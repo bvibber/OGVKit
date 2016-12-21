@@ -25,10 +25,10 @@
     OGVDecoder *decoder;
 
     float frameEndTimestamp;
-    float initialAudioTimestamp;
     float audioPausePosition;
-    CFTimeInterval initTime;
-    CFTimeInterval offsetTime;
+
+    CFTimeInterval initTime; // [self baseTime] at the beginning of timeline counting
+    CFTimeInterval offsetTime; // offset from initTime to 'live' time at the beginning of timeline counting
 
     BOOL playing;
     BOOL playAfterLoad;
@@ -66,7 +66,6 @@
         playAfterLoad = NO;
 
         frameEndTimestamp = 0;
-        initialAudioTimestamp = 0;
         audioPausePosition = 0;
 
         // Start loading the URL and processing header data
@@ -89,7 +88,7 @@
             playing = YES;
             [self seek:0.0f];
         } else if (decoder.dataReady) {
-            [self startPlayback:decoder.hasAudio ? initialAudioTimestamp : frameEndTimestamp];
+            [self startPlayback:decoder.hasAudio ? audioPausePosition : frameEndTimestamp];
         } else {
             playAfterLoad = YES;
         }
@@ -163,11 +162,11 @@
                         frameEndTimestamp = time;
                     }
                     if (decoder.audioReady) {
-                        initialAudioTimestamp = decoder.audioTimestamp;
-                        offsetTime = initialAudioTimestamp;
+                        audioPausePosition = decoder.audioTimestamp;
+                        offsetTime = audioPausePosition;
                     } else {
                         // probably at end?
-                        initialAudioTimestamp = time;
+                        audioPausePosition = time;
                     }
 
                     dispatch_async(drawingQueue, ^() {
@@ -211,12 +210,8 @@
 
 - (float)baseTime
 {
-    if (decoder.hasAudio) {
-        if (audioFeeder) {
-            return audioFeeder.playbackPosition;
-        } else {
-            return audioPausePosition;
-        }
+    if (decoder.hasAudio && audioFeeder) {
+        return audioFeeder.playbackPosition;
     } else {
         return CACurrentMediaTime();
     }
@@ -262,11 +257,12 @@
     assert(offset >= 0);
 
     playing = YES;
-    if (decoder.hasAudio) {
-        [self startAudio];
-    }
-    
+
     [self initPlaybackState:offset];
+
+    if (decoder.hasAudio) {
+        [self startAudio:offset];
+    }
 
     dispatch_async(drawingQueue, ^() {
         if ([delegate respondsToSelector:@selector(ogvPlayerStateDidPlay:)]) {
@@ -286,23 +282,33 @@
     offsetTime = offset;
 }
 
--(void)startAudio
+-(void)startAudio:(float)offset
 {
     assert(decoder.hasAudio);
     assert(!audioFeeder);
+
     audioFeeder = [[OGVAudioFeeder alloc] initWithFormat:decoder.audioFormat];
-    NSLog(@"start: %f", initialAudioTimestamp);
+
+    // Reset to audio clock
+    initTime = self.baseTime;
+    offsetTime = offset;
 }
 
 -(void)stopAudio
 {
     assert(decoder.hasAudio);
     assert(audioFeeder);
-    audioPausePosition = audioFeeder.playbackPosition;
-    initialAudioTimestamp = initialAudioTimestamp + audioFeeder.bufferTailPosition;
+
+    // Save the actual audio time as last offset
+    audioPausePosition = [audioFeeder bufferTailPosition] - initTime + offsetTime;
+
     // @fixme let the already-queued audio play out when pausing?
     [audioFeeder close];
     audioFeeder = nil;
+
+    // Reset to generic media clock
+    initTime = self.baseTime;
+    offsetTime = 0;
 }
 
 - (void)processHeaders
@@ -389,8 +395,15 @@
             }
 
             if (decoder.audioReady) {
+                if ([audioFeeder isClosed]) {
+                    // Audio died, perhaps due to starvation during slow decodes
+                    // or something else unexpected. Close it out and we'll start
+                    // up a new one.
+                    NSLog(@"CLOSING OUT CLOSED AUDIO FEEDER");
+                    [self stopAudio];
+                }
                 if (!audioFeeder) {
-                    [self startAudio];
+                    [self startAudio:decoder.audioTimestamp];
                 }
                 if ([audioFeeder isClosing]) {
                     // Don't decode audio during closing down, it'll go to /dev/null

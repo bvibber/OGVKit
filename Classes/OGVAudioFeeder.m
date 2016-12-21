@@ -221,7 +221,7 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
 -(float)playbackPosition
 {
     @synchronized (timeLock) {
-        if (isRunning) {
+        if (isRunning && !isClosing) {
             __block AudioTimeStamp ts;
             
             throwIfError(^() {
@@ -301,6 +301,8 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
 
             // Close it out when ready
             isClosing = YES;
+            //AudioQueueStop(queue, NO);
+            shouldClose = YES;
         }
     }
 }
