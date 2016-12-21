@@ -308,7 +308,7 @@
 
     // Reset to generic media clock
     initTime = self.baseTime;
-    offsetTime = 0;
+    offsetTime = audioPausePosition;
 }
 
 - (void)processHeaders
