@@ -253,19 +253,6 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
     return (circularTail + circularBufferSize - circularHead) % circularBufferSize;
 }
 
--(Float32)circularRead
-{
-    Float32 value = circularBuffer[circularHead];
-    circularHead = (circularHead + 1) % circularBufferSize;
-    return value;
-}
-
--(void)circularWrite:(Float32)value
-{
-    circularBuffer[circularTail] = value;
-    circularTail = (circularTail + 1) % circularBufferSize;
-}
-
 -(void)handleQueue:(AudioQueueRef)_queue buffer:(AudioQueueBufferRef)buffer
 {
     @synchronized (timeLock) {
@@ -290,7 +277,8 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
             
             Float32 *dest = (Float32 *)buffer->mAudioData;
             for (size_t i = 0; i < sampleCount * channels; i++) {
-                dest[i] = [self circularRead];
+                dest[i] = circularBuffer[circularHead];
+                circularHead = (circularHead + 1) % circularBufferSize;
             }
             samplesPlayed += sampleCount;
             
@@ -404,7 +392,8 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
         }
         for (int i = 0; i < buffer.samples; i++) {
             for (int channel = 0; channel < channels; channel++) {
-                [self circularWrite:srcData[channel][i]];
+                circularBuffer[circularTail] = srcData[channel][i];
+                circularTail = (circularTail + 1) % circularBufferSize;
             }
         }
     }
