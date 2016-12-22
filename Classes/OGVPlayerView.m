@@ -506,6 +506,9 @@ static void releasePixelBufferBacking(void *releaseRefCon, const void *dataPtr, 
         //NSLog(@"Layer %d %@", displayLayer.status, displayLayer.error);
         [displayLayer enqueueSampleBuffer:sampleBuffer];
         
+        CFRelease(sampleBuffer);
+        CFRelease(formatDesc);
+        CFRelease(imageBuffer);
     }
 }
 
