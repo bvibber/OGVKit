@@ -401,7 +401,7 @@
                     [self startAudio:audioTimestamp];
                 }
 
-                const int bufferSize = 8192 * 4; // fake
+                const int bufferSize = 8192 * 8; // fake
                 const float bufferDuration = (float)bufferSize / decoder.audioFormat.sampleRate;
                 
                 float audioBufferedDuration = [audioFeeder secondsQueued];
@@ -423,6 +423,8 @@
                                 [audioFeeder bufferData:audioBuffer];
                             }
                         }
+                        // Go back around the loop in case we need more
+                        continue;
                     } else {
                         NSLog(@"Bad audio packet or something");
                     }
