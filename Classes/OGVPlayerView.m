@@ -422,13 +422,13 @@ static void releasePixelBufferBacking(void *releaseRefCon, const void *dataPtr, 
         };
         size_t planeBytesPerRow[3] = {
             buffer.Y.stride,
-            buffer.Cb.stride,
-            buffer.Cr.stride
+            buffer.Y.stride,
+            buffer.Y.stride
         };
         void *planeBaseAddress[4] = {
             buffer.Y.data.bytes,
-            buffer.Cb.data.bytes,
-            buffer.Cr.data.bytes
+            buffer.Y.data.bytes,
+            buffer.Y.data.bytes
         };
         
         CVImageBufferRef imageBuffer;
@@ -436,13 +436,54 @@ static void releasePixelBufferBacking(void *releaseRefCon, const void *dataPtr, 
             (NSString *)kCVPixelBufferExtendedPixelsLeftKey: @(buffer.format.pictureOffsetX),
             (NSString *)kCVPixelBufferExtendedPixelsTopKey: @(buffer.format.pictureOffsetY),
             (NSString *)kCVPixelBufferExtendedPixelsRightKey: @(buffer.format.frameWidth - buffer.format.pictureWidth - buffer.format.pictureOffsetX),
-            (NSString *)kCVPixelBufferExtendedPixelsBottomKey: @(buffer.format.frameHeight - buffer.format.pictureHeight - buffer.format.pictureOffsetY)
+            (NSString *)kCVPixelBufferExtendedPixelsBottomKey: @(buffer.format.frameHeight - buffer.format.pictureHeight - buffer.format.pictureOffsetY),
+            (NSString *)kCVPixelBufferIOSurfacePropertiesKey: @{}
         };
-        OSType ok = CVPixelBufferCreateWithPlanarBytes(NULL, buffer.format.frameWidth, buffer.format.frameHeight, kCVPixelFormatType_420YpCbCr8Planar, NULL, 0, 3, planeBaseAddress, planeWidth, planeHeight, planeBytesPerRow, releasePixelBufferBacking, CFBridgingRetain(buffer), (__bridge CFDictionaryRef _Nullable)(opts), &imageBuffer);
+        //OSType ok = CVPixelBufferCreateWithPlanarBytes(NULL, buffer.format.frameWidth, buffer.format.frameHeight, kCVPixelFormatType_420YpCbCr8Planar, NULL, 0, 3, planeBaseAddress, planeWidth, planeHeight, planeBytesPerRow, releasePixelBufferBacking, CFBridgingRetain(buffer), (__bridge CFDictionaryRef _Nullable)(opts), &imageBuffer);
+        //OSType ok = CVPixelBufferCreateWithPlanarBytes(NULL, buffer.format.frameWidth, buffer.format.frameHeight, kCVPixelFormatType_420YpCbCr8BiPlanarFullRange, NULL, 0, 2, planeBaseAddress, planeWidth, planeHeight, planeBytesPerRow, releasePixelBufferBacking, CFBridgingRetain(buffer), (__bridge CFDictionaryRef _Nullable)(opts), &imageBuffer);
+        //OSType ok = CVPixelBufferCreate(NULL, buffer.format.frameWidth, buffer.format.frameHeight, kCVPixelFormatType_420YpCbCr8Planar, (__bridge CFDictionaryRef _Nullable)(opts), &imageBuffer);
+        OSType ok = CVPixelBufferCreate(NULL, buffer.format.frameWidth, buffer.format.frameHeight, kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange, (__bridge CFDictionaryRef _Nullable)(opts), &imageBuffer);
         if (ok != kCVReturnSuccess) {
             NSLog(@"pixel buffer create FAILED %d", ok);
         }
 
+        CVPixelBufferLockBaseAddress(imageBuffer, 0);
+
+        int lumaWidth = buffer.format.lumaWidth;
+        int lumaHeight = buffer.format.lumaHeight;
+        unsigned char *lumaIn = buffer.Y.data.bytes;
+        unsigned char *lumaOut = CVPixelBufferGetBaseAddressOfPlane(imageBuffer, 0);
+        size_t lumaInStride = buffer.Y.stride;
+        size_t lumaOutStride = CVPixelBufferGetBytesPerRowOfPlane(imageBuffer, 0);
+        for (int y = 0; y < lumaHeight; y++) {
+            for (int x = 0; x < lumaWidth; x++) {
+                lumaOut[x] = lumaIn[x];
+            }
+            lumaIn += lumaInStride;
+            lumaOut += lumaOutStride;
+        }
+        
+        int chromaWidth = buffer.format.chromaWidth;
+        int chromaHeight = buffer.format.chromaHeight;
+        unsigned char *chromaCbIn = buffer.Cb.data.bytes;
+        unsigned char *chromaCrIn = buffer.Cr.data.bytes;
+        unsigned char *chromaOut = CVPixelBufferGetBaseAddressOfPlane(imageBuffer, 1);
+        size_t chromaCbInStride = buffer.Cb.stride;
+        size_t chromaCrInStride = buffer.Cr.stride;
+        size_t chromaOutStride = CVPixelBufferGetBytesPerRowOfPlane(imageBuffer, 1);
+        for (int y = 0; y < chromaHeight; y++) {
+            for (int x = 0; x < chromaWidth; x++) {
+                chromaOut[x * 2] = chromaCbIn[x];
+                chromaOut[x * 2 + 1] = chromaCrIn[x];
+            }
+            chromaCbIn += chromaCbInStride;
+            chromaCrIn += chromaCrInStride;
+            chromaOut += chromaOutStride;
+        }
+
+        
+        CVPixelBufferUnlockBaseAddress(imageBuffer, 0);
+        
         CMVideoFormatDescriptionRef formatDesc;
         ok = CMVideoFormatDescriptionCreateForImageBuffer(NULL, imageBuffer, &formatDesc);
         if (ok != 0) {
@@ -462,6 +503,7 @@ static void releasePixelBufferBacking(void *releaseRefCon, const void *dataPtr, 
 
         CMSetAttachment(sampleBuffer, kCMSampleAttachmentKey_DisplayImmediately, kCFBooleanTrue, kCMAttachmentMode_ShouldPropagate);
         
+        //NSLog(@"Layer %d %@", displayLayer.status, displayLayer.error);
         [displayLayer enqueueSampleBuffer:sampleBuffer];
         
     }
