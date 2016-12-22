@@ -165,7 +165,7 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
         if (buffer.samples > 0) {
             [self queueInput:buffer];
             //NSLog(@"buffered count: %d", [self circularCount]);
-            if (!isStarting && !isRunning && !isClosing && !isClosed && samplesQueued >= nBuffers * bufferSize) {
+            if (!isStarting && !isRunning && !isClosing && !isClosed && samplesQueued >= circularBufferSize / 4) {
                 //NSLog(@"Starting audio!");
                 [self startAudio];
             }
@@ -380,12 +380,12 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
 {
     @synchronized (timeLock) {
         int samples = buffer.samples;
+        int channels = self.format.channels;
 
-        assert(samples + [self circularCount] <= circularBufferSize);
+        assert(samples * channels + [self circularCount] <= circularBufferSize * channels);
         samplesQueued += samples;
 
         // AudioToolbox wants interleaved
-        int channels = self.format.channels;
         float *srcData[channels];
         for (int channel = 0; channel < channels; channel++) {
             srcData[channel] = [buffer PCMForChannel:channel];
