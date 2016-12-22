@@ -528,6 +528,8 @@ static void releasePixelBufferBacking(void *releaseRefCon, const void *dataPtr, 
         [self.pausePlayButton setTitle:kOGVPlayerIconCharPause forState:UIControlStateHighlighted];
         [self startTimeTimer];
         [self updateTimeLabel];
+        
+        [displayLayer flush];
 
         if (![self controlsAreVisible]) {
             [self showControls];
@@ -576,6 +578,8 @@ static void releasePixelBufferBacking(void *releaseRefCon, const void *dataPtr, 
         self.activityIndicator.hidden = YES;
         [self.activityIndicator stopAnimating];
         [self updateTimeLabel];
+
+        [displayLayer flush];
 
         if ([self.delegate respondsToSelector:@selector(ogvPlayerDidSeek:)]) {
             [self.delegate ogvPlayerDidSeek:self];
