@@ -9,6 +9,7 @@
 #import "OGVKit.h"
 
 @import CoreText;
+@import AVFoundation;
 
 static NSString *kOGVPlayerTimeLabelEmpty = @"-:--";
 
@@ -36,6 +37,12 @@ static NSString *kOGVPlayerIconCharResizeVertical = @"\ue818";
 
 static BOOL OGVPlayerViewDidRegisterIconFont = NO;
 
+static void releasePixelBufferBacking(void *releaseRefCon, const void *dataPtr, size_t dataSize, size_t numberOfPlanes, const void * _Nullable planeAddresses[])
+{
+    CFTypeRef buf = (CFTypeRef)releaseRefCon;
+    CFRelease(buf);
+}
+
 @implementation OGVPlayerView
 
 {
@@ -46,6 +53,7 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
     NSTimer *controlsTimeout;
     NSTimer *seekTimeout;
     BOOL seeking;
+    AVSampleBufferDisplayLayer *displayLayer;
 }
 
 #pragma mark - Public methods
@@ -87,7 +95,7 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
 {
     if (state) {
         [state cancel];
-        [self.frameView clearFrame];
+        [displayLayer flushAndRemoveImage];
         state = nil;
     }
     _inputStream = inputStream;
@@ -145,6 +153,12 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
     }
 }
 
+-(void)layoutSubviews
+{
+    [super layoutSubviews];
+    displayLayer.frame = self.bounds;
+}
+
 #pragma mark - private methods
 
 -(void)setup
@@ -157,12 +171,15 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
         CTFontManagerRegisterFontsForURL((__bridge CFURLRef)fontURL, kCTFontManagerScopeProcess, nil);
         OGVPlayerViewDidRegisterIconFont = YES;
     }
+    
+    // Output layer
+    displayLayer = [[AVSampleBufferDisplayLayer alloc] init];
+    displayLayer.frame = self.bounds;
+    [self.layer addSublayer:displayLayer];
 
+    // Controls
     UINib *nib = [UINib nibWithNibName:@"OGVPlayerView" bundle:bundle];
     UIView *interface = [nib instantiateWithOwner:self options:nil][0];
-
-    // @todo move this into OGVFrameView
-    self.frameView.context = [self createGLContext];
 
     // can this be set in the nib?
     [self.pausePlayButton setTitleColor:[UIColor blackColor] forState:UIControlStateHighlighted];
@@ -191,18 +208,6 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
                                              selector:@selector(appDidEnterBackground:)
                                                  name:UIApplicationDidEnterBackgroundNotification
                                                object:nil];
-}
-
--(EAGLContext *)createGLContext
-{
-    EAGLContext *context;
-    if (floor(NSFoundationVersionNumber) >= NSFoundationVersionNumber_iOS_7_0) {
-        context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3];
-    }
-    if (context == nil) {
-        context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
-    }
-    return context;
 }
 
 - (IBAction)togglePausePlay:(id)sender
@@ -405,7 +410,60 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
 - (void)ogvPlayerState:(OGVPlayerState *)sender drawFrame:(OGVVideoBuffer *)buffer
 {
     if (sender == state) {
-        [self.frameView drawFrame:buffer];
+        size_t planeWidth[3] = {
+            buffer.format.lumaWidth,
+            buffer.format.chromaWidth,
+            buffer.format.chromaWidth
+        };
+        size_t planeHeight[3] = {
+            buffer.format.lumaHeight,
+            buffer.format.chromaHeight,
+            buffer.format.chromaHeight
+        };
+        size_t planeBytesPerRow[3] = {
+            buffer.Y.stride,
+            buffer.Cb.stride,
+            buffer.Cr.stride
+        };
+        void *planeBaseAddress[4] = {
+            buffer.Y.data.bytes,
+            buffer.Cb.data.bytes,
+            buffer.Cr.data.bytes
+        };
+        
+        CVImageBufferRef imageBuffer;
+        NSDictionary *opts = @{
+            (NSString *)kCVPixelBufferExtendedPixelsLeftKey: @(buffer.format.pictureOffsetX),
+            (NSString *)kCVPixelBufferExtendedPixelsTopKey: @(buffer.format.pictureOffsetY),
+            (NSString *)kCVPixelBufferExtendedPixelsRightKey: @(buffer.format.frameWidth - buffer.format.pictureWidth - buffer.format.pictureOffsetX),
+            (NSString *)kCVPixelBufferExtendedPixelsBottomKey: @(buffer.format.frameHeight - buffer.format.pictureHeight - buffer.format.pictureOffsetY)
+        };
+        OSType ok = CVPixelBufferCreateWithPlanarBytes(NULL, buffer.format.frameWidth, buffer.format.frameHeight, kCVPixelFormatType_420YpCbCr8Planar, NULL, 0, 3, planeBaseAddress, planeWidth, planeHeight, planeBytesPerRow, releasePixelBufferBacking, CFBridgingRetain(buffer), (__bridge CFDictionaryRef _Nullable)(opts), &imageBuffer);
+        if (ok != kCVReturnSuccess) {
+            NSLog(@"pixel buffer create FAILED %d", ok);
+        }
+
+        CMVideoFormatDescriptionRef formatDesc;
+        ok = CMVideoFormatDescriptionCreateForImageBuffer(NULL, imageBuffer, &formatDesc);
+        if (ok != 0) {
+            NSLog(@"format desc FAILED %d", ok);
+        }
+
+        CMSampleTimingInfo sampleTiming;
+        sampleTiming.duration = CMTimeMake((1.0 / 60) * 1000, 1000);
+        sampleTiming.presentationTimeStamp = CMTimeMake(buffer.timestamp * 1000, 1000);
+        sampleTiming.decodeTimeStamp = kCMTimeInvalid;
+
+        CMSampleBufferRef sampleBuffer;
+        ok = CMSampleBufferCreateForImageBuffer(NULL, imageBuffer, YES, NULL, NULL, formatDesc, &sampleTiming, &sampleBuffer);
+        if (ok != 0) {
+            NSLog(@"sample buffer FAILED %d", ok);
+        }
+
+        CMSetAttachment(sampleBuffer, kCMSampleAttachmentKey_DisplayImmediately, kCFBooleanTrue, kCMAttachmentMode_ShouldPropagate);
+        
+        [displayLayer enqueueSampleBuffer:sampleBuffer];
+        
     }
 }
 
