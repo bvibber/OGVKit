@@ -401,11 +401,11 @@
                     [self startAudio:audioTimestamp];
                 }
 
-                const int bufferSize = 8192; // fake
+                const int bufferSize = 8192 * 4; // fake
                 const float bufferDuration = (float)bufferSize / decoder.audioFormat.sampleRate;
                 
                 float audioBufferedDuration = [audioFeeder secondsQueued];
-                BOOL readyForAudio = (audioBufferedDuration <= bufferDuration * 4);
+                BOOL readyForAudio = (audioBufferedDuration <= bufferDuration);
 
                 if (readyForAudio) {
                     BOOL ok = [decoder decodeAudio];
@@ -428,13 +428,13 @@
                     }
                 }
 
+                //NSLog(@"have %f", audioBufferedDuration);
                 if (audioBufferedDuration <= bufferDuration) {
                     // NEED MOAR BUFFERS
                     nextDelay = 0;
                 } else {
                     // Check in when the audio buffer runs low again...
-                    nextDelay = fminf(nextDelay, bufferDuration / 4.0f);
-                    // @todo revisit this checkin frequency, it's pretty made up
+                    nextDelay = fminf(nextDelay, fmaxf(audioBufferedDuration - bufferDuration / 2.0f, 0.0f));
                 }
             }
             
