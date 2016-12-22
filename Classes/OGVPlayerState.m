@@ -401,12 +401,13 @@
                     [self startAudio:audioTimestamp];
                 }
 
-                const int bufferSize = 8192 * 8; // fake
+                const int bufferSize = 8192 * 4; // fake
                 const float bufferDuration = (float)bufferSize / decoder.audioFormat.sampleRate;
                 
                 float audioBufferedDuration = [audioFeeder secondsQueued];
                 BOOL readyForAudio = (audioBufferedDuration <= bufferDuration);
 
+                NSLog(@"have %f ms", audioBufferedDuration * 1000);
                 if (readyForAudio) {
                     BOOL ok = [decoder decodeAudio];
                     if (ok) {
@@ -430,7 +431,6 @@
                     }
                 }
 
-                //NSLog(@"have %f", audioBufferedDuration);
                 if (audioBufferedDuration <= bufferDuration) {
                     // NEED MOAR BUFFERS
                     nextDelay = 0;
@@ -480,6 +480,7 @@
                     if (ok) {
                         // Check if it's time to draw (AKA the frame timestamp is at or past the playhead)
                         // If we're already playing, DRAW!
+                        NSLog(@"DRAW");
                         [self drawFrame];
 
                         // End the processing loop, we'll ping again after drawing
@@ -499,14 +500,20 @@
             }
         }
         
-        if (nextDelay < INFINITY) {
+        if (nextDelay <= 0.001f) {
+            // Continue the processing loop...
+            NSLog(@"loop immediate");
+            continue;
+        } else if (nextDelay < INFINITY) {
+            NSLog(@"loop %f ms", nextDelay * 1000.0);
             [self pingProcessing:nextDelay];
             
             // End the processing loop and wait for next ping.
             return;
         } else {
-            // Continue the processing loop...
-            continue;
+            // nothing to do?
+            NSLog(@"loop drop?");
+            return;
         }
         
         // End the processing loop and wait for next ping.

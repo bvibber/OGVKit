@@ -165,7 +165,7 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
         if (buffer.samples > 0) {
             [self queueInput:buffer];
             //NSLog(@"buffered count: %d", [self circularCount]);
-            if (!isStarting && !isRunning && !isClosing && !isClosed && samplesQueued >= nBuffers * bufferSize) {
+            if (!isStarting && !isRunning && !isClosing && !isClosed && samplesQueued >= circularBufferSize / 4) {
                 //NSLog(@"Starting audio!");
                 [self startAudio];
             }
