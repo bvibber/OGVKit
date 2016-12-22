@@ -401,11 +401,11 @@
                     [self startAudio:audioTimestamp];
                 }
 
-                const int bufferSize = 8192; // fake
+                const int bufferSize = 8192 * 4; // fake
                 const float bufferDuration = (float)bufferSize / decoder.audioFormat.sampleRate;
                 
                 float audioBufferedDuration = [audioFeeder secondsQueued];
-                BOOL readyForAudio = (audioBufferedDuration <= bufferDuration * 4);
+                BOOL readyForAudio = (audioBufferedDuration <= bufferDuration);
 
                 if (readyForAudio) {
                     BOOL ok = [decoder decodeAudio];
@@ -428,13 +428,13 @@
                     }
                 }
 
+                //NSLog(@"have %f", audioBufferedDuration);
                 if (audioBufferedDuration <= bufferDuration) {
                     // NEED MOAR BUFFERS
                     nextDelay = 0;
                 } else {
                     // Check in when the audio buffer runs low again...
-                    nextDelay = fminf(nextDelay, bufferDuration / 4.0f);
-                    // @todo revisit this checkin frequency, it's pretty made up
+                    nextDelay = fminf(nextDelay, fmaxf(audioBufferedDuration - bufferDuration / 2.0f, 0.0f));
                 }
             }
             
@@ -471,27 +471,23 @@
         }
         
         if (decoder.hasVideo) {
-            if (readyToDecodeFrame && decoder.frameReady) {
+            if (decoder.frameReady) {
                 //NSLog(@"%f ms frame delay", frameDelay * 1000);
-                BOOL ok = [decoder decodeFrame];
-                if (ok) {
-                    // Check if it's time to draw (AKA the frame timestamp is at or past the playhead)
-                    if (readyToDrawFrame) {
+                if (readyToDecodeFrame) {
+                    BOOL ok = [decoder decodeFrame];
+                    if (ok) {
+                        // Check if it's time to draw (AKA the frame timestamp is at or past the playhead)
                         // If we're already playing, DRAW!
                         [self drawFrame];
-                        
+
                         // End the processing loop, we'll ping again after drawing
                         return;
                     } else {
-                        // Not ready to draw yet, update the timestamp and keep on chuggin
-                        OGVVideoBuffer *buffer = [decoder frameBuffer];
-                        frameEndTimestamp = buffer.timestamp;
+                        NSLog(@"Bad video packet or something");
                         continue;
                     }
-                } else {
-                    NSLog(@"Bad video packet or something");
-                    [self pingProcessing:(1.0f / 30)];
                 }
+                nextDelay = fminf(nextDelay, fmaxf(frameEndTimestamp - playbackPosition, 0.0f));
             } else if (!playing) {
                 // We're all caught up but paused, will be pinged when played
                 return;
