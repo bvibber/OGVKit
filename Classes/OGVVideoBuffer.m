@@ -8,6 +8,10 @@
 
 #import "OGVKit.h"
 
+#if defined(__arm64) || defined(__arm)
+#include <arm_neon.h>
+#endif
+
 @implementation OGVVideoBuffer
 
 - (instancetype)initWithFormat:(OGVVideoFormat *)format
@@ -41,6 +45,31 @@ static void releasePixelBufferBacking(void *releaseRefCon, const void *dataPtr, 
 {
     CFTypeRef buf = (CFTypeRef)releaseRefCon;
     CFRelease(buf);
+}
+
+
+static inline void interleave_chroma(unsigned char *chromaCbIn, unsigned char *chromaCrIn, unsigned char *chromaOut) {
+#if defined(__arm64) || defined(__arm)
+    uint8x8x2_t tmp = { val: { vld1_u8(chromaCbIn), vld1_u8(chromaCrIn) } };
+    vst2_u8(chromaOut, tmp);
+#else
+    chromaOut[0] = chromaCbIn[0];
+    chromaOut[1] = chromaCrIn[0];
+    chromaOut[2] = chromaCbIn[1];
+    chromaOut[3] = chromaCrIn[1];
+    chromaOut[4] = chromaCbIn[2];
+    chromaOut[5] = chromaCrIn[2];
+    chromaOut[6] = chromaCbIn[3];
+    chromaOut[7] = chromaCrIn[3];
+    chromaOut[8] = chromaCbIn[4];
+    chromaOut[9] = chromaCrIn[4];
+    chromaOut[10] = chromaCbIn[5];
+    chromaOut[11] = chromaCrIn[5];
+    chromaOut[12] = chromaCbIn[6];
+    chromaOut[13] = chromaCrIn[6];
+    chromaOut[14] = chromaCbIn[7];
+    chromaOut[15] = chromaCrIn[7];
+#endif
 }
 
 static CVPixelBufferPoolRef bufferPool = NULL;
@@ -100,9 +129,7 @@ static OGVVideoFormat *poolFormat = nil;
     size_t lumaInStride = buffer.Y.stride;
     size_t lumaOutStride = CVPixelBufferGetBytesPerRowOfPlane(imageBuffer, 0);
     for (int y = 0; y < lumaHeight; y++) {
-        for (int x = 0; x < lumaWidth; x++) {
-            lumaOut[x] = lumaIn[x];
-        }
+        memcpy(lumaOut, lumaIn, lumaWidth);
         lumaIn += lumaInStride;
         lumaOut += lumaOutStride;
     }
@@ -115,8 +142,14 @@ static OGVVideoFormat *poolFormat = nil;
     size_t chromaCbInStride = buffer.Cb.stride;
     size_t chromaCrInStride = buffer.Cr.stride;
     size_t chromaOutStride = CVPixelBufferGetBytesPerRowOfPlane(imageBuffer, 1);
+    int widthChopStub = chromaWidth % 8;
+    int widthChopped = chromaWidth - widthChopStub;
+    int widthChunks = widthChopped / 8;
     for (int y = 0; y < chromaHeight; y++) {
-        for (int x = 0; x < chromaWidth; x++) {
+        for (int x = 0; x < widthChopped; x += 8) {
+            interleave_chroma(chromaCbIn + x, chromaCrIn + x, chromaOut + (x * 2));
+        }
+        for (int x = widthChopped; x < chromaWidth; x++) {
             chromaOut[x * 2] = chromaCbIn[x];
             chromaOut[x * 2 + 1] = chromaCrIn[x];
         }
