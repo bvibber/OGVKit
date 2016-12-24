@@ -48,4 +48,6 @@
                             Cr:(OGVVideoPlane *)Cr
                      timestamp:(float)timestamp;
 
+- (CMSampleBufferRef)copyAsSampleBuffer;
+
 @end

@@ -9,7 +9,6 @@
 #import "OGVKit.h"
 
 @import CoreText;
-@import AVFoundation;
 
 static NSString *kOGVPlayerTimeLabelEmpty = @"-:--";
 
@@ -410,96 +409,7 @@ static void releasePixelBufferBacking(void *releaseRefCon, const void *dataPtr, 
 - (void)ogvPlayerState:(OGVPlayerState *)sender drawFrame:(OGVVideoBuffer *)buffer
 {
     if (sender == state) {
-        size_t planeWidth[3] = {
-            buffer.format.lumaWidth,
-            buffer.format.chromaWidth,
-            buffer.format.chromaWidth
-        };
-        size_t planeHeight[3] = {
-            buffer.format.lumaHeight,
-            buffer.format.chromaHeight,
-            buffer.format.chromaHeight
-        };
-        size_t planeBytesPerRow[3] = {
-            buffer.Y.stride,
-            buffer.Y.stride,
-            buffer.Y.stride
-        };
-        void *planeBaseAddress[4] = {
-            buffer.Y.data.bytes,
-            buffer.Y.data.bytes,
-            buffer.Y.data.bytes
-        };
-        
-        CVImageBufferRef imageBuffer;
-        NSDictionary *opts = @{
-            (NSString *)kCVPixelBufferExtendedPixelsLeftKey: @(buffer.format.pictureOffsetX),
-            (NSString *)kCVPixelBufferExtendedPixelsTopKey: @(buffer.format.pictureOffsetY),
-            (NSString *)kCVPixelBufferExtendedPixelsRightKey: @(buffer.format.frameWidth - buffer.format.pictureWidth - buffer.format.pictureOffsetX),
-            (NSString *)kCVPixelBufferExtendedPixelsBottomKey: @(buffer.format.frameHeight - buffer.format.pictureHeight - buffer.format.pictureOffsetY),
-            (NSString *)kCVPixelBufferIOSurfacePropertiesKey: @{}
-        };
-        //OSType ok = CVPixelBufferCreateWithPlanarBytes(NULL, buffer.format.frameWidth, buffer.format.frameHeight, kCVPixelFormatType_420YpCbCr8Planar, NULL, 0, 3, planeBaseAddress, planeWidth, planeHeight, planeBytesPerRow, releasePixelBufferBacking, CFBridgingRetain(buffer), (__bridge CFDictionaryRef _Nullable)(opts), &imageBuffer);
-        //OSType ok = CVPixelBufferCreateWithPlanarBytes(NULL, buffer.format.frameWidth, buffer.format.frameHeight, kCVPixelFormatType_420YpCbCr8BiPlanarFullRange, NULL, 0, 2, planeBaseAddress, planeWidth, planeHeight, planeBytesPerRow, releasePixelBufferBacking, CFBridgingRetain(buffer), (__bridge CFDictionaryRef _Nullable)(opts), &imageBuffer);
-        //OSType ok = CVPixelBufferCreate(NULL, buffer.format.frameWidth, buffer.format.frameHeight, kCVPixelFormatType_420YpCbCr8Planar, (__bridge CFDictionaryRef _Nullable)(opts), &imageBuffer);
-        OSType ok = CVPixelBufferCreate(NULL, buffer.format.frameWidth, buffer.format.frameHeight, kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange, (__bridge CFDictionaryRef _Nullable)(opts), &imageBuffer);
-        if (ok != kCVReturnSuccess) {
-            NSLog(@"pixel buffer create FAILED %d", ok);
-        }
-
-        CVPixelBufferLockBaseAddress(imageBuffer, 0);
-
-        int lumaWidth = buffer.format.lumaWidth;
-        int lumaHeight = buffer.format.lumaHeight;
-        unsigned char *lumaIn = buffer.Y.data.bytes;
-        unsigned char *lumaOut = CVPixelBufferGetBaseAddressOfPlane(imageBuffer, 0);
-        size_t lumaInStride = buffer.Y.stride;
-        size_t lumaOutStride = CVPixelBufferGetBytesPerRowOfPlane(imageBuffer, 0);
-        for (int y = 0; y < lumaHeight; y++) {
-            for (int x = 0; x < lumaWidth; x++) {
-                lumaOut[x] = lumaIn[x];
-            }
-            lumaIn += lumaInStride;
-            lumaOut += lumaOutStride;
-        }
-        
-        int chromaWidth = buffer.format.chromaWidth;
-        int chromaHeight = buffer.format.chromaHeight;
-        unsigned char *chromaCbIn = buffer.Cb.data.bytes;
-        unsigned char *chromaCrIn = buffer.Cr.data.bytes;
-        unsigned char *chromaOut = CVPixelBufferGetBaseAddressOfPlane(imageBuffer, 1);
-        size_t chromaCbInStride = buffer.Cb.stride;
-        size_t chromaCrInStride = buffer.Cr.stride;
-        size_t chromaOutStride = CVPixelBufferGetBytesPerRowOfPlane(imageBuffer, 1);
-        for (int y = 0; y < chromaHeight; y++) {
-            for (int x = 0; x < chromaWidth; x++) {
-                chromaOut[x * 2] = chromaCbIn[x];
-                chromaOut[x * 2 + 1] = chromaCrIn[x];
-            }
-            chromaCbIn += chromaCbInStride;
-            chromaCrIn += chromaCrInStride;
-            chromaOut += chromaOutStride;
-        }
-
-        
-        CVPixelBufferUnlockBaseAddress(imageBuffer, 0);
-        
-        CMVideoFormatDescriptionRef formatDesc;
-        ok = CMVideoFormatDescriptionCreateForImageBuffer(NULL, imageBuffer, &formatDesc);
-        if (ok != 0) {
-            NSLog(@"format desc FAILED %d", ok);
-        }
-
-        CMSampleTimingInfo sampleTiming;
-        sampleTiming.duration = CMTimeMake((1.0 / 60) * 1000, 1000);
-        sampleTiming.presentationTimeStamp = CMTimeMake(buffer.timestamp * 1000, 1000);
-        sampleTiming.decodeTimeStamp = kCMTimeInvalid;
-
-        CMSampleBufferRef sampleBuffer;
-        ok = CMSampleBufferCreateForImageBuffer(NULL, imageBuffer, YES, NULL, NULL, formatDesc, &sampleTiming, &sampleBuffer);
-        if (ok != 0) {
-            NSLog(@"sample buffer FAILED %d", ok);
-        }
+        CMSampleBufferRef sampleBuffer = [buffer copyAsSampleBuffer];
 
         CMSetAttachment(sampleBuffer, kCMSampleAttachmentKey_DisplayImmediately, kCFBooleanTrue, kCMAttachmentMode_ShouldPropagate);
         
@@ -507,8 +417,6 @@ static void releasePixelBufferBacking(void *releaseRefCon, const void *dataPtr, 
         [displayLayer enqueueSampleBuffer:sampleBuffer];
         
         CFRelease(sampleBuffer);
-        CFRelease(formatDesc);
-        CFRelease(imageBuffer);
     }
 }
 
