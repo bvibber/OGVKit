@@ -535,13 +535,15 @@
  */
 -(void)drawFrame
 {
-    OGVVideoBuffer *buffer = [decoder frameBuffer];
-    frameEndTimestamp = buffer.timestamp;
+    CMSampleBufferRef buffer = [decoder frameBuffer];
+    CMTime endTime = CMSampleBufferGetPresentationTimeStamp(buffer);
+    frameEndTimestamp = CMTimeGetSeconds(endTime);
     //NSLog(@"frame: %f %f", frameEndTimestamp, self.playbackPosition);
     dispatch_async(drawingQueue, ^() {
         if (decoder) {
             [delegate ogvPlayerState:self drawFrame:buffer];
         }
+        CFRelease(buffer);
     });
 }
 

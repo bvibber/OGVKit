@@ -131,7 +131,7 @@ static int64_t tellCallback(void * userdata)
 #endif
 
     OGVAudioBuffer *queuedAudio;
-    OGVVideoBuffer *queuedFrame;
+    CMSampleBufferRef queuedFrame;
 
     enum AppState {
         STATE_BEGIN,
@@ -388,7 +388,10 @@ static int64_t tellCallback(void * userdata)
                                                                          Cr:Cr
                                                                   timestamp:videobufTime];
 
-            queuedFrame = buffer;
+            if (queuedFrame) {
+                CFRelease(queuedFrame);
+            }
+            queuedFrame = [buffer copyAsSampleBuffer];
         }
 #endif
         
@@ -454,10 +457,10 @@ static int64_t tellCallback(void * userdata)
 }
 
 
-- (OGVVideoBuffer *)frameBuffer
+- (CMSampleBufferRef)frameBuffer
 {
-    OGVVideoBuffer *buffer = queuedFrame;
-    queuedFrame = nil;
+    CMSampleBufferRef buffer = queuedFrame;
+    queuedFrame = NULL;
     return buffer;
 }
 

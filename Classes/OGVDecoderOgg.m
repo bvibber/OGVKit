@@ -118,7 +118,7 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
 #endif
     
     /* single frame video buffering */
-    OGVVideoBuffer *queuedFrame;
+    CMSampleBufferRef queuedFrame;
     
     /* Audio decode state */
     int              vorbis_p;
@@ -507,7 +507,10 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
                                                                  Cb:Cb
                                                                  Cr:Cr
                                                           timestamp:timestamp];
-    queuedFrame = buffer;
+    if (queuedFrame) {
+        CFRelease(queuedFrame);
+    }
+    queuedFrame = [buffer copyAsSampleBuffer];
 }
 #endif
 
@@ -544,11 +547,11 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
     return NO;
 }
 
-- (OGVVideoBuffer *)frameBuffer
+- (CMSampleBufferRef)frameBuffer
 {
     if (queuedFrame) {
-        OGVVideoBuffer *buffer = queuedFrame;
-        queuedFrame = nil;
+        CMSampleBufferRef buffer = queuedFrame;
+        queuedFrame = NULL;
         return buffer;
     } else {
         @throw [NSException
@@ -667,7 +670,7 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
 -(void)flush
 {
     if (videoStream) {
-        queuedFrame = nil;
+        queuedFrame = NULL;
         [videoPackets flush];
     }
 

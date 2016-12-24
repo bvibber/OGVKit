@@ -27,7 +27,7 @@
     OGVQueue *audioBuffers;
     OGVQueue *frameBuffers;
     OGVAudioBuffer *queuedAudio;
-    OGVVideoBuffer *queuedFrame;
+    CMSampleBufferRef queuedFrame;
 }
 
 
@@ -54,7 +54,10 @@
 -(BOOL)decodeFrame
 {
     if ([frameBuffers peek]) {
-        queuedFrame = [frameBuffers dequeue];
+        if (queuedFrame) {
+            CFRelease(queuedFrame);
+        }
+        queuedFrame = (__bridge CMSampleBufferRef)[frameBuffers dequeue];
         return YES;
     } else {
         return NO;
@@ -109,7 +112,7 @@
         if (videoTrack) {
             videoOutput = [[AVAssetReaderTrackOutput alloc] initWithTrack:videoTrack
                                                            outputSettings:@{
-                                                                            (id)kCVPixelBufferPixelFormatTypeKey: @(kCVPixelFormatType_420YpCbCr8Planar)
+                                                                            (id)kCVPixelBufferPixelFormatTypeKey: @(kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange)
                                                                             }];
             [assetReader addOutput:videoOutput];
             
@@ -167,10 +170,10 @@
     return NO; // will block
 }
 
-- (OGVVideoBuffer *)frameBuffer
+- (CMSampleBufferRef)frameBuffer
 {
-    OGVVideoBuffer *buffer = queuedFrame;
-    queuedFrame = nil;
+    CMSampleBufferRef buffer = queuedFrame;
+    queuedFrame = NULL;
     return buffer;
 }
 
@@ -220,9 +223,11 @@
 
 - (float)frameTimestamp
 {
-    OGVVideoBuffer *buffer = [frameBuffers peek];
+    CMSampleBufferRef buffer = (__bridge CMSampleBufferRef)([frameBuffers peek]);
     if (buffer) {
-        return buffer.timestamp;
+        CMTime pts = CMSampleBufferGetPresentationTimeStamp(buffer);
+        float ts = CMTimeGetSeconds(pts);
+        return ts;
     } else {
         return -1;
     }
@@ -263,8 +268,7 @@
     if (videoOutput) {
         CMSampleBufferRef sample = [videoOutput copyNextSampleBuffer];
         if (sample) {
-            [frameBuffers queue:[self convertVideoSample:sample]];
-            CFRelease(sample); // ???
+            [frameBuffers queue:(__bridge id)(sample)];
             return YES;
         }
     }
@@ -282,52 +286,6 @@
         }
     }
     return NO;
-}
-
-
-- (OGVVideoBuffer *)convertVideoSample:(CMSampleBufferRef)sample
-{
-    float time = CMTimeGetSeconds(CMSampleBufferGetPresentationTimeStamp(sample));
-
-    CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(sample);
-
-    // @fixme reuse the format?
-    OGVVideoFormat *format = [[OGVVideoFormat alloc] init];
-    format.pixelFormat = OGVPixelFormatYCbCr420;
-    format.frameWidth = CVPixelBufferGetWidth(imageBuffer);
-    format.frameHeight = CVPixelBufferGetHeight(imageBuffer);
-
-    size_t padLeft, padRight, padTop, padBottom;
-    CVPixelBufferGetExtendedPixels(imageBuffer, &padLeft, &padRight, &padTop, &padBottom);
-    format.pictureWidth = format.frameWidth - padLeft - padRight;
-    format.pictureHeight = format.frameHeight - padTop - padBottom;
-    format.pictureOffsetX = padLeft;
-    format.pictureOffsetY = padTop;
-
-    CVPixelBufferLockBaseAddress(imageBuffer, 0);
-    OGVVideoPlane *y = [self convertImageBuffer:imageBuffer plane:0];
-    OGVVideoPlane *u = [self convertImageBuffer:imageBuffer plane:1];
-    OGVVideoPlane *v = [self convertImageBuffer:imageBuffer plane:2];
-    CVPixelBufferUnlockBaseAddress(imageBuffer, 0);
-    //CFRelease(imageBuffer);
-    
-    return [[OGVVideoBuffer alloc] initWithFormat:format
-                                                Y:y
-                                               Cb:u
-                                               Cr:v
-                                        timestamp:time];
-}
-
-- (OGVVideoPlane *)convertImageBuffer:(CVImageBufferRef)imageBuffer plane:(size_t)index
-{
-    size_t stride = CVPixelBufferGetBytesPerRowOfPlane(imageBuffer, index);
-    size_t height = CVPixelBufferGetHeightOfPlane(imageBuffer, index);
-    // @fixme this may be an extra unneeded copy
-    NSData *data = [NSData dataWithBytes:CVPixelBufferGetBaseAddressOfPlane(imageBuffer, index)
-                                  length:stride * height];
-    return [[OGVVideoPlane alloc] initWithData:data
-                                         stride:stride
-                                          lines:height];
 }
 
 - (OGVAudioBuffer *)convertAudioSample:(CMSampleBufferRef)sample

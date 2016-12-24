@@ -46,7 +46,7 @@
 - (BOOL)process;
 - (BOOL)decodeFrame;
 - (BOOL)decodeAudio;
-- (OGVVideoBuffer *)frameBuffer;
+- (CMSampleBufferRef)frameBuffer;
 - (OGVAudioBuffer *)audioBuffer;
 - (BOOL)seek:(float)seconds;
 
