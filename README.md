@@ -179,6 +179,9 @@ See [milestones in issue tracker](https://github.com/brion/OGVKit/milestones) fo
 * v0.5.6 end-of-file fixes with some edge cases
 * v0.5.7 more seek-to-end fixes
 * v0.5.8 fix regressions and old bugs in audio dropout case
+* v0.5.9 fix regressions and old bugs in audio, threading
+
+Future:
 * v1 stable player API
 * v1.1 extras: fullscreen, AirPlay, etc
 * v1.2 performance

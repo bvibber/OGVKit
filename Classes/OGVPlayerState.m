@@ -407,6 +407,7 @@
                 float audioBufferedDuration = [audioFeeder secondsQueued];
                 BOOL readyForAudio = (audioBufferedDuration <= bufferDuration);
 
+                //NSLog(@"have %f ms", audioBufferedDuration * 1000);
                 if (readyForAudio) {
                     BOOL ok = [decoder decodeAudio];
                     if (ok) {
@@ -423,12 +424,14 @@
                                 [audioFeeder bufferData:audioBuffer];
                             }
                         }
+                        // Go back around the loop in case we need more
+                        //NSLog(@"queued");
+                        continue;
                     } else {
                         NSLog(@"Bad audio packet or something");
                     }
                 }
 
-                //NSLog(@"have %f", audioBufferedDuration);
                 if (audioBufferedDuration <= bufferDuration) {
                     // NEED MOAR BUFFERS
                     nextDelay = 0;
@@ -436,6 +439,9 @@
                     // Check in when the audio buffer runs low again...
                     nextDelay = fminf(nextDelay, fmaxf(audioBufferedDuration - bufferDuration / 2.0f, 0.0f));
                 }
+            } else {
+                // Need to find some more packets
+                continue;
             }
             
             /*
@@ -478,10 +484,11 @@
                     if (ok) {
                         // Check if it's time to draw (AKA the frame timestamp is at or past the playhead)
                         // If we're already playing, DRAW!
+                        //NSLog(@"DRAW");
                         [self drawFrame];
 
                         // End the processing loop, we'll ping again after drawing
-                        return;
+                        //return;
                     } else {
                         NSLog(@"Bad video packet or something");
                         continue;
@@ -496,15 +503,17 @@
                 continue;
             }
         }
-        
+
         if (nextDelay < INFINITY) {
+            //NSLog(@"loop %f ms", nextDelay * 1000.0);
             [self pingProcessing:nextDelay];
             
             // End the processing loop and wait for next ping.
             return;
         } else {
-            // Continue the processing loop...
-            continue;
+            // nothing to do?
+            NSLog(@"loop drop?");
+            return;
         }
         
         // End the processing loop and wait for next ping.
@@ -522,8 +531,7 @@
 }
 
 /**
- * Schedule a frame draw on the main thread, then return to the decoder
- * when it's done drawing.
+ * Dequeue frame and schedule a frame draw on the main thread
  */
 -(void)drawFrame
 {
@@ -533,7 +541,6 @@
     dispatch_async(drawingQueue, ^() {
         if (decoder) {
             [delegate ogvPlayerState:self drawFrame:buffer];
-            [self pingProcessing:0];
         }
     });
 }
