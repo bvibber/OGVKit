@@ -104,7 +104,7 @@ static OGVVideoFormat *poolFormat = nil;
         }
     }
     
-    CFAbsoluteTime start = CFAbsoluteTimeGetCurrent();
+    //CFAbsoluteTime start = CFAbsoluteTimeGetCurrent();
 
     CVImageBufferRef imageBuffer;
     NSDictionary *opts = @{(id)kCVPixelBufferPoolAllocationThresholdKey: @8};
@@ -183,8 +183,8 @@ static OGVVideoFormat *poolFormat = nil;
     CFRelease(formatDesc);
     CFRelease(imageBuffer);
 
-    CFTimeInterval delta = CFAbsoluteTimeGetCurrent() - start;
-    NSLog(@"created CMSampleBuffer in %lf ms", delta * 1000.0);
+    //CFTimeInterval delta = CFAbsoluteTimeGetCurrent() - start;
+    //NSLog(@"created CMSampleBuffer in %lf ms", delta * 1000.0);
 
     return sampleBuffer;
 }
