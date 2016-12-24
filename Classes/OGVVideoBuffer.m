@@ -36,30 +36,19 @@
                                         timestamp:self.timestamp];
 }
 
+
+static void releasePixelBufferBacking(void *releaseRefCon, const void *dataPtr, size_t dataSize, size_t numberOfPlanes, const void * _Nullable planeAddresses[])
+{
+    CFTypeRef buf = (CFTypeRef)releaseRefCon;
+    CFRelease(buf);
+}
+
 -(CMSampleBufferRef)copyAsSampleBuffer
 {
     OGVVideoBuffer *buffer = self;
-    size_t planeWidth[3] = {
-        buffer.format.lumaWidth,
-        buffer.format.chromaWidth,
-        buffer.format.chromaWidth
-    };
-    size_t planeHeight[3] = {
-        buffer.format.lumaHeight,
-        buffer.format.chromaHeight,
-        buffer.format.chromaHeight
-    };
-    size_t planeBytesPerRow[3] = {
-        buffer.Y.stride,
-        buffer.Y.stride,
-        buffer.Y.stride
-    };
-    void *planeBaseAddress[4] = {
-        buffer.Y.data.bytes,
-        buffer.Y.data.bytes,
-        buffer.Y.data.bytes
-    };
     
+    CFAbsoluteTime start = CFAbsoluteTimeGetCurrent();
+
     CVImageBufferRef imageBuffer;
     NSDictionary *opts = @{
                            (NSString *)kCVPixelBufferExtendedPixelsLeftKey: @(buffer.format.pictureOffsetX),
@@ -68,9 +57,6 @@
                            (NSString *)kCVPixelBufferExtendedPixelsBottomKey: @(buffer.format.frameHeight - buffer.format.pictureHeight - buffer.format.pictureOffsetY),
                            (NSString *)kCVPixelBufferIOSurfacePropertiesKey: @{}
                            };
-    //OSType ok = CVPixelBufferCreateWithPlanarBytes(NULL, buffer.format.frameWidth, buffer.format.frameHeight, kCVPixelFormatType_420YpCbCr8Planar, NULL, 0, 3, planeBaseAddress, planeWidth, planeHeight, planeBytesPerRow, releasePixelBufferBacking, CFBridgingRetain(buffer), (__bridge CFDictionaryRef _Nullable)(opts), &imageBuffer);
-    //OSType ok = CVPixelBufferCreateWithPlanarBytes(NULL, buffer.format.frameWidth, buffer.format.frameHeight, kCVPixelFormatType_420YpCbCr8BiPlanarFullRange, NULL, 0, 2, planeBaseAddress, planeWidth, planeHeight, planeBytesPerRow, releasePixelBufferBacking, CFBridgingRetain(buffer), (__bridge CFDictionaryRef _Nullable)(opts), &imageBuffer);
-    //OSType ok = CVPixelBufferCreate(NULL, buffer.format.frameWidth, buffer.format.frameHeight, kCVPixelFormatType_420YpCbCr8Planar, (__bridge CFDictionaryRef _Nullable)(opts), &imageBuffer);
     OSType ok = CVPixelBufferCreate(NULL, buffer.format.frameWidth, buffer.format.frameHeight, kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange, (__bridge CFDictionaryRef _Nullable)(opts), &imageBuffer);
     if (ok != kCVReturnSuccess) {
         NSLog(@"pixel buffer create FAILED %d", ok);
@@ -135,6 +121,9 @@
     
     CFRelease(formatDesc);
     CFRelease(imageBuffer);
+
+    CFTimeInterval delta = CFAbsoluteTimeGetCurrent() - start;
+    NSLog(@"created CMSampleBuffer in %lf ms", delta * 1000.0);
 
     return sampleBuffer;
 }

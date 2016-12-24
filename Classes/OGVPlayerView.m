@@ -36,12 +36,6 @@ static NSString *kOGVPlayerIconCharResizeVertical = @"\ue818";
 
 static BOOL OGVPlayerViewDidRegisterIconFont = NO;
 
-static void releasePixelBufferBacking(void *releaseRefCon, const void *dataPtr, size_t dataSize, size_t numberOfPlanes, const void * _Nullable planeAddresses[])
-{
-    CFTypeRef buf = (CFTypeRef)releaseRefCon;
-    CFRelease(buf);
-}
-
 @implementation OGVPlayerView
 
 {
