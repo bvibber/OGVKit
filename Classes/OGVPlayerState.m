@@ -564,7 +564,7 @@
             }
             if (decoder.hasVideo && decoder.frameReady && decoder.frameTimestamp < target) {
                 if ([decoder decodeFrame]) {
-                    [decoder frameBuffer];
+                    CFRelease([decoder frameBuffer]);
                 }
             }
             if ((!decoder.hasVideo || decoder.frameTimestamp >= target) &&
