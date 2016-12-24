@@ -90,10 +90,6 @@ static OGVVideoFormat *poolFormat = nil;
                                    (id)kCVPixelBufferPoolMaximumBufferAgeKey: @1.0};
         NSDictionary *opts = @{(id)kCVPixelBufferWidthKey: @(buffer.format.frameWidth),
                                (id)kCVPixelBufferHeightKey: @(buffer.format.frameHeight),
-                               (id)kCVPixelBufferExtendedPixelsLeftKey: @(buffer.format.pictureOffsetX),
-                               (id)kCVPixelBufferExtendedPixelsTopKey: @(buffer.format.pictureOffsetY),
-                               (id)kCVPixelBufferExtendedPixelsRightKey: @(buffer.format.frameWidth - buffer.format.pictureWidth - buffer.format.pictureOffsetX),
-                               (id)kCVPixelBufferExtendedPixelsBottomKey: @(buffer.format.frameHeight - buffer.format.pictureHeight - buffer.format.pictureOffsetY),
                                (id)kCVPixelBufferIOSurfacePropertiesKey: @{},
                                (id)kCVPixelBufferPixelFormatTypeKey: @(kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange)};
         CVReturn ret = CVPixelBufferPoolCreate(NULL,
@@ -101,8 +97,10 @@ static OGVVideoFormat *poolFormat = nil;
                                                (__bridge CFDictionaryRef _Nullable)(opts),
                                                &bufferPool);
         if (ret != kCVReturnSuccess) {
-            NSLog(@"Failed to create CVPixelBufferPool %d", ret);
-            return NULL;
+            @throw [NSException
+                    exceptionWithName:@"OGVVideoBufferException"
+                    reason:[NSString stringWithFormat:@"Failed to create CVPixelBufferPool %d", ret]
+                    userInfo:@{@"CVReturn": @(ret)}];
         }
     }
     
@@ -115,18 +113,33 @@ static OGVVideoFormat *poolFormat = nil;
                                                                       //bufferPool,
                                                                       //(__bridge CFDictionaryRef _Nullable)(opts),
                                                                       //&imageBuffer);
-    CVReturn ok = CVPixelBufferPoolCreatePixelBuffer(NULL, bufferPool, &imageBuffer);
-    if (ok == kCVReturnWouldExceedAllocationThreshold) {
+    CVReturn ret = CVPixelBufferPoolCreatePixelBuffer(NULL, bufferPool, &imageBuffer);
+    if (ret == kCVReturnWouldExceedAllocationThreshold) {
         NSLog(@"extra flush");
         CVPixelBufferPoolFlush(bufferPool, kCVPixelBufferPoolFlushExcessBuffers);
-        ok = CVPixelBufferPoolCreatePixelBuffer(NULL, bufferPool, &imageBuffer);
+        ret = CVPixelBufferPoolCreatePixelBuffer(NULL, bufferPool, &imageBuffer);
     }
-    if (ok != kCVReturnSuccess) {
-        NSLog(@"pixel buffer create FAILED %d", ok);
-        return NULL;
+    if (ret != kCVReturnSuccess) {
+        @throw [NSException
+                exceptionWithName:@"OGVVideoBufferException"
+                reason:[NSString stringWithFormat:@"Failed to create CVPixelBuffer %d", ret]
+                userInfo:@{@"CVReturn": @(ret)}];
     }
     
     CVPixelBufferPoolFlush(bufferPool, 0);
+
+    // Clean aperture setting doesn't get handled by buffer pool?
+    // Set it on each buffer as we get it.
+    NSDictionary *aperture = @{
+                               (id)kCVImageBufferCleanApertureWidthKey: @(buffer.format.pictureWidth),
+                               (id)kCVImageBufferCleanApertureHeightKey: @(buffer.format.pictureHeight),
+                               (id)kCVImageBufferCleanApertureHorizontalOffsetKey: @(-buffer.format.pictureOffsetX),
+                               (id)kCVImageBufferCleanApertureVerticalOffsetKey: @(-buffer.format.pictureOffsetY)
+                               };
+    CVBufferSetAttachment(imageBuffer,
+                          kCVImageBufferCleanApertureKey,
+                          (__bridge CFDictionaryRef)aperture,
+                          kCVAttachmentMode_ShouldNotPropagate);
     
     CVPixelBufferLockBaseAddress(imageBuffer, 0);
     
@@ -170,9 +183,32 @@ static OGVVideoFormat *poolFormat = nil;
     CVPixelBufferUnlockBaseAddress(imageBuffer, 0);
     
     CMVideoFormatDescriptionRef formatDesc;
-    ok = CMVideoFormatDescriptionCreateForImageBuffer(NULL, imageBuffer, &formatDesc);
-    if (ok != 0) {
-        NSLog(@"format desc FAILED %d", ok);
+    ret = CMVideoFormatDescriptionCreateForImageBuffer(NULL, imageBuffer, &formatDesc);
+/*
+    NSDictionary *attachments = (__bridge NSDictionary *)CVBufferGetAttachments(imageBuffer, 0);
+    NSMutableDictionary *ext = [[NSMutableDictionary alloc] init];
+    for (NSString *key in (__bridge NSArray *)CMVideoFormatDescriptionGetExtensionKeysCommonWithImageBuffers()) {
+        ext[key] = attachments[key];
+        NSLog(@"key: %@ -> %@", key, attachments[key]);
+    }
+ */
+    //ext[(id)kCMFormatDescriptionExtension_CleanAperture] = aperture;
+    //ext[(id)kCMFormatDescriptionExtension_PixelAspectRatio] = @1.0;
+        
+    
+    /*
+    ret = CMVideoFormatDescriptionCreate(NULL,
+                                         CVPixelBufferGetPixelFormatType(imageBuffer),
+                                         buffer.format.frameWidth,
+                                         buffer.format.frameHeight,
+                                         (__bridge CFDictionaryRef _Nullable)(ext),
+                                         &formatDesc);
+*/
+    if (ret != 0) {
+        @throw [NSException
+                exceptionWithName:@"OGVVideoBufferException"
+                reason:[NSString stringWithFormat:@"Failed to create CMVideoFormatDescription %d", ret]
+                userInfo:@{@"CMReturn": @(ret)}];
         return NULL;
     }
     
@@ -182,10 +218,12 @@ static OGVVideoFormat *poolFormat = nil;
     sampleTiming.decodeTimeStamp = kCMTimeInvalid;
     
     CMSampleBufferRef sampleBuffer;
-    ok = CMSampleBufferCreateForImageBuffer(NULL, imageBuffer, YES, NULL, NULL, formatDesc, &sampleTiming, &sampleBuffer);
-    if (ok != 0) {
-        NSLog(@"sample buffer FAILED %d", ok);
-        return NULL;
+    ret = CMSampleBufferCreateForImageBuffer(NULL, imageBuffer, YES, NULL, NULL, formatDesc, &sampleTiming, &sampleBuffer);
+    if (ret != 0) {
+        @throw [NSException
+                exceptionWithName:@"OGVVideoBufferException"
+                reason:[NSString stringWithFormat:@"Failed to create CMSampleBuffer %d", ret]
+                userInfo:@{@"CMReturn": @(ret)}];
     }
     
     CFRelease(formatDesc);
