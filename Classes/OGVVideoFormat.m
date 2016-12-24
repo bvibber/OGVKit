@@ -71,4 +71,21 @@
     return other;
 }
 
+- (BOOL)isEqual:(id)object
+{
+    if (!object) {
+        return NO;
+    }
+    if ([object class] != [self class]) {
+        return NO;
+    }
+    OGVVideoFormat *other = object;
+    return (self.frameWidth == other.frameWidth) &&
+           (self.frameHeight == other.frameHeight) &&
+           (self.pictureWidth == other.pictureWidth) &&
+           (self.pictureHeight == other.pictureHeight) &&
+           (self.pictureOffsetX == other.pictureOffsetX) &&
+           (self.pictureOffsetY == other.pictureOffsetY);
+}
+
 @end

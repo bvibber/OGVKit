@@ -408,9 +408,11 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
         CMSetAttachment(sampleBuffer, kCMSampleAttachmentKey_DisplayImmediately, kCFBooleanTrue, kCMAttachmentMode_ShouldPropagate);
         
         //NSLog(@"Layer %d %@", displayLayer.status, displayLayer.error);
-        [displayLayer enqueueSampleBuffer:sampleBuffer];
+        if (sampleBuffer) {
+            [displayLayer enqueueSampleBuffer:sampleBuffer];
         
-        CFRelease(sampleBuffer);
+            CFRelease(sampleBuffer);
+        }
     }
 }
 

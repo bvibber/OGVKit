@@ -43,25 +43,53 @@ static void releasePixelBufferBacking(void *releaseRefCon, const void *dataPtr, 
     CFRelease(buf);
 }
 
+static CVPixelBufferPoolRef bufferPool = NULL;
+static OGVVideoFormat *poolFormat = nil;
+
 -(CMSampleBufferRef)copyAsSampleBuffer
 {
     OGVVideoBuffer *buffer = self;
     
+    if (bufferPool && ![buffer.format isEqual:poolFormat]) {
+        CFRelease(bufferPool);
+        bufferPool = NULL;
+        poolFormat = buffer.format;
+    }
+    if (bufferPool == NULL) {
+        NSDictionary *poolOpts = @{(id)kCVPixelBufferPoolMinimumBufferCountKey: @1};
+        NSDictionary *opts = @{(id)kCVPixelBufferWidthKey: @(buffer.format.frameWidth),
+                               (id)kCVPixelBufferHeightKey: @(buffer.format.frameHeight),
+                               (id)kCVPixelBufferExtendedPixelsLeftKey: @(buffer.format.pictureOffsetX),
+                               (id)kCVPixelBufferExtendedPixelsTopKey: @(buffer.format.pictureOffsetY),
+                               (id)kCVPixelBufferExtendedPixelsRightKey: @(buffer.format.frameWidth - buffer.format.pictureWidth - buffer.format.pictureOffsetX),
+                               (id)kCVPixelBufferExtendedPixelsBottomKey: @(buffer.format.frameHeight - buffer.format.pictureHeight - buffer.format.pictureOffsetY),
+                               (id)kCVPixelBufferIOSurfacePropertiesKey: @{},
+                               (id)kCVPixelBufferPixelFormatTypeKey: @(kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange)};
+        CVReturn ret = CVPixelBufferPoolCreate(NULL,
+                                               (__bridge CFDictionaryRef _Nullable)(poolOpts),
+                                               (__bridge CFDictionaryRef _Nullable)(opts),
+                                               &bufferPool);
+        if (ret != kCVReturnSuccess) {
+            NSLog(@"Failed to create CVPixelBufferPool %d", ret);
+            return NULL;
+        }
+    }
+    
     CFAbsoluteTime start = CFAbsoluteTimeGetCurrent();
 
     CVImageBufferRef imageBuffer;
-    NSDictionary *opts = @{
-                           (NSString *)kCVPixelBufferExtendedPixelsLeftKey: @(buffer.format.pictureOffsetX),
-                           (NSString *)kCVPixelBufferExtendedPixelsTopKey: @(buffer.format.pictureOffsetY),
-                           (NSString *)kCVPixelBufferExtendedPixelsRightKey: @(buffer.format.frameWidth - buffer.format.pictureWidth - buffer.format.pictureOffsetX),
-                           (NSString *)kCVPixelBufferExtendedPixelsBottomKey: @(buffer.format.frameHeight - buffer.format.pictureHeight - buffer.format.pictureOffsetY),
-                           (NSString *)kCVPixelBufferIOSurfacePropertiesKey: @{}
-                           };
-    OSType ok = CVPixelBufferCreate(NULL, buffer.format.frameWidth, buffer.format.frameHeight, kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange, (__bridge CFDictionaryRef _Nullable)(opts), &imageBuffer);
+    NSDictionary *opts = @{(id)kCVPixelBufferPoolAllocationThresholdKey: @8};
+    //OSType ok = CVPixelBufferCreate(NULL, buffer.format.frameWidth, buffer.format.frameHeight, kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange, (__bridge CFDictionaryRef _Nullable)(opts), &imageBuffer);
+    CVReturn ok = CVPixelBufferPoolCreatePixelBufferWithAuxAttributes(NULL,
+                                                                      bufferPool,
+                                                                      (__bridge CFDictionaryRef _Nullable)(opts),
+                                                                      &imageBuffer);
     if (ok != kCVReturnSuccess) {
         NSLog(@"pixel buffer create FAILED %d", ok);
         return NULL;
     }
+    
+    CVPixelBufferPoolFlush(bufferPool, 0);
     
     CVPixelBufferLockBaseAddress(imageBuffer, 0);
     
