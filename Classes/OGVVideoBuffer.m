@@ -41,12 +41,42 @@
 }
 
 
-static void releasePixelBufferBacking(void *releaseRefCon, const void *dataPtr, size_t dataSize, size_t numberOfPlanes, const void * _Nullable planeAddresses[])
-{
-    CFTypeRef buf = (CFTypeRef)releaseRefCon;
-    CFRelease(buf);
-}
 
+-(CMSampleBufferRef)copyAsSampleBuffer
+{
+    CVPixelBufferRef pixelBuffer = [self.format createPixelBuffer];
+    [self updatePixelBuffer:pixelBuffer
+                     inRect:CGRectMake(0, 0, self.format.frameWidth, self.format.frameHeight)];
+    
+    CMVideoFormatDescriptionRef formatDesc;
+    OSStatus ret = CMVideoFormatDescriptionCreateForImageBuffer(NULL, pixelBuffer, &formatDesc);
+    if (ret != 0) {
+        @throw [NSException
+                exceptionWithName:@"OGVVideoBufferException"
+                reason:[NSString stringWithFormat:@"Failed to create CMVideoFormatDescription %d", ret]
+                userInfo:@{@"CMReturn": @(ret)}];
+        return NULL;
+    }
+    
+    CMSampleTimingInfo sampleTiming;
+    sampleTiming.duration = CMTimeMake((1.0 / 60) * 1000, 1000);
+    sampleTiming.presentationTimeStamp = CMTimeMake(self.timestamp * 1000, 1000);
+    sampleTiming.decodeTimeStamp = kCMTimeInvalid;
+    
+    CMSampleBufferRef sampleBuffer;
+    ret = CMSampleBufferCreateForImageBuffer(NULL, pixelBuffer, YES, NULL, NULL, formatDesc, &sampleTiming, &sampleBuffer);
+    if (ret != 0) {
+        @throw [NSException
+                exceptionWithName:@"OGVVideoBufferException"
+                reason:[NSString stringWithFormat:@"Failed to create CMSampleBuffer %d", ret]
+                userInfo:@{@"CMReturn": @(ret)}];
+    }
+    
+    CFRelease(formatDesc); // now belongs to sampleBuffer
+    CFRelease(pixelBuffer); // now belongs to sampleBuffer
+
+    return sampleBuffer;
+}
 
 static inline void interleave_chroma(unsigned char *chromaCbIn, unsigned char *chromaCrIn, unsigned char *chromaOut) {
 #if defined(__arm64) || defined(__arm)
@@ -72,166 +102,49 @@ static inline void interleave_chroma(unsigned char *chromaCbIn, unsigned char *c
 #endif
 }
 
-static CVPixelBufferPoolRef bufferPool = NULL;
-static OGVVideoFormat *poolFormat = nil;
-
--(CMSampleBufferRef)copyAsSampleBuffer
+-(void)updatePixelBuffer:(CVPixelBufferRef)pixelBuffer inRect:(CGRect)rect
 {
-    OGVVideoBuffer *buffer = self;
-    
-    if (bufferPool && ![buffer.format isEqual:poolFormat]) {
-        NSLog(@"swapping buffer pools");
-        CFRelease(bufferPool);
-        bufferPool = NULL;
-        poolFormat = buffer.format;
-    }
-    if (bufferPool == NULL) {
-        NSDictionary *poolOpts = @{(id)kCVPixelBufferPoolMinimumBufferCountKey: @1,
-                                   (id)kCVPixelBufferPoolMaximumBufferAgeKey: @1.0};
-        NSDictionary *opts = @{(id)kCVPixelBufferWidthKey: @(buffer.format.frameWidth),
-                               (id)kCVPixelBufferHeightKey: @(buffer.format.frameHeight),
-                               (id)kCVPixelBufferIOSurfacePropertiesKey: @{},
-                               (id)kCVPixelBufferPixelFormatTypeKey: @(kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange)};
-        CVReturn ret = CVPixelBufferPoolCreate(NULL,
-                                               (__bridge CFDictionaryRef _Nullable)(poolOpts),
-                                               (__bridge CFDictionaryRef _Nullable)(opts),
-                                               &bufferPool);
-        if (ret != kCVReturnSuccess) {
-            @throw [NSException
-                    exceptionWithName:@"OGVVideoBufferException"
-                    reason:[NSString stringWithFormat:@"Failed to create CVPixelBufferPool %d", ret]
-                    userInfo:@{@"CVReturn": @(ret)}];
-        }
-    }
-    
-    //CFAbsoluteTime start = CFAbsoluteTimeGetCurrent();
+    CVPixelBufferLockBaseAddress(pixelBuffer, 0);
 
-    CVImageBufferRef imageBuffer;
-    //NSDictionary *opts = @{(id)kCVPixelBufferPoolAllocationThresholdKey: @32};
-    //OSType ok = CVPixelBufferCreate(NULL, buffer.format.frameWidth, buffer.format.frameHeight, kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange, (__bridge CFDictionaryRef _Nullable)(opts), &imageBuffer);
-    //CVReturn ok = CVPixelBufferPoolCreatePixelBufferWithAuxAttributes(NULL,
-                                                                      //bufferPool,
-                                                                      //(__bridge CFDictionaryRef _Nullable)(opts),
-                                                                      //&imageBuffer);
-    CVReturn ret = CVPixelBufferPoolCreatePixelBuffer(NULL, bufferPool, &imageBuffer);
-    if (ret == kCVReturnWouldExceedAllocationThreshold) {
-        NSLog(@"extra flush");
-        CVPixelBufferPoolFlush(bufferPool, kCVPixelBufferPoolFlushExcessBuffers);
-        ret = CVPixelBufferPoolCreatePixelBuffer(NULL, bufferPool, &imageBuffer);
-    }
-    if (ret != kCVReturnSuccess) {
-        @throw [NSException
-                exceptionWithName:@"OGVVideoBufferException"
-                reason:[NSString stringWithFormat:@"Failed to create CVPixelBuffer %d", ret]
-                userInfo:@{@"CVReturn": @(ret)}];
-    }
-    
-    CVPixelBufferPoolFlush(bufferPool, 0);
+    int lumaXStart = CGRectGetMinX(rect);
+    int lumaXEnd = CGRectGetMaxX(rect);
+    int lumaYStart = CGRectGetMinY(rect);
+    int lumaYEnd = CGRectGetMaxY(rect);
+    int lumaWidth = CGRectGetWidth(rect);
 
-    // Clean aperture setting doesn't get handled by buffer pool?
-    // Set it on each buffer as we get it.
-    NSDictionary *aperture = @{
-                               (id)kCVImageBufferCleanApertureWidthKey: @(buffer.format.pictureWidth),
-                               (id)kCVImageBufferCleanApertureHeightKey: @(buffer.format.pictureHeight),
-                               (id)kCVImageBufferCleanApertureHorizontalOffsetKey: @(-buffer.format.pictureOffsetX),
-                               (id)kCVImageBufferCleanApertureVerticalOffsetKey: @(-buffer.format.pictureOffsetY)
-                               };
-    CVBufferSetAttachment(imageBuffer,
-                          kCVImageBufferCleanApertureKey,
-                          (__bridge CFDictionaryRef)aperture,
-                          kCVAttachmentMode_ShouldNotPropagate);
-    
-    CVPixelBufferLockBaseAddress(imageBuffer, 0);
-    
-    int lumaWidth = buffer.format.lumaWidth;
-    int lumaHeight = buffer.format.lumaHeight;
-    unsigned char *lumaIn = buffer.Y.data.bytes;
-    unsigned char *lumaOut = CVPixelBufferGetBaseAddressOfPlane(imageBuffer, 0);
-    size_t lumaInStride = buffer.Y.stride;
-    size_t lumaOutStride = CVPixelBufferGetBytesPerRowOfPlane(imageBuffer, 0);
-    for (int y = 0; y < lumaHeight; y++) {
+    size_t lumaInStride = self.Y.stride;
+    size_t lumaOutStride = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 0);
+    unsigned char *lumaIn = self.Y.data.bytes + lumaYStart * lumaInStride;
+    unsigned char *lumaOut = CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 0) + lumaYStart * lumaOutStride;
+    for (int y = lumaYStart; y < lumaYEnd; y++) {
         memcpy(lumaOut, lumaIn, lumaWidth);
         lumaIn += lumaInStride;
         lumaOut += lumaOutStride;
     }
     
-    int chromaWidth = buffer.format.chromaWidth;
-    int chromaHeight = buffer.format.chromaHeight;
-    unsigned char *chromaCbIn = buffer.Cb.data.bytes;
-    unsigned char *chromaCrIn = buffer.Cr.data.bytes;
-    unsigned char *chromaOut = CVPixelBufferGetBaseAddressOfPlane(imageBuffer, 1);
-    size_t chromaCbInStride = buffer.Cb.stride;
-    size_t chromaCrInStride = buffer.Cr.stride;
-    size_t chromaOutStride = CVPixelBufferGetBytesPerRowOfPlane(imageBuffer, 1);
-    int widthChopStub = chromaWidth % 8;
-    int widthChopped = chromaWidth - widthChopStub;
-    int widthChunks = widthChopped / 8;
-    for (int y = 0; y < chromaHeight; y++) {
-        for (int x = 0; x < widthChopped; x += 8) {
+    int chromaXStart = lumaXStart / 2;
+    int chromaXEnd = lumaXEnd / 2;
+    int chromaYStart = lumaYStart / 2;
+    int chromaYEnd = lumaYEnd / 2;
+    int chromaWidth = lumaWidth / 2;
+
+    size_t chromaCbInStride = self.Cb.stride;
+    size_t chromaCrInStride = self.Cr.stride;
+    size_t chromaOutStride = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 1);
+    unsigned char *chromaCbIn = self.Cb.data.bytes + chromaYStart * chromaCbInStride;
+    unsigned char *chromaCrIn = self.Cr.data.bytes + chromaYStart * chromaCrInStride;
+    unsigned char *chromaOut = CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 1) + chromaYStart * chromaOutStride;
+    // let's hope we're padded to a multiple of 8 pixels
+    for (int y = chromaYStart; y < chromaYEnd; y++) {
+        for (int x = chromaXStart; x < chromaXEnd; x += 8) {
             interleave_chroma(chromaCbIn + x, chromaCrIn + x, chromaOut + (x * 2));
-        }
-        for (int x = widthChopped; x < chromaWidth; x++) {
-            chromaOut[x * 2] = chromaCbIn[x];
-            chromaOut[x * 2 + 1] = chromaCrIn[x];
         }
         chromaCbIn += chromaCbInStride;
         chromaCrIn += chromaCrInStride;
         chromaOut += chromaOutStride;
     }
     
-    
-    CVPixelBufferUnlockBaseAddress(imageBuffer, 0);
-    
-    CMVideoFormatDescriptionRef formatDesc;
-    ret = CMVideoFormatDescriptionCreateForImageBuffer(NULL, imageBuffer, &formatDesc);
-/*
-    NSDictionary *attachments = (__bridge NSDictionary *)CVBufferGetAttachments(imageBuffer, 0);
-    NSMutableDictionary *ext = [[NSMutableDictionary alloc] init];
-    for (NSString *key in (__bridge NSArray *)CMVideoFormatDescriptionGetExtensionKeysCommonWithImageBuffers()) {
-        ext[key] = attachments[key];
-        NSLog(@"key: %@ -> %@", key, attachments[key]);
-    }
- */
-    //ext[(id)kCMFormatDescriptionExtension_CleanAperture] = aperture;
-    //ext[(id)kCMFormatDescriptionExtension_PixelAspectRatio] = @1.0;
-        
-    
-    /*
-    ret = CMVideoFormatDescriptionCreate(NULL,
-                                         CVPixelBufferGetPixelFormatType(imageBuffer),
-                                         buffer.format.frameWidth,
-                                         buffer.format.frameHeight,
-                                         (__bridge CFDictionaryRef _Nullable)(ext),
-                                         &formatDesc);
-*/
-    if (ret != 0) {
-        @throw [NSException
-                exceptionWithName:@"OGVVideoBufferException"
-                reason:[NSString stringWithFormat:@"Failed to create CMVideoFormatDescription %d", ret]
-                userInfo:@{@"CMReturn": @(ret)}];
-        return NULL;
-    }
-    
-    CMSampleTimingInfo sampleTiming;
-    sampleTiming.duration = CMTimeMake((1.0 / 60) * 1000, 1000);
-    sampleTiming.presentationTimeStamp = CMTimeMake(buffer.timestamp * 1000, 1000);
-    sampleTiming.decodeTimeStamp = kCMTimeInvalid;
-    
-    CMSampleBufferRef sampleBuffer;
-    ret = CMSampleBufferCreateForImageBuffer(NULL, imageBuffer, YES, NULL, NULL, formatDesc, &sampleTiming, &sampleBuffer);
-    if (ret != 0) {
-        @throw [NSException
-                exceptionWithName:@"OGVVideoBufferException"
-                reason:[NSString stringWithFormat:@"Failed to create CMSampleBuffer %d", ret]
-                userInfo:@{@"CMReturn": @(ret)}];
-    }
-    
-    CFRelease(formatDesc);
-    CFRelease(imageBuffer);
-
-    //CFTimeInterval delta = CFAbsoluteTimeGetCurrent() - start;
-    //NSLog(@"created CMSampleBuffer in %lf ms", delta * 1000.0);
-
-    return sampleBuffer;
+    CVPixelBufferUnlockBaseAddress(pixelBuffer, 0);
 }
+
 @end

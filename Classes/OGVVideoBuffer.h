@@ -48,6 +48,7 @@
                             Cr:(OGVVideoPlane *)Cr
                      timestamp:(float)timestamp;
 
-- (CMSampleBufferRef)copyAsSampleBuffer;
+-(CMSampleBufferRef)copyAsSampleBuffer;
+-(void)updatePixelBuffer:(CVPixelBufferRef)pixelBuffer inRect:(CGRect)rect;
 
 @end

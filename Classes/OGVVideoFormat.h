@@ -28,4 +28,10 @@ typedef NS_ENUM(NSUInteger, OGVPixelFormat) {
 @property (readonly) int chromaWidth;
 @property (readonly) int chromaHeight;
 
+/**
+ * Create a CVPixelBuffer compatible with this format, pulling from a pool.
+ * @todo manage the pool sensibly
+ */
+-(CVPixelBufferRef)createPixelBuffer;
+
 @end
