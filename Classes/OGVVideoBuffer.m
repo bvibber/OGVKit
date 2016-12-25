@@ -110,20 +110,21 @@
     unsigned char *chromaCbIn = self.Cb.data.bytes + chromaYStart * chromaCbInStride;
     unsigned char *chromaCrIn = self.Cr.data.bytes + chromaYStart * chromaCrInStride;
     unsigned char *chromaOut = CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 1) + chromaYStart * chromaOutStride;
-    // let's hope we're padded to a multiple of 8 pixels
+    // let's hope we're padded to a multiple of 16 pixels
     for (int y = chromaYStart; y < chromaYEnd; y++) {
-        for (int x = chromaXStart; x < chromaXEnd; x += 8) {
+        for (int x = chromaXStart; x < chromaXEnd; x += 16) {
+            const int x2 = x * 2;
+
             // Manually inlining this is *slightly* faster than NS_INLINE.
 #if defined(__arm64) || defined(__arm)
-            const uint8x8x2_t tmp = {
+            const uint8x16x2_t tmp = {
                 val: {
-                    vld1_u8(chromaCbIn + x),
-                    vld1_u8(chromaCrIn + x)
+                    vld1q_u8(chromaCbIn + x),
+                    vld1q_u8(chromaCrIn + x)
                 }
             };
-            vst2_u8(chromaOut + (x * 2), tmp);
+            vst2q_u8(chromaOut + x2, tmp);
 #else
-            const int x2 = x * 2;
             chromaOut[x2] = chromaCbIn[x];
             chromaOut[x2 + 1] = chromaCrIn[x];
             chromaOut[x2 + 2] = chromaCbIn[x + 1];
@@ -140,6 +141,22 @@
             chromaOut[x2 + 13] = chromaCrIn[x + 6];
             chromaOut[x2 + 14] = chromaCbIn[x + 7];
             chromaOut[x2 + 15] = chromaCrIn[x + 7];
+            chromaOut[x2 + 16] = chromaCbIn[x + 8];
+            chromaOut[x2 + 17] = chromaCrIn[x + 8];
+            chromaOut[x2 + 18] = chromaCbIn[x + 9];
+            chromaOut[x2 + 19] = chromaCrIn[x + 9];
+            chromaOut[x2 + 20] = chromaCbIn[x + 10];
+            chromaOut[x2 + 21] = chromaCrIn[x + 10];
+            chromaOut[x2 + 22] = chromaCbIn[x + 11];
+            chromaOut[x2 + 23] = chromaCrIn[x + 11];
+            chromaOut[x2 + 24] = chromaCbIn[x + 12];
+            chromaOut[x2 + 25] = chromaCrIn[x + 12];
+            chromaOut[x2 + 26] = chromaCbIn[x + 13];
+            chromaOut[x2 + 27] = chromaCrIn[x + 13];
+            chromaOut[x2 + 28] = chromaCbIn[x + 14];
+            chromaOut[x2 + 29] = chromaCrIn[x + 14];
+            chromaOut[x2 + 30] = chromaCbIn[x + 15];
+            chromaOut[x2 + 31] = chromaCrIn[x + 15];
 #endif
         }
         chromaCbIn += chromaCbInStride;
