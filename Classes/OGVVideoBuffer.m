@@ -78,30 +78,6 @@
     return sampleBuffer;
 }
 
-NS_INLINE void interleave_chroma(const unsigned char *chromaCbIn, const unsigned char *chromaCrIn, const unsigned char *chromaOut) {
-#if defined(__arm64) || defined(__arm)
-    const uint8x8x2_t tmp = { val: { vld1_u8(chromaCbIn), vld1_u8(chromaCrIn) } };
-    vst2_u8(chromaOut, tmp);
-#else
-    chromaOut[0] = chromaCbIn[0];
-    chromaOut[1] = chromaCrIn[0];
-    chromaOut[2] = chromaCbIn[1];
-    chromaOut[3] = chromaCrIn[1];
-    chromaOut[4] = chromaCbIn[2];
-    chromaOut[5] = chromaCrIn[2];
-    chromaOut[6] = chromaCbIn[3];
-    chromaOut[7] = chromaCrIn[3];
-    chromaOut[8] = chromaCbIn[4];
-    chromaOut[9] = chromaCrIn[4];
-    chromaOut[10] = chromaCbIn[5];
-    chromaOut[11] = chromaCrIn[5];
-    chromaOut[12] = chromaCbIn[6];
-    chromaOut[13] = chromaCrIn[6];
-    chromaOut[14] = chromaCbIn[7];
-    chromaOut[15] = chromaCrIn[7];
-#endif
-}
-
 -(void)updatePixelBuffer:(CVPixelBufferRef)pixelBuffer inRect:(CGRect)rect
 {
     CVPixelBufferLockBaseAddress(pixelBuffer, 0);
@@ -136,11 +112,35 @@ NS_INLINE void interleave_chroma(const unsigned char *chromaCbIn, const unsigned
     unsigned char *chromaOut = CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 1) + chromaYStart * chromaOutStride;
     // let's hope we're padded to a multiple of 8 pixels
     for (int y = chromaYStart; y < chromaYEnd; y++) {
-        //unsigned char *chromaOut2 = chromaOut;
         for (int x = chromaXStart; x < chromaXEnd; x += 8) {
-            interleave_chroma(chromaCbIn + x, chromaCrIn + x, chromaOut + (x * 2));
-            //uint8x8x2_t tmp = { val: { vld1_u8(chromaCbIn + x), vld1_u8(chromaCrIn + x) } };
-            //vst2_u8(chromaOut + (x * 2), tmp);
+            // Manually inlining this is *slightly* faster than NS_INLINE.
+#if defined(__arm64) || defined(__arm)
+            const uint8x8x2_t tmp = {
+                val: {
+                    vld1_u8(chromaCbIn + x),
+                    vld1_u8(chromaCrIn + x)
+                }
+            };
+            vst2_u8(chromaOut + (x * 2), tmp);
+#else
+            const int x2 = x * 2;
+            chromaOut[x2] = chromaCbIn[x];
+            chromaOut[x2 + 1] = chromaCrIn[x];
+            chromaOut[x2 + 2] = chromaCbIn[x + 1];
+            chromaOut[x2 + 3] = chromaCrIn[x + 1];
+            chromaOut[x2 + 4] = chromaCbIn[x + 2];
+            chromaOut[x2 + 5] = chromaCrIn[x + 2];
+            chromaOut[x2 + 6] = chromaCbIn[x + 3];
+            chromaOut[x2 + 7] = chromaCrIn[x + 3];
+            chromaOut[x2 + 8] = chromaCbIn[x + 4];
+            chromaOut[x2 + 9] = chromaCrIn[x + 4];
+            chromaOut[x2 + 10] = chromaCbIn[x + 5];
+            chromaOut[x2 + 11] = chromaCrIn[x + 5];
+            chromaOut[x2 + 12] = chromaCbIn[x + 6];
+            chromaOut[x2 + 13] = chromaCrIn[x + 6];
+            chromaOut[x2 + 14] = chromaCbIn[x + 7];
+            chromaOut[x2 + 15] = chromaCrIn[x + 7];
+#endif
         }
         chromaCbIn += chromaCbInStride;
         chromaCrIn += chromaCrInStride;
