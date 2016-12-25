@@ -391,7 +391,10 @@ static int64_t tellCallback(void * userdata)
             if (queuedFrame) {
                 CFRelease(queuedFrame);
             }
+            CFAbsoluteTime start = CFAbsoluteTimeGetCurrent();
             queuedFrame = [buffer copyAsSampleBuffer];
+            CFTimeInterval delta = CFAbsoluteTimeGetCurrent() - start;
+            NSLog(@"copy in %lf ms", delta * 1000.0);
         }
 #endif
         

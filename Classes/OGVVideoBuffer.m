@@ -78,9 +78,9 @@
     return sampleBuffer;
 }
 
-static inline void interleave_chroma(unsigned char *chromaCbIn, unsigned char *chromaCrIn, unsigned char *chromaOut) {
+NS_INLINE void interleave_chroma(const unsigned char *chromaCbIn, const unsigned char *chromaCrIn, const unsigned char *chromaOut) {
 #if defined(__arm64) || defined(__arm)
-    uint8x8x2_t tmp = { val: { vld1_u8(chromaCbIn), vld1_u8(chromaCrIn) } };
+    const uint8x8x2_t tmp = { val: { vld1_u8(chromaCbIn), vld1_u8(chromaCrIn) } };
     vst2_u8(chromaOut, tmp);
 #else
     chromaOut[0] = chromaCbIn[0];
@@ -136,8 +136,11 @@ static inline void interleave_chroma(unsigned char *chromaCbIn, unsigned char *c
     unsigned char *chromaOut = CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 1) + chromaYStart * chromaOutStride;
     // let's hope we're padded to a multiple of 8 pixels
     for (int y = chromaYStart; y < chromaYEnd; y++) {
+        //unsigned char *chromaOut2 = chromaOut;
         for (int x = chromaXStart; x < chromaXEnd; x += 8) {
             interleave_chroma(chromaCbIn + x, chromaCrIn + x, chromaOut + (x * 2));
+            //uint8x8x2_t tmp = { val: { vld1_u8(chromaCbIn + x), vld1_u8(chromaCrIn + x) } };
+            //vst2_u8(chromaOut + (x * 2), tmp);
         }
         chromaCbIn += chromaCbInStride;
         chromaCrIn += chromaCrInStride;
