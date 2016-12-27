@@ -23,6 +23,9 @@
 		D474D5C41CD7AFFE00D8BBE3 /* OGVViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D474D5BA1CD7AFFE00D8BBE3 /* OGVViewController.m */; };
 		D48929FC1DEE9C60008E662A /* bunny.ogv in Resources */ = {isa = PBXBuildFile; fileRef = D48929FA1DEE9C60008E662A /* bunny.ogv */; };
 		D48929FD1DEE9C60008E662A /* vp8-res-switch.webm in Resources */ = {isa = PBXBuildFile; fileRef = D48929FB1DEE9C60008E662A /* vp8-res-switch.webm */; };
+		D4C009851E12148E0002D6F3 /* hacking-420.ogv in Resources */ = {isa = PBXBuildFile; fileRef = D4C009821E12148E0002D6F3 /* hacking-420.ogv */; };
+		D4C009861E12148E0002D6F3 /* hacking-422.ogv in Resources */ = {isa = PBXBuildFile; fileRef = D4C009831E12148E0002D6F3 /* hacking-422.ogv */; };
+		D4C009871E12148E0002D6F3 /* hacking-444.ogv in Resources */ = {isa = PBXBuildFile; fileRef = D4C009841E12148E0002D6F3 /* hacking-444.ogv */; };
 		D4D8E6A61DEFE0B20020F1A6 /* bunny.webm in Resources */ = {isa = PBXBuildFile; fileRef = D4D8E6A51DEFE0B20020F1A6 /* bunny.webm */; };
 		D4F61F651CD7ADAD00898F7F /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = D4F61F641CD7ADAD00898F7F /* main.m */; };
 /* End PBXBuildFile section */
@@ -65,6 +68,9 @@
 		D474D5C61CD7B04C00D8BBE3 /* OGVKit_Tests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OGVKit_Tests.m; path = "OGVKit Tests/OGVKit_Tests.m"; sourceTree = SOURCE_ROOT; };
 		D48929FA1DEE9C60008E662A /* bunny.ogv */ = {isa = PBXFileReference; lastKnownFileType = file; name = bunny.ogv; path = Samples/bunny.ogv; sourceTree = SOURCE_ROOT; };
 		D48929FB1DEE9C60008E662A /* vp8-res-switch.webm */ = {isa = PBXFileReference; lastKnownFileType = file; name = "vp8-res-switch.webm"; path = "Samples/vp8-res-switch.webm"; sourceTree = SOURCE_ROOT; };
+		D4C009821E12148E0002D6F3 /* hacking-420.ogv */ = {isa = PBXFileReference; lastKnownFileType = file; name = "hacking-420.ogv"; path = "Samples/hacking-420.ogv"; sourceTree = SOURCE_ROOT; };
+		D4C009831E12148E0002D6F3 /* hacking-422.ogv */ = {isa = PBXFileReference; lastKnownFileType = file; name = "hacking-422.ogv"; path = "Samples/hacking-422.ogv"; sourceTree = SOURCE_ROOT; };
+		D4C009841E12148E0002D6F3 /* hacking-444.ogv */ = {isa = PBXFileReference; lastKnownFileType = file; name = "hacking-444.ogv"; path = "Samples/hacking-444.ogv"; sourceTree = SOURCE_ROOT; };
 		D4D8E6A51DEFE0B20020F1A6 /* bunny.webm */ = {isa = PBXFileReference; lastKnownFileType = file; name = bunny.webm; path = Samples/bunny.webm; sourceTree = SOURCE_ROOT; };
 		D4F61F601CD7ADAC00898F7F /* OGVKit Example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "OGVKit Example.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D4F61F641CD7ADAD00898F7F /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -135,6 +141,9 @@
 		D4F61F621CD7ADAD00898F7F /* OGVKit Example */ = {
 			isa = PBXGroup;
 			children = (
+				D4C009821E12148E0002D6F3 /* hacking-420.ogv */,
+				D4C009831E12148E0002D6F3 /* hacking-422.ogv */,
+				D4C009841E12148E0002D6F3 /* hacking-444.ogv */,
 				D43498021E03864700085E6E /* kitty-short.mp4 */,
 				D4D8E6A51DEFE0B20020F1A6 /* bunny.webm */,
 				D48929FA1DEE9C60008E662A /* bunny.ogv */,
@@ -267,12 +276,15 @@
 			buildActionMask = 2147483647;
 			files = (
 				D474D5C21CD7AFFE00D8BBE3 /* OGVKit Example-Info.plist in Resources */,
+				D4C009861E12148E0002D6F3 /* hacking-422.ogv in Resources */,
 				D42B384C1CD7B17B00529092 /* Main.storyboard in Resources */,
 				D42B38491CD7B17500529092 /* InfoPlist.strings in Resources */,
 				D43498031E03864700085E6E /* kitty-short.mp4 in Resources */,
 				D48929FD1DEE9C60008E662A /* vp8-res-switch.webm in Resources */,
 				D474D5BD1CD7AFFE00D8BBE3 /* Images.xcassets in Resources */,
+				D4C009871E12148E0002D6F3 /* hacking-444.ogv in Resources */,
 				D474D5BE1CD7AFFE00D8BBE3 /* Launch Screen.xib in Resources */,
+				D4C009851E12148E0002D6F3 /* hacking-420.ogv in Resources */,
 				D48929FC1DEE9C60008E662A /* bunny.ogv in Resources */,
 				D4D8E6A61DEFE0B20020F1A6 /* bunny.webm in Resources */,
 			);

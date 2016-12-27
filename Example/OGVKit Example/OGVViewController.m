@@ -103,8 +103,19 @@
 
                 [[OGVLinkedExampleItem alloc] initWithTitle:@"Kitty cat MP4 (local)"
                                                         URL:[[NSBundle mainBundle] URLForResource:@"kitty-short"
-                                                                                    withExtension:@"mp4"]]
-];
+                                                                                    withExtension:@"mp4"]],
+
+                [[OGVLinkedExampleItem alloc] initWithTitle:@"Hacking 4:2:0 (local)"
+                                                        URL:[[NSBundle mainBundle] URLForResource:@"hacking-420"
+                                                                                    withExtension:@"ogv"]],
+
+                [[OGVLinkedExampleItem alloc] initWithTitle:@"Hacking 4:2:2 (local)"
+                                                        URL:[[NSBundle mainBundle] URLForResource:@"hacking-422"
+                                                                                    withExtension:@"ogv"]],
+
+                [[OGVLinkedExampleItem alloc] initWithTitle:@"Hacking 4:4:4 (local)"
+                                                        URL:[[NSBundle mainBundle] URLForResource:@"hacking-444"
+                                                                                    withExtension:@"ogv"]]];
 
     [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"generic"];
     

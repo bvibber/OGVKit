@@ -79,24 +79,21 @@
     if ([object class] != [self class]) {
         return NO;
     }
+    if (self == object) {
+        return YES;
+    }
     OGVVideoFormat *other = object;
     return (self.frameWidth == other.frameWidth) &&
            (self.frameHeight == other.frameHeight) &&
            (self.pictureWidth == other.pictureWidth) &&
            (self.pictureHeight == other.pictureHeight) &&
            (self.pictureOffsetX == other.pictureOffsetX) &&
-           (self.pictureOffsetY == other.pictureOffsetY);
+           (self.pictureOffsetY == other.pictureOffsetY) &&
+           (self.pixelFormat == other.pixelFormat);
 }
 
 - (CVPixelBufferRef)createPixelBuffer
 {
-    if (self.pixelFormat != OGVPixelFormatYCbCr420) {
-        @throw [NSException
-                exceptionWithName:@"OGVVideoFormatException"
-                reason:@"Cannot create pixel buffers for non-4:2:0 formats"
-                userInfo:nil];
-    }
-    
     static CVPixelBufferPoolRef bufferPool = NULL;
     static OGVVideoFormat *poolFormat = nil;
 
@@ -107,12 +104,25 @@
         poolFormat = self;
     }
     if (bufferPool == NULL) {
+        NSNumber *pixelFormat;
+        switch (self.pixelFormat) {
+            case OGVPixelFormatYCbCr420:
+                pixelFormat = @(kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange);
+                break;
+            case OGVPixelFormatYCbCr422:
+                pixelFormat = @(kCVPixelFormatType_422YpCbCr8_yuvs);
+                break;
+            case OGVPixelFormatYCbCr444:
+                // Warning: does not render on iOS device with AVSampleBufferDisplayLayer
+                pixelFormat = @(kCVPixelFormatType_444YpCbCr8);
+                break;
+        }
         NSDictionary *poolOpts = @{(id)kCVPixelBufferPoolMinimumBufferCountKey: @1,
                                    (id)kCVPixelBufferPoolMaximumBufferAgeKey: @1.0};
         NSDictionary *opts = @{(id)kCVPixelBufferWidthKey: @(self.frameWidth),
                                (id)kCVPixelBufferHeightKey: @(self.frameHeight),
                                (id)kCVPixelBufferIOSurfacePropertiesKey: @{},
-                               (id)kCVPixelBufferPixelFormatTypeKey: @(kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange)};
+                               (id)kCVPixelBufferPixelFormatTypeKey: pixelFormat};
         CVReturn ret = CVPixelBufferPoolCreate(NULL,
                                                (__bridge CFDictionaryRef _Nullable)(poolOpts),
                                                (__bridge CFDictionaryRef _Nullable)(opts),

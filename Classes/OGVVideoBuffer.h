@@ -49,6 +49,6 @@
                      timestamp:(float)timestamp;
 
 -(CMSampleBufferRef)copyAsSampleBuffer;
--(void)updatePixelBuffer:(CVPixelBufferRef)pixelBuffer inRect:(CGRect)rect;
+-(void)updatePixelBuffer:(CVPixelBufferRef)pixelBuffer;
 
 @end

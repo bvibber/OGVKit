@@ -45,8 +45,7 @@
 -(CMSampleBufferRef)copyAsSampleBuffer
 {
     CVPixelBufferRef pixelBuffer = [self.format createPixelBuffer];
-    [self updatePixelBuffer:pixelBuffer
-                     inRect:CGRectMake(0, 0, self.format.frameWidth, self.format.frameHeight)];
+    [self updatePixelBuffer:pixelBuffer];
     
     CMVideoFormatDescriptionRef formatDesc;
     OSStatus ret = CMVideoFormatDescriptionCreateForImageBuffer(NULL, pixelBuffer, &formatDesc);
@@ -78,90 +77,176 @@
     return sampleBuffer;
 }
 
--(void)updatePixelBuffer:(CVPixelBufferRef)pixelBuffer inRect:(CGRect)rect
+-(void)updatePixelBuffer:(CVPixelBufferRef)pixelBuffer
+{
+    switch (self.format.pixelFormat) {
+        case OGVPixelFormatYCbCr420:
+            [self updatePixelBuffer420:pixelBuffer];
+            break;
+        case OGVPixelFormatYCbCr422:
+            [self updatePixelBuffer422:pixelBuffer];
+            break;
+        case OGVPixelFormatYCbCr444:
+            [self updatePixelBuffer444:pixelBuffer];
+            break;
+    }
+}
+
+-(void)updatePixelBuffer420:(CVPixelBufferRef)pixelBuffer
 {
     CVPixelBufferLockBaseAddress(pixelBuffer, 0);
 
-    int lumaXStart = CGRectGetMinX(rect);
-    int lumaXEnd = CGRectGetMaxX(rect);
-    int lumaYStart = CGRectGetMinY(rect);
-    int lumaYEnd = CGRectGetMaxY(rect);
-    int lumaWidth = CGRectGetWidth(rect);
+    int lumaWidth = self.format.lumaWidth;
+    int lumaHeight = self.format.lumaHeight;
+    int chromaWidth = self.format.chromaWidth;
+    int chromaHeight = self.format.chromaHeight;
 
     size_t lumaInStride = self.Y.stride;
+    size_t chromaCbInStride = self.Cb.stride;
+    size_t chromaCrInStride = self.Cr.stride;
+    unsigned char *lumaIn = self.Y.data.bytes;
+    unsigned char *chromaCbIn = self.Cb.data.bytes;
+    unsigned char *chromaCrIn = self.Cr.data.bytes;
+
     size_t lumaOutStride = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 0);
-    unsigned char *lumaIn = self.Y.data.bytes + lumaYStart * lumaInStride;
-    unsigned char *lumaOut = CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 0) + lumaYStart * lumaOutStride;
-    for (int y = lumaYStart; y < lumaYEnd; y++) {
+    size_t chromaOutStride = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 1);
+    unsigned char *lumaOut = CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 0);
+    unsigned char *chromaOut = CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 1);
+
+    for (int y = 0; y < lumaHeight; y++) {
         memcpy(lumaOut, lumaIn, lumaWidth);
         lumaIn += lumaInStride;
         lumaOut += lumaOutStride;
     }
     
-    int chromaXStart = lumaXStart / 2;
-    int chromaXEnd = lumaXEnd / 2;
-    int chromaYStart = lumaYStart / 2;
-    int chromaYEnd = lumaYEnd / 2;
-    int chromaWidth = lumaWidth / 2;
-
-    size_t chromaCbInStride = self.Cb.stride;
-    size_t chromaCrInStride = self.Cr.stride;
-    size_t chromaOutStride = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 1);
-    unsigned char *chromaCbIn = self.Cb.data.bytes + chromaYStart * chromaCbInStride;
-    unsigned char *chromaCrIn = self.Cr.data.bytes + chromaYStart * chromaCrInStride;
-    unsigned char *chromaOut = CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 1) + chromaYStart * chromaOutStride;
-    // let's hope we're padded to a multiple of 16 pixels
-    for (int y = chromaYStart; y < chromaYEnd; y++) {
-        for (int x = chromaXStart; x < chromaXEnd; x += 16) {
-            const int x2 = x * 2;
-
-            // Manually inlining this is *slightly* faster than NS_INLINE.
+    for (int y = 0; y < chromaHeight; y++) {
 #if defined(__arm64) || defined(__arm)
+        // Interleave blocks of 16 pixels...
+        const int skip = chromaWidth & ~0xf;
+        for (int x = 0; x < skip; x += 16) {
             const uint8x16x2_t tmp = {
                 val: {
                     vld1q_u8(chromaCbIn + x),
                     vld1q_u8(chromaCrIn + x)
                 }
             };
-            vst2q_u8(chromaOut + x2, tmp);
+            vst2q_u8(chromaOut + x * 2, tmp);
+        }
 #else
+        const int skip = 0;
+#endif
+        for (int x = skip; x < chromaWidth; x++) {
+            const int x2 = x * 2;
+            
             chromaOut[x2] = chromaCbIn[x];
             chromaOut[x2 + 1] = chromaCrIn[x];
-            chromaOut[x2 + 2] = chromaCbIn[x + 1];
-            chromaOut[x2 + 3] = chromaCrIn[x + 1];
-            chromaOut[x2 + 4] = chromaCbIn[x + 2];
-            chromaOut[x2 + 5] = chromaCrIn[x + 2];
-            chromaOut[x2 + 6] = chromaCbIn[x + 3];
-            chromaOut[x2 + 7] = chromaCrIn[x + 3];
-            chromaOut[x2 + 8] = chromaCbIn[x + 4];
-            chromaOut[x2 + 9] = chromaCrIn[x + 4];
-            chromaOut[x2 + 10] = chromaCbIn[x + 5];
-            chromaOut[x2 + 11] = chromaCrIn[x + 5];
-            chromaOut[x2 + 12] = chromaCbIn[x + 6];
-            chromaOut[x2 + 13] = chromaCrIn[x + 6];
-            chromaOut[x2 + 14] = chromaCbIn[x + 7];
-            chromaOut[x2 + 15] = chromaCrIn[x + 7];
-            chromaOut[x2 + 16] = chromaCbIn[x + 8];
-            chromaOut[x2 + 17] = chromaCrIn[x + 8];
-            chromaOut[x2 + 18] = chromaCbIn[x + 9];
-            chromaOut[x2 + 19] = chromaCrIn[x + 9];
-            chromaOut[x2 + 20] = chromaCbIn[x + 10];
-            chromaOut[x2 + 21] = chromaCrIn[x + 10];
-            chromaOut[x2 + 22] = chromaCbIn[x + 11];
-            chromaOut[x2 + 23] = chromaCrIn[x + 11];
-            chromaOut[x2 + 24] = chromaCbIn[x + 12];
-            chromaOut[x2 + 25] = chromaCrIn[x + 12];
-            chromaOut[x2 + 26] = chromaCbIn[x + 13];
-            chromaOut[x2 + 27] = chromaCrIn[x + 13];
-            chromaOut[x2 + 28] = chromaCbIn[x + 14];
-            chromaOut[x2 + 29] = chromaCrIn[x + 14];
-            chromaOut[x2 + 30] = chromaCbIn[x + 15];
-            chromaOut[x2 + 31] = chromaCrIn[x + 15];
-#endif
         }
         chromaCbIn += chromaCbInStride;
         chromaCrIn += chromaCrInStride;
         chromaOut += chromaOutStride;
+    }
+    
+    CVPixelBufferUnlockBaseAddress(pixelBuffer, 0);
+}
+
+-(void)updatePixelBuffer422:(CVPixelBufferRef)pixelBuffer
+{
+    CVPixelBufferLockBaseAddress(pixelBuffer, 0);
+
+    int lumaWidth = self.format.lumaWidth;
+    int chromaWidth = self.format.chromaWidth;
+    int height = self.format.frameHeight;
+    size_t lumaInStride = self.Y.stride;
+    size_t chromaCbInStride = self.Cb.stride;
+    size_t chromaCrInStride = self.Cr.stride;
+    unsigned char *lumaIn = self.Y.data.bytes;
+    unsigned char *chromaCbIn = self.Cb.data.bytes;
+    unsigned char *chromaCrIn = self.Cr.data.bytes;
+    
+    size_t outStride = CVPixelBufferGetBytesPerRow(pixelBuffer);
+    unsigned char *pixelOut = CVPixelBufferGetBaseAddress(pixelBuffer);
+    
+    for (int y = 0; y < height; y++) {
+#if defined(__arm64) || defined(__arm)
+        // Interleave blocks of 32 luma / 16 chroma pixels...
+        const int skip = chromaWidth & ~0xf;
+        for (int x = 0; x < skip; x += 16) {
+            const uint8x16x2_t lumaTmp = vld2q_u8(lumaIn + x * 2);
+            const uint8x16x4_t tmp = {
+                val: {
+                    lumaTmp.val[0],
+                    vld1q_u8(chromaCbIn + x),
+                    lumaTmp.val[1],
+                    vld1q_u8(chromaCrIn + x)
+                }
+            };
+            vst4q_u8(pixelOut + x * 4, tmp);
+        }
+#else
+        const int skip = 0;
+#endif
+        // Interleave anything that's left
+        for (int x = skip; x < chromaWidth; x++) {
+            const int x4 = x * 4;
+            const int x2 = x * 2;
+            pixelOut[x4] = lumaIn[x2];
+            pixelOut[x4 + 1] = chromaCbIn[x];
+            pixelOut[x4 + 2] = lumaIn[x2 + 1];
+            pixelOut[x4 + 3] = chromaCrIn[x];
+        }
+        lumaIn += lumaInStride;
+        chromaCbIn += chromaCbInStride;
+        chromaCrIn += chromaCrInStride;
+        pixelOut += outStride;
+    }
+    
+    CVPixelBufferUnlockBaseAddress(pixelBuffer, 0);
+}
+
+-(void)updatePixelBuffer444:(CVPixelBufferRef)pixelBuffer
+{
+    CVPixelBufferLockBaseAddress(pixelBuffer, 0);
+    
+    int width = self.format.frameWidth;
+    int height = self.format.frameHeight;
+    size_t lumaInStride = self.Y.stride;
+    size_t chromaCbInStride = self.Cb.stride;
+    size_t chromaCrInStride = self.Cr.stride;
+    unsigned char *lumaIn = self.Y.data.bytes;
+    unsigned char *chromaCbIn = self.Cb.data.bytes;
+    unsigned char *chromaCrIn = self.Cr.data.bytes;
+
+    size_t outStride = CVPixelBufferGetBytesPerRow(pixelBuffer);
+    unsigned char *pixelOut = CVPixelBufferGetBaseAddress(pixelBuffer);
+
+    for (int y = 0; y < height; y++) {
+#if defined(__arm64) || defined(__arm)
+        // Interleave blocks of 16 pixels...
+        const int skip = width & ~0xf;
+        for (int x = 0; x < skip; x += 16) {
+            const uint8x16x3_t tmp = {
+                val: {
+                    vld1q_u8(lumaIn + x),
+                    vld1q_u8(chromaCbIn + x),
+                    vld1q_u8(chromaCrIn + x)
+                }
+            };
+            vst3q_u8(pixelOut + x * 3, tmp);
+        }
+#else
+        const int skip = 0;
+#endif
+        // Interleave anything that's left
+        for (int x = skip; x < width; x++) {
+            const int x3 = x * 3;
+            pixelOut[x3] = lumaIn[x];
+            pixelOut[x3 + 1] = chromaCbIn[x];
+            pixelOut[x3 + 2] = chromaCrIn[x];
+        }
+        lumaIn += lumaInStride;
+        chromaCbIn += chromaCbInStride;
+        chromaCrIn += chromaCrInStride;
+        pixelOut += outStride;
     }
     
     CVPixelBufferUnlockBaseAddress(pixelBuffer, 0);
