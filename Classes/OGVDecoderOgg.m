@@ -118,7 +118,7 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
 #endif
     
     /* single frame video buffering */
-    CMSampleBufferRef queuedFrame;
+    OGVVideoBuffer *queuedFrame;
     
     /* Audio decode state */
     int              vorbis_p;
@@ -507,10 +507,7 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
                                                                  Cb:Cb
                                                                  Cr:Cr
                                                           timestamp:timestamp];
-    if (queuedFrame) {
-        CFRelease(queuedFrame);
-    }
-    queuedFrame = [buffer copyAsSampleBuffer];
+    queuedFrame = buffer;
 }
 #endif
 
@@ -547,32 +544,14 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
     return NO;
 }
 
-- (CMSampleBufferRef)frameBuffer
+- (OGVVideoBuffer *)frameBuffer
 {
-    if (queuedFrame) {
-        CMSampleBufferRef buffer = queuedFrame;
-        queuedFrame = NULL;
-        return buffer;
-    } else {
-        @throw [NSException
-                exceptionWithName:@"OGVDecoderFrameNotReadyException"
-                reason:@"Tried to read frame when none available"
-                userInfo:nil];
-    }
+    return queuedFrame;
 }
 
 - (OGVAudioBuffer *)audioBuffer
 {
-    if (queuedAudio) {
-        OGVAudioBuffer *buffer = queuedAudio;
-        queuedAudio = nil;
-        return buffer;
-    } else {
-        @throw [NSException
-                exceptionWithName:@"OGVDecoderAudioNotReadyException"
-                reason:@"Tried to read audio buffer when none available"
-                userInfo:nil];
-    }
+    return queuedAudio;
 }
 
 - (BOOL)process

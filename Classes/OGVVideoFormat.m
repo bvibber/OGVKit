@@ -92,6 +92,34 @@
            (self.pixelFormat == other.pixelFormat);
 }
 
+-(instancetype)initWithSampleBuffer:(CMSampleBufferRef)sampleBuffer
+{
+    self = [super init];
+    if (self) {
+        CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
+
+        int pixelFormat = CVPixelBufferGetPixelFormatType(imageBuffer);
+        switch (pixelFormat) {
+            case kCVPixelFormatType_420YpCbCr8Planar:
+                self.pixelFormat = OGVPixelFormatYCbCr420;
+                break;
+            default:
+                [NSException raise:@"OGVVideoFormatException"
+                            format:@"incompatible pixel format (%d)", pixelFormat];
+        }
+
+        self.frameWidth = CVPixelBufferGetWidth(imageBuffer);
+        self.frameHeight = CVPixelBufferGetHeight(imageBuffer);
+
+        CGRect cleanRect = CVImageBufferGetCleanRect(imageBuffer);
+        self.pictureWidth = cleanRect.size.width;
+        self.pictureHeight = cleanRect.size.height;
+        self.pictureOffsetX = cleanRect.origin.x;
+        self.pictureOffsetY = cleanRect.origin.y;
+    }
+    return self;
+}
+
 - (CVPixelBufferRef)createPixelBuffer
 {
     static CVPixelBufferPoolRef bufferPool = NULL;

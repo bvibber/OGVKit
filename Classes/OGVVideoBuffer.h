@@ -6,6 +6,8 @@
 //  Copyright (c) 2013-2015 Brion Vibber. All rights reserved.
 //
 
+typedef void (^OGVVideoBufferLockCallback)();
+
 /**
  * An OGVVideoBuffer represents a YCbCr picture frame.
  *
@@ -22,16 +24,19 @@
 
 /**
  * The Y luma plane of the YCbCr picture.
+ * Only valid during locking.
  */
 @property (readonly) OGVVideoPlane *Y;
 
 /**
  * The Cb chroma plane of the YCbCr picture.
+ * Only valid during locking.
  */
 @property (readonly) OGVVideoPlane *Cb;
 
 /**
  * The Cr chroma plane of the YCbCr picture.
+ * Only valid during locking.
  */
 @property (readonly) OGVVideoPlane *Cr;
 
@@ -48,7 +53,15 @@
                             Cr:(OGVVideoPlane *)Cr
                      timestamp:(float)timestamp;
 
+-(instancetype)initWithSampleBuffer:(CMSampleBufferRef)sampleBuffer;
+
+/**
+ * Lock the data planes in place (they may be in GPU memory)
+ */
+-(void)lock:(OGVVideoBufferLockCallback)block;
+
 -(CMSampleBufferRef)copyAsSampleBuffer;
+
 -(void)updatePixelBuffer:(CVPixelBufferRef)pixelBuffer;
 
 @end

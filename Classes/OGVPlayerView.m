@@ -400,14 +400,16 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
 
 #pragma mark - OGVPlayerStateDelegate methods
 
-- (void)ogvPlayerState:(OGVPlayerState *)sender drawFrame:(CMSampleBufferRef)buffer
+- (void)ogvPlayerState:(OGVPlayerState *)sender drawFrame:(OGVVideoBuffer *)buffer
 {
     if (sender == state) {
         if (buffer) {
-            CMSetAttachment(buffer, kCMSampleAttachmentKey_DisplayImmediately, kCFBooleanTrue, kCMAttachmentMode_ShouldPropagate);
+            CMSampleBufferRef sampleBuffer = [buffer copyAsSampleBuffer];
+            CMSetAttachment(sampleBuffer, kCMSampleAttachmentKey_DisplayImmediately, kCFBooleanTrue, kCMAttachmentMode_ShouldPropagate);
             
             //NSLog(@"Layer %d %@", displayLayer.status, displayLayer.error);
-            [displayLayer enqueueSampleBuffer:buffer];
+            [displayLayer enqueueSampleBuffer:sampleBuffer];
+            CFRelease(sampleBuffer);
         }
     }
 }

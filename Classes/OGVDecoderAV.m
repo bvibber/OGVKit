@@ -27,9 +27,8 @@
     OGVQueue *audioBuffers;
     OGVQueue *frameBuffers;
     OGVAudioBuffer *queuedAudio;
-    CMSampleBufferRef queuedFrame;
+    OGVVideoBuffer *queuedFrame;
 }
-
 
 -(instancetype)init
 {
@@ -54,10 +53,7 @@
 -(BOOL)decodeFrame
 {
     if ([frameBuffers peek]) {
-        if (queuedFrame) {
-            CFRelease(queuedFrame);
-        }
-        queuedFrame = (__bridge CMSampleBufferRef)[frameBuffers dequeue];
+        queuedFrame = [frameBuffers dequeue];
         return YES;
     } else {
         return NO;
@@ -112,7 +108,7 @@
         if (videoTrack) {
             videoOutput = [[AVAssetReaderTrackOutput alloc] initWithTrack:videoTrack
                                                            outputSettings:@{
-                                                                            (id)kCVPixelBufferPixelFormatTypeKey: @(kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange)
+                                                                            (id)kCVPixelBufferPixelFormatTypeKey:@(kCVPixelFormatType_420YpCbCr8Planar)
                                                                             }];
             [assetReader addOutput:videoOutput];
             
@@ -170,18 +166,14 @@
     return NO; // will block
 }
 
-- (CMSampleBufferRef)frameBuffer
+- (OGVVideoBuffer *)frameBuffer
 {
-    CMSampleBufferRef buffer = queuedFrame;
-    queuedFrame = NULL;
-    return buffer;
+    return queuedFrame;
 }
 
 - (OGVAudioBuffer *)audioBuffer
 {
-    OGVAudioBuffer *buffer = queuedAudio;
-    queuedAudio = nil;
-    return buffer;
+    return queuedAudio;
 }
 
 -(void)dealloc
@@ -223,11 +215,9 @@
 
 - (float)frameTimestamp
 {
-    CMSampleBufferRef buffer = (__bridge CMSampleBufferRef)([frameBuffers peek]);
+    OGVVideoBuffer *buffer = [frameBuffers peek];
     if (buffer) {
-        CMTime pts = CMSampleBufferGetPresentationTimeStamp(buffer);
-        float ts = CMTimeGetSeconds(pts);
-        return ts;
+        return buffer.timestamp;
     } else {
         return -1;
     }
@@ -268,7 +258,9 @@
     if (videoOutput) {
         CMSampleBufferRef sample = [videoOutput copyNextSampleBuffer];
         if (sample) {
-            [frameBuffers queue:(__bridge id)(sample)];
+            OGVVideoBuffer *buffer = [[OGVVideoBuffer alloc] initWithSampleBuffer:sample];
+            [frameBuffers queue:buffer];
+            CFRelease(sample); // now belongs to the buffer
             return YES;
         }
     }

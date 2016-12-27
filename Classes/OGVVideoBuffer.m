@@ -13,6 +13,9 @@
 #endif
 
 @implementation OGVVideoBuffer
+{
+    CMSampleBufferRef _sampleBuffer;
+}
 
 - (instancetype)initWithFormat:(OGVVideoFormat *)format
                              Y:(OGVVideoPlane *)Y
@@ -27,20 +30,64 @@
         _Cb = Cb;
         _Cr = Cr;
         _timestamp = timestamp;
+        _sampleBuffer = NULL;
+    }
+    return self;
+}
+
+- (instancetype)initWithSampleBuffer:(CMSampleBufferRef)sampleBuffer
+{
+    self = [super init];
+    if (self) {
+        _format = [[OGVVideoFormat alloc] initWithSampleBuffer:sampleBuffer];
+        _Y = nil;
+        _Cb = nil;
+        _Cr = nil;
+        _timestamp = CMTimeGetSeconds(CMSampleBufferGetPresentationTimeStamp(sampleBuffer));
+        _sampleBuffer = sampleBuffer;
+        CFRetain(_sampleBuffer);
     }
     return self;
 }
 
 - (instancetype)copyWithZone:(NSZone *)zone
 {
-    return [[OGVVideoBuffer alloc] initWithFormat:self.format
-                                                Y:[self.Y copyWithZone:zone]
-                                               Cb:[self.Cb copyWithZone:zone]
-                                               Cr:[self.Cr copyWithZone:zone]
-                                        timestamp:self.timestamp];
+    __block OGVVideoBuffer *copied;
+    [self lock:^(OGVVideoPlane *Y, OGVVideoPlane *Cb, OGVVideoPlane *Cr) {
+        copied = [[OGVVideoBuffer alloc] initWithFormat:self.format
+                                                      Y:[Y copyWithZone:zone]
+                                                     Cb:[Cb copyWithZone:zone]
+                                                     Cr:[Cr copyWithZone:zone]
+                                              timestamp:self.timestamp];
+
+    }];
+    return copied;
 }
 
+-(void)dealloc
+{
+    if (_sampleBuffer) {
+        CFRelease(_sampleBuffer);
+    }
+}
 
+-(void)lock:(OGVVideoBufferLockCallback)block
+{
+    if (_sampleBuffer) {
+        CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(_sampleBuffer);
+        CVPixelBufferLockBaseAddress(imageBuffer, 0);
+        _Y = [[OGVVideoPlane alloc] initWithPixelBuffer:imageBuffer plane:0];
+        _Cb = [[OGVVideoPlane alloc] initWithPixelBuffer:imageBuffer plane:1];
+        _Cr = [[OGVVideoPlane alloc] initWithPixelBuffer:imageBuffer plane:2];
+        block();
+        _Y = nil;
+        _Cb = nil;
+        _Cr = nil;
+        CVPixelBufferUnlockBaseAddress(imageBuffer, 0);
+    } else {
+        block();
+    }
+}
 
 -(CMSampleBufferRef)copyAsSampleBuffer
 {
@@ -79,17 +126,19 @@
 
 -(void)updatePixelBuffer:(CVPixelBufferRef)pixelBuffer
 {
-    switch (self.format.pixelFormat) {
-        case OGVPixelFormatYCbCr420:
-            [self updatePixelBuffer420:pixelBuffer];
-            break;
-        case OGVPixelFormatYCbCr422:
-            [self updatePixelBuffer422:pixelBuffer];
-            break;
-        case OGVPixelFormatYCbCr444:
-            [self updatePixelBuffer444:pixelBuffer];
-            break;
-    }
+    [self lock:^{
+        switch (self.format.pixelFormat) {
+            case OGVPixelFormatYCbCr420:
+                [self updatePixelBuffer420:pixelBuffer];
+                break;
+            case OGVPixelFormatYCbCr422:
+                [self updatePixelBuffer422:pixelBuffer];
+                break;
+            case OGVPixelFormatYCbCr444:
+                [self updatePixelBuffer444:pixelBuffer];
+                break;
+        }
+    }];
 }
 
 -(void)updatePixelBuffer420:(CVPixelBufferRef)pixelBuffer

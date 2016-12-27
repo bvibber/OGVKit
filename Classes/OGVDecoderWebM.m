@@ -131,7 +131,7 @@ static int64_t tellCallback(void * userdata)
 #endif
 
     OGVAudioBuffer *queuedAudio;
-    CMSampleBufferRef queuedFrame;
+    OGVVideoBuffer *queuedFrame;
 
     enum AppState {
         STATE_BEGIN,
@@ -388,17 +388,13 @@ static int64_t tellCallback(void * userdata)
                                                                          Cr:Cr
                                                                   timestamp:videobufTime];
 
-            if (queuedFrame) {
-                CFRelease(queuedFrame);
-            }
-            //CFAbsoluteTime start = CFAbsoluteTimeGetCurrent();
-            queuedFrame = [buffer copyAsSampleBuffer];
-            //CFTimeInterval delta = CFAbsoluteTimeGetCurrent() - start;
-            //NSLog(@"copy in %lf ms", delta * 1000.0);
+            queuedFrame = buffer;
+
+            return YES;
         }
 #endif
         
-        return YES;
+        return NO;
     }
 
     return NO;
@@ -460,18 +456,14 @@ static int64_t tellCallback(void * userdata)
 }
 
 
-- (CMSampleBufferRef)frameBuffer
+- (OGVVideoBuffer *)frameBuffer
 {
-    CMSampleBufferRef buffer = queuedFrame;
-    queuedFrame = NULL;
-    return buffer;
+    return queuedFrame;
 }
 
 - (OGVAudioBuffer *)audioBuffer
 {
-    OGVAudioBuffer *buffer = queuedAudio;
-    queuedAudio = nil;
-    return buffer;
+    return queuedAudio;
 }
 
 -(void)dealloc

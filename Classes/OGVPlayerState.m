@@ -535,15 +535,13 @@
  */
 -(void)drawFrame
 {
-    CMSampleBufferRef buffer = [decoder frameBuffer];
-    CMTime endTime = CMSampleBufferGetPresentationTimeStamp(buffer);
-    frameEndTimestamp = CMTimeGetSeconds(endTime);
+    OGVVideoBuffer *buffer = decoder.frameBuffer;
+    frameEndTimestamp = buffer.timestamp;
     //NSLog(@"frame: %f %f", frameEndTimestamp, self.playbackPosition);
     dispatch_async(drawingQueue, ^() {
         if (decoder) {
             [delegate ogvPlayerState:self drawFrame:buffer];
         }
-        CFRelease(buffer);
     });
 }
 
@@ -559,12 +557,12 @@
         if (exact) {
             if (decoder.hasAudio && decoder.audioReady && decoder.audioTimestamp < target) {
                 if ([decoder decodeAudio]) {
-                    [decoder audioBuffer];
+                    // no-op
                 }
             }
             if (decoder.hasVideo && decoder.frameReady && decoder.frameTimestamp < target) {
                 if ([decoder decodeFrame]) {
-                    CFRelease([decoder frameBuffer]);
+                    // no-op
                 }
             }
             if ((!decoder.hasVideo || decoder.frameTimestamp >= target) &&

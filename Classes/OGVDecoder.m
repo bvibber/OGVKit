@@ -23,7 +23,7 @@
     return NO;
 }
 
-- (CMSampleBufferRef)frameBuffer
+- (OGVVideoBuffer *)frameBuffer
 {
     return nil;
 }

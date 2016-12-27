@@ -35,6 +35,13 @@
     return [self initWithData:data stride:stride lines:lines];
 }
 
+-(instancetype)initWithPixelBuffer:(CVPixelBufferRef)pixelBuffer
+                             plane:(unsigned int)plane;
+{
+    return [self initWithBytes:CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, plane)
+                        stride:CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, plane)
+                         lines:CVPixelBufferGetHeightOfPlane(pixelBuffer, plane)];
+}
 -(instancetype) copyWithZone:(NSZone *)zone
 {
     return [[OGVVideoPlane alloc] initWithData:[self.data copyWithZone:zone]
