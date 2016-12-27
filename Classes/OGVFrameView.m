@@ -55,6 +55,7 @@ static const GLuint rectanglePoints = 6;
             case kCVPixelFormatType_420YpCbCr8PlanarFullRange: {
                 // First plane holds Y
                 CVOpenGLESTextureRef textureY = [self cacheTextureFormat:GL_LUMINANCE
+                                                                internal:GL_LUMINANCE
                                                                     type:GL_UNSIGNED_BYTE
                                                                    plane:0
                                                                    width:imageSize.width
@@ -68,6 +69,7 @@ static const GLuint rectanglePoints = 6;
                 
                 // Second plane holds Cb
                 CVOpenGLESTextureRef textureCb = [self cacheTextureFormat:GL_LUMINANCE
+                                                                 internal:GL_LUMINANCE
                                                                      type:GL_UNSIGNED_BYTE
                                                                     plane:1
                                                                     width:imageSize.width / 2
@@ -81,6 +83,7 @@ static const GLuint rectanglePoints = 6;
 
                 // Third plane holds Cr
                 CVOpenGLESTextureRef textureCr = [self cacheTextureFormat:GL_LUMINANCE
+                                                                 internal:GL_LUMINANCE
                                                                      type:GL_UNSIGNED_BYTE
                                                                     plane:2
                                                                     width:imageSize.width / 2
@@ -104,6 +107,7 @@ static const GLuint rectanglePoints = 6;
             case kCVPixelFormatType_420YpCbCr8BiPlanarFullRange: {
                 // First plane holds Y
                 CVOpenGLESTextureRef textureY = [self cacheTextureFormat:GL_LUMINANCE
+                                                                internal:GL_LUMINANCE
                                                                     type:GL_UNSIGNED_BYTE
                                                                    plane:0
                                                                    width:imageSize.width
@@ -117,6 +121,7 @@ static const GLuint rectanglePoints = 6;
 
                 // Second plane holds Cb and Cr components
                 CVOpenGLESTextureRef textureCbCr = [self cacheTextureFormat:GL_LUMINANCE_ALPHA
+                                                                   internal:GL_LUMINANCE_ALPHA
                                                                        type:GL_UNSIGNED_BYTE
                                                                       plane:1
                                                                       width:imageSize.width / 2
@@ -139,7 +144,8 @@ static const GLuint rectanglePoints = 6;
             case kCVPixelFormatType_422YpCbCr8FullRange: {
                 // Only plane holds Y, Cb, and Cr packed weirdly.
                 CVOpenGLESTextureRef textureYCbCr = [self cacheTextureFormat:GL_RGB_422_APPLE
-                                                                        type:GL_UNSIGNED_SHORT_8_8_APPLE
+                                                                    internal:GL_RGB
+                                                                        type:GL_UNSIGNED_SHORT_8_8_REV_APPLE
                                                                        plane:0
                                                                        width:imageSize.width
                                                                       height:imageSize.height];
@@ -163,6 +169,7 @@ static const GLuint rectanglePoints = 6;
             case kCVPixelFormatType_4444YpCbCrA8: {
                 // Only plane holds Y, Cb, and Cr packed as separate pixel components.
                 CVOpenGLESTextureRef textureYCbCr = [self cacheTextureFormat:GL_RGBA
+                                                                    internal:GL_BGRA
                                                                         type:GL_UNSIGNED_BYTE
                                                                        plane:0
                                                                        width:imageSize.width
@@ -472,6 +479,7 @@ static const GLuint rectanglePoints = 6;
 }
 
 -(CVOpenGLESTextureRef)cacheTextureFormat:(GLenum)pixelFormat
+                                 internal:(GLenum)internalFormat
                                      type:(GLenum)pixelType
                                     plane:(int)plane
                                     width:(int)width
@@ -484,7 +492,7 @@ static const GLuint rectanglePoints = 6;
                                                                 imageBuffer,
                                                                 NULL, // textureAttributes,
                                                                 GL_TEXTURE_2D,
-                                                                pixelFormat,
+                                                                internalFormat,
                                                                 width,
                                                                 height,
                                                                 pixelFormat,

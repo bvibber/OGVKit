@@ -11,9 +11,9 @@ void main() {
 
    // Now assemble that into a YUV vector, and premultipy the Y...
    vec3 YUV = vec3(
-     vYCbCr.x * 1.1643828125,
-     vYCbCr.y,
-     vYCbCr.z
+     vYCbCr.g * 1.1643828125,
+     vYCbCr.b,
+     vYCbCr.r
    );
    // And convert that to RGB!
    gl_FragColor = vec4(
