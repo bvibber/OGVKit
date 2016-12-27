@@ -95,7 +95,9 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
     _sourceURL = inputStream.URL;
     [self updateTimeLabel];
     if (_inputStream) {
-        state = [[OGVPlayerState alloc] initWithInputStream:_inputStream delegate:self];
+        state = [[OGVPlayerState alloc] initWithInputStream:_inputStream
+                                                   delegate:self
+                                              delegateQueue:NULL];
     }
 }
 
@@ -402,98 +404,112 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
 
 - (void)ogvPlayerState:(OGVPlayerState *)sender drawFrame:(OGVVideoBuffer *)buffer
 {
-    if (sender == state) {
-        if (buffer) {
-            CMSampleBufferRef sampleBuffer = [buffer copyAsSampleBuffer];
-            CMSetAttachment(sampleBuffer, kCMSampleAttachmentKey_DisplayImmediately, kCFBooleanTrue, kCMAttachmentMode_ShouldPropagate);
-            
+    // Copy on the background thread
+    CMSampleBufferRef sampleBuffer = [buffer copyAsSampleBuffer];
+    CMSetAttachment(sampleBuffer, kCMSampleAttachmentKey_DisplayImmediately, kCFBooleanTrue, kCMAttachmentMode_ShouldPropagate);
+    
+    // Draw on the main thread!
+    dispatch_async(dispatch_get_main_queue(), ^() {
+        if (sender == state) {
             //NSLog(@"Layer %d %@", displayLayer.status, displayLayer.error);
             [displayLayer enqueueSampleBuffer:sampleBuffer];
             CFRelease(sampleBuffer);
         }
-    }
+    });
 }
 
 - (void)ogvPlayerStateDidLoadMetadata:(OGVPlayerState *)sender
 {
-    if (sender == state) {
-        if ([self.delegate respondsToSelector:@selector(ogvPlayerDidLoadMetadata:)]) {
-            [self.delegate ogvPlayerDidLoadMetadata:self];
+    dispatch_async(dispatch_get_main_queue(), ^() {
+        if (sender == state) {
+            if ([self.delegate respondsToSelector:@selector(ogvPlayerDidLoadMetadata:)]) {
+                [self.delegate ogvPlayerDidLoadMetadata:self];
+            }
         }
-    }
+    });
 }
 
 - (void)ogvPlayerStateDidPlay:(OGVPlayerState *)sender
 {
-    if (sender == state) {
-        [self.pausePlayButton setTitle:kOGVPlayerIconCharPause forState:UIControlStateNormal];
-        [self.pausePlayButton setTitle:kOGVPlayerIconCharPause forState:UIControlStateHighlighted];
-        [self startTimeTimer];
-        [self updateTimeLabel];
-        
-        [displayLayer flush];
+    dispatch_async(dispatch_get_main_queue(), ^() {
+        if (sender == state) {
+            [self.pausePlayButton setTitle:kOGVPlayerIconCharPause forState:UIControlStateNormal];
+            [self.pausePlayButton setTitle:kOGVPlayerIconCharPause forState:UIControlStateHighlighted];
+            [self startTimeTimer];
+            [self updateTimeLabel];
+            
+            [displayLayer flush];
 
-        if (![self controlsAreVisible]) {
-            [self showControls];
-        }
-        [self startControlsTimeout];
+            if (![self controlsAreVisible]) {
+                [self showControls];
+            }
+            [self startControlsTimeout];
 
-        if ([self.delegate respondsToSelector:@selector(ogvPlayerDidPlay:)]) {
-            [self.delegate ogvPlayerDidPlay:self];
+            if ([self.delegate respondsToSelector:@selector(ogvPlayerDidPlay:)]) {
+                [self.delegate ogvPlayerDidPlay:self];
+            }
         }
-    }
+    });
 }
 
 - (void)ogvPlayerStateDidPause:(OGVPlayerState *)sender
 {
-    if (sender == state) {
-        [self.pausePlayButton setTitle:kOGVPlayerIconCharPlay forState:UIControlStateNormal];
-        [self.pausePlayButton setTitle:kOGVPlayerIconCharPlay forState:UIControlStateHighlighted];
-        [self updateTimeLabel];
-        [self stopTimeTimer];
+    dispatch_async(dispatch_get_main_queue(), ^() {
+        if (sender == state) {
+            [self.pausePlayButton setTitle:kOGVPlayerIconCharPlay forState:UIControlStateNormal];
+            [self.pausePlayButton setTitle:kOGVPlayerIconCharPlay forState:UIControlStateHighlighted];
+            [self updateTimeLabel];
+            [self stopTimeTimer];
 
-        if ([self controlsAreHidden]) {
-            [self showControls];
-        } else {
-            [self stopControlsTimeout];
-        }
+            if ([self controlsAreHidden]) {
+                [self showControls];
+            } else {
+                [self stopControlsTimeout];
+            }
 
-        if ([self.delegate respondsToSelector:@selector(ogvPlayerDidPause:)]) {
-            [self.delegate ogvPlayerDidPause:self];
+            if ([self.delegate respondsToSelector:@selector(ogvPlayerDidPause:)]) {
+                [self.delegate ogvPlayerDidPause:self];
+            }
         }
-    }
+    });
 }
 
 - (void)ogvPlayerStateDidEnd:(OGVPlayerState *)sender
 {
-    if (sender == state) {
-        if ([self.delegate respondsToSelector:@selector(ogvPlayerDidEnd:)]) {
-            [self.delegate ogvPlayerDidEnd:self];
+    dispatch_async(dispatch_get_main_queue(), ^() {
+        if (sender == state) {
+            if ([self.delegate respondsToSelector:@selector(ogvPlayerDidEnd:)]) {
+                [self.delegate ogvPlayerDidEnd:self];
+            }
         }
-    }
+    });
 }
 
 - (void)ogvPlayerStateDidSeek:(OGVPlayerState *)sender
 {
-    if (sender == state) {
-        seeking = NO;
-        self.activityIndicator.hidden = YES;
-        [self.activityIndicator stopAnimating];
-        [self updateTimeLabel];
+    dispatch_async(dispatch_get_main_queue(), ^() {
+        if (sender == state) {
+            seeking = NO;
+            self.activityIndicator.hidden = YES;
+            [self.activityIndicator stopAnimating];
+            [self updateTimeLabel];
 
-        [displayLayer flush];
+            [displayLayer flush];
 
-        if ([self.delegate respondsToSelector:@selector(ogvPlayerDidSeek:)]) {
-            [self.delegate ogvPlayerDidSeek:self];
+            if ([self.delegate respondsToSelector:@selector(ogvPlayerDidSeek:)]) {
+                [self.delegate ogvPlayerDidSeek:self];
+            }
         }
-    }
+    });
 }
 
 - (void)ogvPlayerState:(OGVPlayerState *)state customizeURLRequest:(NSMutableURLRequest *)request
 {
-    if ([self.delegate respondsToSelector:@selector(ogvPlayer:customizeURLRequest:)]) {
-        [self.delegate ogvPlayer:self customizeURLRequest:request];
-    }
+    dispatch_async(dispatch_get_main_queue(), ^() {
+        if ([self.delegate respondsToSelector:@selector(ogvPlayer:customizeURLRequest:)]) {
+            [self.delegate ogvPlayer:self customizeURLRequest:request];
+        }
+    });
 }
 
 @end

@@ -10,6 +10,9 @@
 
 @class OGVPlayerView;
 
+/**
+ * Delegate methods are all called on the main thread.
+ */
 @protocol OGVPlayerDelegate <NSObject>
 
 @optional

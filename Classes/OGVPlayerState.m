@@ -36,17 +36,29 @@
     BOOL ended;
     
     dispatch_queue_t decodeQueue;
-    dispatch_queue_t drawingQueue;
+    dispatch_queue_t delegateQueue;
 }
 
 #pragma mark - Public methods
 
--(instancetype)initWithURL:(NSURL *)URL delegate:(id<OGVPlayerStateDelegate>)aDelegate
+-(instancetype)initWithURL:(NSURL *)URL
+                  delegate:(id<OGVPlayerStateDelegate>)aDelegate
 {
-    return [self initWithInputStream:[OGVInputStream inputStreamWithURL:URL] delegate:delegate];
+    return [self initWithInputStream:[OGVInputStream inputStreamWithURL:URL]
+                            delegate:delegate];
 }
 
--(instancetype)initWithInputStream:(OGVInputStream *)inputStream delegate:(id<OGVPlayerStateDelegate>)aDelegate
+-(instancetype)initWithInputStream:(OGVInputStream *)inputStream
+                          delegate:(id<OGVPlayerStateDelegate>)aDelegate
+{
+    return [self initWithInputStream:inputStream
+                            delegate:aDelegate
+                       delegateQueue:dispatch_get_main_queue()];
+}
+
+-(instancetype)initWithInputStream:(OGVInputStream *)inputStream
+                          delegate:(id<OGVPlayerStateDelegate>)aDelegate
+                     delegateQueue:(dispatch_queue_t)aDelegateQueue
 {
     self = [super init];
     if (self) {
@@ -56,7 +68,7 @@
         decodeQueue = dispatch_queue_create("OGVKit.Decoder", NULL);
 
         // draw on UI thread
-        drawingQueue = dispatch_get_main_queue();
+        delegateQueue = aDelegateQueue;
 
         stream = inputStream;
         initTime = 0;
@@ -107,11 +119,9 @@
 
         if (playing) {
             playing = NO;
-            dispatch_async(drawingQueue, ^() {
-                if ([delegate respondsToSelector:@selector(ogvPlayerStateDidPause:)]) {
-                    [delegate ogvPlayerStateDidPause:self];
-                }
-            });
+            [self callDelegateSelector:@selector(ogvPlayerStateDidPause:) sync:NO withBlock:^() {
+                [delegate ogvPlayerStateDidPause:self];
+            }];
         }
     });
 }
@@ -169,11 +179,9 @@
                         audioPausePosition = time;
                     }
 
-                    dispatch_async(drawingQueue, ^() {
-                        if ([delegate respondsToSelector:@selector(ogvPlayerStateDidSeek:)]) {
-                            [delegate ogvPlayerStateDidSeek:self];
-                        }
-                    });
+                    [self callDelegateSelector:@selector(ogvPlayerStateDidSeek:) sync:NO withBlock:^() {
+                        [delegate ogvPlayerStateDidSeek:self];
+                    }];
                     if (wasPlaying) {
                         [self play];
                     } else if (decoder.hasVideo) {
@@ -237,6 +245,21 @@
 
 #pragma mark - Private decode thread methods
 
+- (void)callDelegateSelector:(SEL)selector sync:(BOOL)sync withBlock:(void(^)())block
+{
+    if ([delegate respondsToSelector:selector]) {
+        if (delegateQueue) {
+            if (sync) {
+                dispatch_sync(delegateQueue, block);
+            } else {
+                dispatch_async(delegateQueue, block);
+            }
+        } else {
+            block();
+        }
+    }
+}
+
 - (void)startDecoder
 {
     decoder = [[OGVKit singleton] decoderForType:stream.mediaType];
@@ -264,11 +287,9 @@
         [self startAudio:offset];
     }
 
-    dispatch_async(drawingQueue, ^() {
-        if ([delegate respondsToSelector:@selector(ogvPlayerStateDidPlay:)]) {
-            [delegate ogvPlayerStateDidPlay:self];
-        }
-    });
+    [self callDelegateSelector:@selector(ogvPlayerStateDidPlay:) sync:NO withBlock:^() {
+        [delegate ogvPlayerStateDidPlay:self];
+    }];
     [self pingProcessing:0];
 }
 
@@ -316,9 +337,9 @@
     BOOL ok = [decoder process];
     if (ok) {
         if (decoder.dataReady) {
-            if ([delegate respondsToSelector:@selector(ogvPlayerStateDidLoadMetadata:)]) {
+            [self callDelegateSelector:@selector(ogvPlayerStateDidLoadMetadata:) sync:NO withBlock:^() {
                 [delegate ogvPlayerStateDidLoadMetadata:self];
-            }
+            }];
             if (playAfterLoad) {
                 playAfterLoad = NO;
                 [self startPlayback:0];
@@ -367,11 +388,9 @@
                 } else {
                     [self pause];
                     ended = YES;
-                    dispatch_async(drawingQueue, ^{
-                        if ([delegate respondsToSelector:@selector(ogvPlayerStateDidEnd:)]) {
-                            [delegate ogvPlayerStateDidEnd:self];
-                        }
-                    });
+                    [self callDelegateSelector:@selector(ogvPlayerStateDidEnd:) sync:NO withBlock:^() {
+                        [delegate ogvPlayerStateDidEnd:self];
+                    }];
                 }
                 return;
             }
@@ -538,11 +557,10 @@
     OGVVideoBuffer *buffer = decoder.frameBuffer;
     frameEndTimestamp = buffer.timestamp;
     //NSLog(@"frame: %f %f", frameEndTimestamp, self.playbackPosition);
-    dispatch_async(drawingQueue, ^() {
-        if (decoder) {
-            [delegate ogvPlayerState:self drawFrame:buffer];
-        }
-    });
+    // Note: this must be sync because memory may belong to the decoder!
+    [self callDelegateSelector:@selector(ogvPlayerState:drawFrame:) sync:YES withBlock:^() {
+        [delegate ogvPlayerState:self drawFrame:buffer];
+    }];
 }
 
 -(BOOL)syncAfterSeek:(float)target exact:(BOOL)exact
@@ -612,9 +630,9 @@
 
 -(void)OGVInputStream:(OGVInputStream *)sender customizeURLRequest:(NSMutableURLRequest *)request
 {
-    if ([delegate respondsToSelector:@selector(ogvPlayerState:customizeURLRequest:)]) {
+    [self callDelegateSelector:@selector(ogvPlayerState:customizeURLRequest:) sync:YES withBlock:^() {
         [delegate ogvPlayerState:self customizeURLRequest:request];
-    }
+    }];
 }
 
 @end
