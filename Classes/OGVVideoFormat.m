@@ -145,8 +145,7 @@
                 pixelFormat = @(kCVPixelFormatType_444YpCbCr8);
                 break;
         }
-        NSDictionary *poolOpts = @{(id)kCVPixelBufferPoolMinimumBufferCountKey: @1,
-                                   (id)kCVPixelBufferPoolMaximumBufferAgeKey: @1.0};
+        NSDictionary *poolOpts = @{(id)kCVPixelBufferPoolMinimumBufferCountKey: @1};
         NSDictionary *opts = @{(id)kCVPixelBufferWidthKey: @(self.frameWidth),
                                (id)kCVPixelBufferHeightKey: @(self.frameHeight),
                                (id)kCVPixelBufferIOSurfacePropertiesKey: @{},
