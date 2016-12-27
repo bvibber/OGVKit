@@ -413,8 +413,8 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
         if (sender == state) {
             //NSLog(@"Layer %d %@", displayLayer.status, displayLayer.error);
             [displayLayer enqueueSampleBuffer:sampleBuffer];
-            CFRelease(sampleBuffer);
         }
+        CFRelease(sampleBuffer);
     });
 }
 
