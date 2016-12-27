@@ -2,22 +2,20 @@
 
 precision mediump float;
 uniform sampler2D uTextureY;
-uniform sampler2D uTextureCb;
-uniform sampler2D uTextureCr;
+uniform sampler2D uTextureCbCr;
 varying vec2 vLumaPosition;
 varying vec2 vChromaPosition;
 
 void main() {
    // Y, Cb, and Cr planes are uploaded as LUMINANCE textures.
    vec4 vY = texture2D(uTextureY, vLumaPosition);
-   vec4 vCb = texture2D(uTextureCb, vChromaPosition);
-   vec4 vCr = texture2D(uTextureCr, vChromaPosition);
+   vec4 vCbCr = texture2D(uTextureCbCr, vChromaPosition);
 
    // Now assemble that into a YUV vector, and premultipy the Y...
    vec3 YUV = vec3(
      vY.x * 1.1643828125,
-     vCb.x,
-     vCr.x
+     vCbCr.x,
+     vCbCr.w
    );
    // And convert that to RGB!
    gl_FragColor = vec4(

@@ -10,6 +10,8 @@
 
 @import CoreText;
 
+//#define USE_LAYER 1
+
 static NSString *kOGVPlayerTimeLabelEmpty = @"-:--";
 
 // Icons from Font Awesome custom subset
@@ -46,7 +48,11 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
     NSTimer *controlsTimeout;
     NSTimer *seekTimeout;
     BOOL seeking;
+#ifdef USE_LAYER
     AVSampleBufferDisplayLayer *displayLayer;
+#else
+    OGVFrameView *frameView;
+#endif
 }
 
 #pragma mark - Public methods
@@ -88,7 +94,11 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
 {
     if (state) {
         [state cancel];
+#ifdef USE_LAYER
         [displayLayer flushAndRemoveImage];
+#else
+        [frameView clearFrame];
+#endif
         state = nil;
     }
     _inputStream = inputStream;
@@ -151,7 +161,11 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
 -(void)layoutSubviews
 {
     [super layoutSubviews];
+#ifdef USE_LAYER
     displayLayer.frame = self.bounds;
+#else
+    frameView.frame = self.bounds;
+#endif
 }
 
 #pragma mark - private methods
@@ -168,9 +182,16 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
     }
     
     // Output layer
+#ifdef USE_LAYER
     displayLayer = [[AVSampleBufferDisplayLayer alloc] init];
     displayLayer.frame = self.bounds;
     [self.layer addSublayer:displayLayer];
+#else
+    EAGLContext *context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3];
+    frameView = [[OGVFrameView alloc] initWithFrame:self.bounds
+                                            context:context];
+    [self addSubview:frameView];
+#endif
 
     // Controls
     UINib *nib = [UINib nibWithNibName:@"OGVPlayerView" bundle:bundle];
@@ -411,8 +432,12 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
     // Draw on the main thread!
     dispatch_async(dispatch_get_main_queue(), ^() {
         if (sender == state) {
+#ifdef USE_LAYER
             //NSLog(@"Layer %d %@", displayLayer.status, displayLayer.error);
             [displayLayer enqueueSampleBuffer:sampleBuffer];
+#else
+            [frameView drawSampleBuffer:sampleBuffer];
+#endif
         }
         CFRelease(sampleBuffer);
     });
@@ -438,7 +463,9 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
             [self startTimeTimer];
             [self updateTimeLabel];
             
+#ifdef USE_LAYER
             [displayLayer flush];
+#endif
 
             if (![self controlsAreVisible]) {
                 [self showControls];
@@ -494,7 +521,9 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
             [self.activityIndicator stopAnimating];
             [self updateTimeLabel];
 
+#ifdef USE_LAYER
             [displayLayer flush];
+#endif
 
             if ([self.delegate respondsToSelector:@selector(ogvPlayerDidSeek:)]) {
                 [self.delegate ogvPlayerDidSeek:self];

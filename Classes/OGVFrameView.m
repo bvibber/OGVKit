@@ -14,14 +14,12 @@
 static const GLuint rectanglePoints = 6;
 
 @implementation OGVFrameView {
-    OGVVideoFormat *format;
-    OGVVideoBuffer *nextFrame;
+    CMSampleBufferRef sampleBuffer;
     GLuint vertexShader;
     GLuint fragmentShader;
     GLuint program;
-    GLuint textures[3];
-    GLuint textureWidth[3];
-    GLuint textureHeight[3];
+    CVOpenGLESTextureCacheRef textureCache;
+    NSArray *texturesToFree;
 }
 
 #pragma mark GLKView method overrides
@@ -30,27 +28,42 @@ static const GLuint rectanglePoints = 6;
 {
     [self setupGLStuff];
     
-    glClearColor(0, 0, 0, 1);
-    [self debugCheck];
+    // Clear out any old textures if we have some left over.
+    // We didn't CFRelease() them during last drawing to make sure safe
+    texturesToFree = nil;
+    CVOpenGLESTextureCacheFlush(textureCache, 0);
 
-    glDepthMask(GL_TRUE); // voodoo from http://stackoverflow.com/questions/5470822/ios-opengl-es-logical-buffer-loads
-    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-    [self debugCheck];
-
-    if (nextFrame) {
+    if (sampleBuffer) {
         GLuint rectangleBuffer = [self setupPosition:@"aPosition"
                                                width:self.frame.size.width
                                               height:self.frame.size.height];
+
+        CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
+        CGSize imageSize = CVImageBufferGetEncodedSize(imageBuffer);
+        
+        CVOpenGLESTextureRef textureY = [self cacheTextureFormat:GL_LUMINANCE
+                                                           plane:0
+                                                           width:imageSize.width
+                                                          height:imageSize.height];
+        [self attachTexture:textureY
+                       name:@"uTextureY"
+                        reg:GL_TEXTURE0
+                      index:0];
+
+        CVOpenGLESTextureRef textureCbCr = [self cacheTextureFormat:GL_LUMINANCE_ALPHA
+                                                              plane:1
+                                                              width:imageSize.width / 2
+                                                             height:imageSize.height / 2];
+        [self attachTexture:textureCbCr
+                       name:@"uTextureCbCr"
+                        reg:GL_TEXTURE1
+                      index:1];
         
         GLuint lumaPositionBuffer = [self setupTexturePosition:@"aLumaPosition"
-                                                         width:nextFrame.Y.stride
-                                                        height:nextFrame.Y.lines];
-
+                                                       texture:textureY];
+        
         GLuint chromaPositionBuffer = [self setupTexturePosition:@"aChromaPosition"
-                                                           width:nextFrame.Cb.stride * (format.lumaWidth / format.chromaWidth)
-                                                          height:nextFrame.Cb.lines * (format.lumaHeight / format.chromaHeight)];
-
-        // Note: moved texture attachment out of here
+                                                         texture:textureCbCr];
         
         glDrawArrays(GL_TRIANGLES, 0, rectanglePoints);
         [self debugCheck];
@@ -62,7 +75,18 @@ static const GLuint rectanglePoints = 6;
         glDeleteBuffers(1, &rectangleBuffer);
         [self debugCheck];
         
-        // @todo destroy textures when tearing down, do we need to?
+        // These'll get freed on next draw, so don't have to issue glFlush()
+        texturesToFree = @[(__bridge id)textureY, (__bridge id)textureCbCr];
+        CFRelease(textureY);
+        CFRelease(textureCbCr);
+    } else {
+        glClearColor(0, 0, 0, 1);
+        [self debugCheck];
+        
+        glDepthMask(GL_TRUE); // voodoo from http://stackoverflow.com/questions/5470822/ios-opengl-es-logical-buffer-loads
+        
+        glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+        [self debugCheck];
     }
     
 }
@@ -76,43 +100,44 @@ static const GLuint rectanglePoints = 6;
     [self setNeedsDisplay];
 }
 
+-(void)dealloc
+{
+    if (sampleBuffer) {
+        CFRelease(sampleBuffer);
+    }
+}
+
 #pragma mark OGVFrameView methods
 
 // call me on the main thread
 - (void)drawFrame:(OGVVideoBuffer *)buffer
 {
-    // Initialize GL context if we haven't already
-    assert(self.context);
-    [EAGLContext setCurrentContext:self.context];
-    [self setupGLStuff];
+    // Copy into GPU memory
+    if (sampleBuffer) {
+        CFRelease(sampleBuffer);
+    }
+    sampleBuffer = [buffer copyAsSampleBuffer];
 
-    nextFrame = buffer;
-    format = buffer.format;
+    [self setNeedsDisplay];
+}
+
+- (void)drawSampleBuffer:(CMSampleBufferRef)buffer;
+{
+    if (sampleBuffer) {
+        CFRelease(sampleBuffer);
+    }
+    sampleBuffer = buffer;
+    CFRetain(sampleBuffer);
     
-    // Upload the textures now, they may not last
-    // @todo don't keep the frame structure beyond this, just keep the dimension info
-    [self attachTexture:@"uTextureY"
-                    reg:GL_TEXTURE0
-                  index:0
-                  plane:nextFrame.Y];
-    
-    [self attachTexture:@"uTextureCb"
-                    reg:GL_TEXTURE1
-                  index:1
-                  plane:nextFrame.Cb];
-    
-    [self attachTexture:@"uTextureCr"
-                    reg:GL_TEXTURE2
-                  index:2
-                  plane:nextFrame.Cr];
-    //[self drawRect:self.frame];
     [self setNeedsDisplay];
 }
 
 - (void)clearFrame
 {
-    nextFrame = nil;
-    format = nil;
+    if (sampleBuffer) {
+        CFRelease(sampleBuffer);
+        sampleBuffer = nil;
+    }
     [self setNeedsDisplay];
 }
 
@@ -121,6 +146,16 @@ static const GLuint rectanglePoints = 6;
 -(void)setupGLStuff
 {
     if (!program) {
+        CVReturn ret = CVOpenGLESTextureCacheCreate(NULL,
+                                                    NULL, // cache attribs,
+                                                    self.context,
+                                                    NULL, // texture attribs,
+                                                    &textureCache);
+        if (ret != kCVReturnSuccess) {
+            [NSException raise:@"OGVFrameViewException"
+                        format:@"CVOpenGLESTextureCacheCreate failed (%d)", ret];
+        }
+
         vertexShader = [self compileShader:GL_VERTEX_SHADER];
         fragmentShader = [self compileShader:GL_FRAGMENT_SHADER];
         
@@ -183,7 +218,10 @@ static const GLuint rectanglePoints = 6;
     [self debugCheck];
     
     // Set the aspect ratio
-    GLfloat frameAspect = (float)nextFrame.format.pictureWidth / (float)nextFrame.format.pictureHeight;
+    CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
+    CGSize displaySize = CVImageBufferGetDisplaySize(imageBuffer);
+
+    GLfloat frameAspect = displaySize.width / displaySize.height;
     GLfloat viewAspect = (float)width / (float)height;
     GLfloat scaleX, scaleY;
 
@@ -223,20 +261,22 @@ static const GLuint rectanglePoints = 6;
     return rectangleBuffer;
 }
 
--(GLuint)setupTexturePosition:(NSString *)varname width:(int)texWidth height:(int)texHeight
+-(GLuint)setupTexturePosition:(NSString *)varname texture:(CVOpenGLESTextureRef)texture
 {
-    // Don't forget we're upside-down in OpenGL coordinate space
-    GLfloat textureX0 = (float)nextFrame.format.pictureOffsetX / texWidth;
-    GLfloat textureX1 = (float)(nextFrame.format.pictureOffsetX + nextFrame.format.pictureWidth) / texWidth;
-    GLfloat textureY0 = (float)(nextFrame.format.pictureOffsetY + nextFrame.format.pictureHeight) / texHeight;
-    GLfloat textureY1 = (float)nextFrame.format.pictureOffsetY / texHeight;
+    GLfloat lowerLeft[2];
+    GLfloat lowerRight[2];
+    GLfloat upperRight[2];
+    GLfloat upperLeft[2];
+    CVOpenGLESTextureGetCleanTexCoords(texture, lowerLeft, lowerRight, upperRight, upperLeft);
+
     const GLfloat textureRectangle[] = {
-        textureX0, textureY0,
-        textureX1, textureY0,
-        textureX0, textureY1,
-        textureX0, textureY1,
-        textureX1, textureY0,
-        textureX1, textureY1
+        lowerLeft[0], lowerLeft[1],
+        lowerRight[0], lowerRight[1],
+        upperLeft[0], upperLeft[1],
+
+        upperLeft[0], upperLeft[1],
+        lowerRight[0], lowerRight[1],
+        upperRight[0], upperRight[1]
     };
     
     GLuint texturePositionBuffer;
@@ -257,80 +297,55 @@ static const GLuint rectanglePoints = 6;
     return texturePositionBuffer;
 }
 
--(GLuint)attachTexture:(NSString *)varname
-                   reg:(GLenum)reg
-                 index:(GLuint)index
-                 plane:(OGVVideoPlane *)plane
+-(void)attachTexture:(CVOpenGLESTextureRef)texture
+                name:(NSString *)varname
+                 reg:(GLenum)reg
+               index:(GLuint)index
 {
-    GLuint texture = textures[index];
-    GLuint texWidth = plane.stride;
-    GLuint texHeight = plane.lines;
-    NSData *data = plane.data;
     
-    if (texture != 0 && textureWidth[index] == texWidth && textureHeight[index] == texHeight) {
-        // Reuse & update the existing texture
-        texture = textures[index];
+    glActiveTexture(reg);
+    [self debugCheck];
+    glBindTexture(CVOpenGLESTextureGetTarget(texture), CVOpenGLESTextureGetName(texture));
+    [self debugCheck];
 
-        glActiveTexture(reg);
-        [self debugCheck];
-        
-        glTexSubImage2D(GL_TEXTURE_2D,
-                        0, // mip level
-                        0, // x
-                        0, // y
-                        texWidth,
-                        texHeight,
-                        GL_LUMINANCE, // format
-                        GL_UNSIGNED_BYTE,
-                        [data bytes]);
-        [self debugCheck];
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    [self debugCheck];
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    [self debugCheck];
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    [self debugCheck];
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    [self debugCheck];
 
-    } else {
-        // Create a new texture!
-        if (texture) {
-            glDeleteTextures(1, &texture);
-            [self debugCheck];
-        }
-        glGenTextures(1, &texture);
-        [self debugCheck];
-        textures[index] = texture;
-        
-        // Save the size for later
-        textureWidth[index] = texWidth;
-        textureHeight[index] = texHeight;
-        
-        glActiveTexture(reg);
-        [self debugCheck];
+    GLuint uniformLoc = glGetUniformLocation(program, [varname UTF8String]);
+    [self debugCheck];
+    glUniform1i(uniformLoc, index);
+    [self debugCheck];
+}
 
-        glBindTexture(GL_TEXTURE_2D, texture);
-        [self debugCheck];
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        [self debugCheck];
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        [self debugCheck];
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        [self debugCheck];
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        [self debugCheck];
-        
-        GLuint uniformLoc = glGetUniformLocation(program, [varname UTF8String]);
-        [self debugCheck];
-        
-        glUniform1i(uniformLoc, index);
-        [self debugCheck];
-
-        glTexImage2D(GL_TEXTURE_2D,
-                     0, // mip level
-                     GL_LUMINANCE, // internal format
-                     texWidth,
-                     texHeight,
-                     0, // border
-                     GL_LUMINANCE, // format
-                     GL_UNSIGNED_BYTE,
-                     [data bytes]);
-        [self debugCheck];
+-(CVOpenGLESTextureRef)cacheTextureFormat:(GLenum)pixelFormat
+                                    plane:(int)plane
+                                    width:(int)width
+                                   height:(int)height
+{
+    CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
+    CVOpenGLESTextureRef texture = NULL;
+    CVReturn ret = CVOpenGLESTextureCacheCreateTextureFromImage(NULL, // allocator
+                                                                textureCache,
+                                                                imageBuffer,
+                                                                NULL, // textureAttributes,
+                                                                GL_TEXTURE_2D,
+                                                                pixelFormat,
+                                                                width,
+                                                                height,
+                                                                pixelFormat,
+                                                                GL_UNSIGNED_BYTE,
+                                                                plane,
+                                                                &texture);
+    if (ret != kCVReturnSuccess) {
+        [NSException raise:@"OGVFrameViewException"
+                    format:@"CVOpenGLESTextureCacheCreateTextureFromImage failed (%d)", ret];
     }
-    
     return texture;
 }
 
