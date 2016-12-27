@@ -7,7 +7,8 @@ varying vec2 vLumaPosition;
 varying vec2 vChromaPosition;
 
 void main() {
-   // Y, Cb, and Cr planes are uploaded as LUMINANCE textures.
+   // Y is in one plane as LUMINANCE texture.
+   // Cb and Cr are packed into second plane as LUMINANCE_ALPHA texture.
    vec4 vY = texture2D(uTextureY, vLumaPosition);
    vec4 vCbCr = texture2D(uTextureCbCr, vChromaPosition);
 

@@ -8,6 +8,8 @@
 
 #import "OGVKit.h"
 
+#import <OpenGLES/ES2/glext.h>
+
 // In the world of GL there are no rectangles.
 // There are only triangles.
 // THERE IS NO SPOON.
@@ -20,18 +22,19 @@ static const GLuint rectanglePoints = 6;
     GLuint program;
     CVOpenGLESTextureCacheRef textureCache;
     NSArray *texturesToFree;
+    CMPixelFormatType currentPixelFormat;
 }
 
 #pragma mark GLKView method overrides
 
 - (void)drawRect:(CGRect)rect
 {
-    [self setupGLStuff];
-    
-    // Clear out any old textures if we have some left over.
-    // We didn't CFRelease() them during last drawing to make sure safe
-    texturesToFree = nil;
-    CVOpenGLESTextureCacheFlush(textureCache, 0);
+    if (textureCache) {
+        // Clear out any old textures if we have some left over.
+        // We didn't CFRelease() them during last drawing to make sure safe
+        texturesToFree = nil;
+        CVOpenGLESTextureCacheFlush(textureCache, 0);
+    }
 
     if (sampleBuffer) {
         GLuint rectangleBuffer = [self setupPosition:@"aPosition"
@@ -41,44 +44,160 @@ static const GLuint rectanglePoints = 6;
         CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
         CGSize imageSize = CVImageBufferGetEncodedSize(imageBuffer);
         
-        CVOpenGLESTextureRef textureY = [self cacheTextureFormat:GL_LUMINANCE
-                                                           plane:0
-                                                           width:imageSize.width
-                                                          height:imageSize.height];
-        [self attachTexture:textureY
-                       name:@"uTextureY"
-                        reg:GL_TEXTURE0
-                      index:0];
+        GLuint lumaPositionBuffer = 0;
+        GLuint chromaPositionBuffer = 0;
 
-        CVOpenGLESTextureRef textureCbCr = [self cacheTextureFormat:GL_LUMINANCE_ALPHA
-                                                              plane:1
-                                                              width:imageSize.width / 2
-                                                             height:imageSize.height / 2];
-        [self attachTexture:textureCbCr
-                       name:@"uTextureCbCr"
-                        reg:GL_TEXTURE1
-                      index:1];
+        int pixelFormat = CVPixelBufferGetPixelFormatType(imageBuffer);
+        [self setupGLStuff:pixelFormat];
         
-        GLuint lumaPositionBuffer = [self setupTexturePosition:@"aLumaPosition"
-                                                       texture:textureY];
-        
-        GLuint chromaPositionBuffer = [self setupTexturePosition:@"aChromaPosition"
-                                                         texture:textureCbCr];
+        switch (pixelFormat) {
+            case kCVPixelFormatType_420YpCbCr8Planar:
+            case kCVPixelFormatType_420YpCbCr8PlanarFullRange: {
+                // First plane holds Y
+                CVOpenGLESTextureRef textureY = [self cacheTextureFormat:GL_LUMINANCE
+                                                                    type:GL_UNSIGNED_BYTE
+                                                                   plane:0
+                                                                   width:imageSize.width
+                                                                  height:imageSize.height];
+                lumaPositionBuffer = [self setupTexturePosition:@"aLumaPosition"
+                                                        texture:textureY];
+                [self attachTexture:textureY
+                               name:@"uTextureY"
+                                reg:GL_TEXTURE0
+                              index:0];
+                
+                // Second plane holds Cb
+                CVOpenGLESTextureRef textureCb = [self cacheTextureFormat:GL_LUMINANCE
+                                                                     type:GL_UNSIGNED_BYTE
+                                                                    plane:1
+                                                                    width:imageSize.width / 2
+                                                                   height:imageSize.height / 2];
+                chromaPositionBuffer = [self setupTexturePosition:@"aChromaPosition"
+                                                          texture:textureCb];
+                [self attachTexture:textureCb
+                               name:@"uTextureCb"
+                                reg:GL_TEXTURE1
+                              index:1];
+
+                // Third plane holds Cr
+                CVOpenGLESTextureRef textureCr = [self cacheTextureFormat:GL_LUMINANCE
+                                                                     type:GL_UNSIGNED_BYTE
+                                                                    plane:2
+                                                                    width:imageSize.width / 2
+                                                                   height:imageSize.height / 2];
+                //chromaPositionBuffer = [self setupTexturePosition:@"aChromaPosition"
+                //                                          texture:textureCr];
+                [self attachTexture:textureCr
+                               name:@"uTextureCr"
+                                reg:GL_TEXTURE1
+                              index:1];
+
+                // These'll get freed on next draw, after drawing is complete.
+                texturesToFree = @[(__bridge id)textureY, (__bridge id)textureCb, (__bridge id)textureCr];
+                CFRelease(textureY);
+                CFRelease(textureCb);
+                CFRelease(textureCr);
+                break;
+            }
+            
+            case kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange:
+            case kCVPixelFormatType_420YpCbCr8BiPlanarFullRange: {
+                // First plane holds Y
+                CVOpenGLESTextureRef textureY = [self cacheTextureFormat:GL_LUMINANCE
+                                                                    type:GL_UNSIGNED_BYTE
+                                                                   plane:0
+                                                                   width:imageSize.width
+                                                                  height:imageSize.height];
+                lumaPositionBuffer = [self setupTexturePosition:@"aLumaPosition"
+                                                        texture:textureY];
+                [self attachTexture:textureY
+                               name:@"uTextureY"
+                                reg:GL_TEXTURE0
+                              index:0];
+
+                // Second plane holds Cb and Cr components
+                CVOpenGLESTextureRef textureCbCr = [self cacheTextureFormat:GL_LUMINANCE_ALPHA
+                                                                       type:GL_UNSIGNED_BYTE
+                                                                      plane:1
+                                                                      width:imageSize.width / 2
+                                                                     height:imageSize.height / 2];
+                chromaPositionBuffer = [self setupTexturePosition:@"aChromaPosition"
+                                                          texture:textureCbCr];
+                [self attachTexture:textureCbCr
+                               name:@"uTextureCbCr"
+                                reg:GL_TEXTURE1
+                              index:1];
+            
+                // These'll get freed on next draw, after drawing is complete.
+                texturesToFree = @[(__bridge id)textureY, (__bridge id)textureCbCr];
+                CFRelease(textureY);
+                CFRelease(textureCbCr);
+                break;
+            }
+            
+            case kCVPixelFormatType_422YpCbCr8_yuvs:
+            case kCVPixelFormatType_422YpCbCr8FullRange: {
+                // Only plane holds Y, Cb, and Cr packed weirdly.
+                CVOpenGLESTextureRef textureYCbCr = [self cacheTextureFormat:GL_RGB_422_APPLE
+                                                                        type:GL_UNSIGNED_SHORT_8_8_APPLE
+                                                                       plane:0
+                                                                       width:imageSize.width
+                                                                      height:imageSize.height];
+                lumaPositionBuffer = [self setupTexturePosition:@"aLumaPosition"
+                                                        texture:textureYCbCr];
+                chromaPositionBuffer = [self setupTexturePosition:@"aChromaPosition"
+                                                        texture:textureYCbCr];
+                [self attachTexture:textureYCbCr
+                               name:@"uTextureYCbCr"
+                                reg:GL_TEXTURE0
+                              index:0];
+                
+                // These'll get freed on next draw, after drawing is complete.
+                texturesToFree = @[(__bridge id)textureYCbCr];
+                CFRelease(textureYCbCr);
+                break;
+            }
+            
+            case kCVPixelFormatType_444YpCbCr8:
+            case kCVPixelFormatType_4444AYpCbCr8:
+            case kCVPixelFormatType_4444YpCbCrA8: {
+                // Only plane holds Y, Cb, and Cr packed as separate pixel components.
+                CVOpenGLESTextureRef textureYCbCr = [self cacheTextureFormat:GL_RGBA
+                                                                        type:GL_UNSIGNED_BYTE
+                                                                       plane:0
+                                                                       width:imageSize.width
+                                                                      height:imageSize.height];
+                lumaPositionBuffer = [self setupTexturePosition:@"aLumaPosition"
+                                                        texture:textureYCbCr];
+                [self attachTexture:textureYCbCr
+                               name:@"uTextureYCbCr"
+                                reg:GL_TEXTURE0
+                              index:0];
+                
+                // These'll get freed on next draw, after drawing is complete.
+                texturesToFree = @[(__bridge id)textureYCbCr];
+                CFRelease(textureYCbCr);
+                break;
+            }
+            
+            default:
+            [NSException raise:@"OGVFrameViewException"
+                        format:@"unexpected pixel format %d", CVPixelBufferGetPixelFormatType(imageBuffer)];
+        }
         
         glDrawArrays(GL_TRIANGLES, 0, rectanglePoints);
         [self debugCheck];
         
-        glDeleteBuffers(1, &chromaPositionBuffer);
-        [self debugCheck];
-        glDeleteBuffers(1, &lumaPositionBuffer);
-        [self debugCheck];
+        if (chromaPositionBuffer) {
+            glDeleteBuffers(1, &chromaPositionBuffer);
+            [self debugCheck];
+        }
+        if (lumaPositionBuffer) {
+            glDeleteBuffers(1, &lumaPositionBuffer);
+            [self debugCheck];
+        }
         glDeleteBuffers(1, &rectangleBuffer);
         [self debugCheck];
-        
-        // These'll get freed on next draw, so don't have to issue glFlush()
-        texturesToFree = @[(__bridge id)textureY, (__bridge id)textureCbCr];
-        CFRelease(textureY);
-        CFRelease(textureCbCr);
     } else {
         glClearColor(0, 0, 0, 1);
         [self debugCheck];
@@ -143,9 +262,9 @@ static const GLuint rectanglePoints = 6;
 
 #pragma mark Private methods
 
--(void)setupGLStuff
+-(void)setupGLStuff:(int)pixelFormat
 {
-    if (!program) {
+    if (!textureCache) {
         CVReturn ret = CVOpenGLESTextureCacheCreate(NULL,
                                                     NULL, // cache attribs,
                                                     self.context,
@@ -155,9 +274,38 @@ static const GLuint rectanglePoints = 6;
             [NSException raise:@"OGVFrameViewException"
                         format:@"CVOpenGLESTextureCacheCreate failed (%d)", ret];
         }
+    }
 
-        vertexShader = [self compileShader:GL_VERTEX_SHADER];
-        fragmentShader = [self compileShader:GL_FRAGMENT_SHADER];
+    if (program && pixelFormat != currentPixelFormat) {
+        glDeleteProgram(program);
+        program = 0;
+    }
+    
+    if (!program) {
+        currentPixelFormat = pixelFormat;
+        NSString *shaderMethod;
+        switch (pixelFormat) {
+            case kCVPixelFormatType_420YpCbCr8Planar:
+            case kCVPixelFormatType_420YpCbCr8PlanarFullRange:
+                shaderMethod = @"planar";
+                break;
+            case kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange:
+            case kCVPixelFormatType_420YpCbCr8BiPlanarFullRange:
+                shaderMethod = @"biplanar";
+                break;
+            case kCVPixelFormatType_422YpCbCr8_yuvs:
+            case kCVPixelFormatType_422YpCbCr8FullRange:
+            case kCVPixelFormatType_444YpCbCr8:
+            case kCVPixelFormatType_4444AYpCbCr8:
+            case kCVPixelFormatType_4444YpCbCrA8:
+                shaderMethod = @"component";
+                break;
+            default:
+                [NSException raise:@"OGVFrameViewException"
+                            format:@"Unknown pixel format %d", pixelFormat];
+        }
+        vertexShader = [self compileShader:@"OGVFrameView" type:GL_VERTEX_SHADER];
+        fragmentShader = [self compileShader:[@"OGVFrameView-" stringByAppendingString:shaderMethod] type:GL_FRAGMENT_SHADER];
         
         program = glCreateProgram();
         [self debugCheck];
@@ -172,11 +320,11 @@ static const GLuint rectanglePoints = 6;
     }
 }
 
--(GLuint)compileShader:(GLenum)shaderType
+-(GLuint)compileShader:(NSString *)name type:(GLenum)shaderType
 {
     NSBundle *bundle = [[OGVKit singleton] resourceBundle];
     NSString *ext = [self extensionForShaderType:shaderType];
-    NSString *path = [bundle pathForResource:@"OGVFrameView" ofType:ext];
+    NSString *path = [bundle pathForResource:name ofType:ext];
     NSData *source = [NSData dataWithContentsOfFile:path];
 
     GLuint shader = glCreateShader(shaderType);
@@ -324,6 +472,7 @@ static const GLuint rectanglePoints = 6;
 }
 
 -(CVOpenGLESTextureRef)cacheTextureFormat:(GLenum)pixelFormat
+                                     type:(GLenum)pixelType
                                     plane:(int)plane
                                     width:(int)width
                                    height:(int)height
@@ -339,7 +488,7 @@ static const GLuint rectanglePoints = 6;
                                                                 width,
                                                                 height,
                                                                 pixelFormat,
-                                                                GL_UNSIGNED_BYTE,
+                                                                pixelType,
                                                                 plane,
                                                                 &texture);
     if (ret != kCVReturnSuccess) {

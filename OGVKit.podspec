@@ -62,7 +62,9 @@ Pod::Spec.new do |s|
 
     score.resource_bundle = {
       'OGVKitResources' => [
-        'Resources/OGVFrameView.fsh',
+        'Resources/OGVFrameView-planar.fsh',
+        'Resources/OGVFrameView-biplanar.fsh',
+        'Resources/OGVFrameView-component.fsh',
         'Resources/OGVFrameView.vsh',
         'Resources/OGVPlayerView.xib',
         'Resources/ogvkit-iconfont.ttf'

@@ -148,7 +148,9 @@
         NSDictionary *poolOpts = @{(id)kCVPixelBufferPoolMinimumBufferCountKey: @1};
         NSDictionary *opts = @{(id)kCVPixelBufferWidthKey: @(self.frameWidth),
                                (id)kCVPixelBufferHeightKey: @(self.frameHeight),
-                               (id)kCVPixelBufferIOSurfacePropertiesKey: @{},
+                               //(id)kCVPixelBufferIOSurfacePropertiesKey: @{},
+                               (id)kCVPixelBufferOpenGLESCompatibilityKey: @YES,
+                               (id)kCVPixelBufferOpenGLESTextureCacheCompatibilityKey: @YES,
                                (id)kCVPixelBufferPixelFormatTypeKey: pixelFormat};
         CVReturn ret = CVPixelBufferPoolCreate(NULL,
                                                (__bridge CFDictionaryRef _Nullable)(poolOpts),
