@@ -35,7 +35,6 @@ static const GLuint rectanglePoints = 6;
         // Clear out any old textures if we have some left over.
         // We didn't CFRelease() them during last drawing to make sure safe
         texturesToFree = nil;
-        CVOpenGLESTextureCacheFlush(textureCache, 0);
     }
 
     glClearColor(0, 0, 0, 1);
@@ -82,7 +81,7 @@ static const GLuint rectanglePoints = 6;
                         reg:GL_TEXTURE2
                       index:2];
 
-        // These'll get freed on next draw, after drawing is complete.
+        // These'll get freed or reused on next draw, after drawing is complete.
         texturesToFree = @[(__bridge id)textureY, (__bridge id)textureCb, (__bridge id)textureCr];
         CFRelease(textureY);
         CFRelease(textureCb);
@@ -101,6 +100,8 @@ static const GLuint rectanglePoints = 6;
         }
         glDeleteBuffers(1, &rectangleBuffer);
         [self debugCheck];
+
+        CVOpenGLESTextureCacheFlush(textureCache, 0);
     }
     
 }
