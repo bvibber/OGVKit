@@ -67,8 +67,8 @@ static const GLfloat conversionMatrixBT601[] = {
     if (format) {
         [self setupConversionMatrix];
 
+        // @todo only update buffers when the format or layer size changes
         GLuint rectangleBuffer = [self setupPosition:@"aPosition"
-                                         pixelBuffer:pixelBufferY
                                                width:self.frame.size.width
                                               height:self.frame.size.height];
 
@@ -87,6 +87,9 @@ static const GLfloat conversionMatrixBT601[] = {
         CVOpenGLESTextureRef textureCr = [self cacheTexture:pixelBufferCr];
         [self attachTexture:textureCr name:@"uTextureCr" reg:GL_TEXTURE2 index:2];
 
+        // Note: OpenGL ES Analysis in Instruments reports a warning about
+        // "Uninitialized Texture Data" which seems to be triggered by use of
+        // CVOpenGLESTextureCache. This seems to be harmless.
         glDrawArrays(GL_TRIANGLES, 0, rectanglePoints);
         [self debugCheck];
         
@@ -117,6 +120,9 @@ static const GLfloat conversionMatrixBT601[] = {
 
 -(void)dealloc
 {
+    if (textureCache) {
+        CFRelease(textureCache);
+    }
     if (pixelBufferY) {
         CFRelease(pixelBufferY);
     }
@@ -263,7 +269,6 @@ static const GLfloat conversionMatrixBT601[] = {
 }
 
 -(GLuint)setupPosition:(NSString *)varname
-           pixelBuffer:(CVPixelBufferRef)pixelBuffer
                  width:(int)width
                 height:(int)height
 {
@@ -276,9 +281,7 @@ static const GLfloat conversionMatrixBT601[] = {
     [self debugCheck];
     
     // Set the aspect ratio
-    CGSize displaySize = CVImageBufferGetCleanRect(pixelBuffer).size;
-
-    GLfloat frameAspect = displaySize.width / displaySize.height;
+    GLfloat frameAspect = (float)format.pictureWidth / (float)format.pictureHeight;
     GLfloat viewAspect = (float)width / (float)height;
     GLfloat scaleX, scaleY;
 
