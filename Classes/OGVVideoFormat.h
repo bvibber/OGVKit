@@ -12,6 +12,20 @@ typedef NS_ENUM(NSUInteger, OGVPixelFormat) {
     OGVPixelFormatYCbCr444 = 2
 };
 
+typedef NS_ENUM(NSUInteger, OGVColorSpace) {
+    OGVColorSpaceDefault = 0,
+    
+    // Supported by Theora and VP8/VP9
+    OGVColorSpaceBT709 = 1,
+    OGVColorSpaceBT601 = 2,
+    
+    // These are supported by libvpx
+    OGVColorSpaceSMPTE170 = 3,
+    OGVColorSpaceSMPTE240 = 4,
+    OGVColorSpaceBT2020 = 5,
+    OGVColorSpaceSRGB = 6
+};
+
 @interface OGVVideoFormat : NSObject <NSCopying>
 
 @property int frameWidth;
@@ -22,6 +36,7 @@ typedef NS_ENUM(NSUInteger, OGVPixelFormat) {
 @property int pictureOffsetY;
 
 @property OGVPixelFormat pixelFormat;
+@property OGVColorSpace colorSpace;
 
 @property (readonly) int lumaWidth;
 @property (readonly) int lumaHeight;

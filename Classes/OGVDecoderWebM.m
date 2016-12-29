@@ -373,6 +373,29 @@ static int64_t tellCallback(void * userdata)
             format.frameHeight = image->d_h;
             format.pictureWidth = image->d_w;
             format.pictureHeight = image->d_h;
+            switch (image->cs) {
+                case VPX_CS_BT_601:
+                    format.colorSpace = OGVColorSpaceBT601;
+                    break;
+                case VPX_CS_BT_709:
+                    format.colorSpace = OGVColorSpaceBT709;
+                    break;
+                case VPX_CS_SMPTE_170:
+                    format.colorSpace = OGVColorSpaceSMPTE170;
+                    break;
+                case VPX_CS_SMPTE_240:
+                    format.colorSpace = OGVColorSpaceSMPTE240;
+                    break;
+                case VPX_CS_BT_2020:
+                    format.colorSpace = OGVColorSpaceBT2020;
+                    break;
+                case VPX_CS_SRGB:
+                    format.colorSpace = OGVColorSpaceSRGB;
+                    break;
+                case VPX_CS_UNKNOWN:
+                default:
+                    format.colorSpace = OGVColorSpaceDefault;
+            }
 
             OGVVideoPlane *Y = [[OGVVideoPlane alloc] initWithBytes:image->planes[0]
                                                              stride:image->stride[0]

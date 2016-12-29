@@ -287,6 +287,17 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
                     self.videoFormat.pictureOffsetX = theoraInfo.pic_x;
                     self.videoFormat.pictureOffsetY = theoraInfo.pic_y;
                     self.videoFormat.pixelFormat = [self theoraPixelFormat:theoraInfo.pixel_fmt];
+                    switch (theoraInfo.colorspace) {
+                        case TH_CS_ITU_REC_470M:
+                            self.videoFormat.colorSpace = OGVColorSpaceBT709;
+                            break;
+                        case TH_CS_ITU_REC_470BG:
+                            self.videoFormat.colorSpace = OGVColorSpaceBT601;
+                            break;
+                        case TH_CS_UNSPECIFIED:
+                        default:
+                            self.videoFormat.colorSpace = OGVColorSpaceDefault;
+                    }
 
                     // Surprise! This is actually the first video packet.
                     // Save it for later.

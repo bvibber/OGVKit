@@ -68,6 +68,7 @@
     other.pictureOffsetX = self.pictureOffsetX;
     other.pictureOffsetY = self.pictureOffsetY;
     other.pixelFormat = self.pixelFormat;
+    other.colorSpace = self.colorSpace;
     return other;
 }
 
@@ -89,7 +90,8 @@
            (self.pictureHeight == other.pictureHeight) &&
            (self.pictureOffsetX == other.pictureOffsetX) &&
            (self.pictureOffsetY == other.pictureOffsetY) &&
-           (self.pixelFormat == other.pixelFormat);
+           (self.pixelFormat == other.pixelFormat) &&
+           (self.colorSpace == other.colorSpace);
 }
 
 -(instancetype)initWithSampleBuffer:(CMSampleBufferRef)sampleBuffer
@@ -116,6 +118,8 @@
         self.pictureHeight = cleanRect.size.height;
         self.pictureOffsetX = cleanRect.origin.x;
         self.pictureOffsetY = cleanRect.origin.y;
+        
+        // @fixme get the colorspace
     }
     return self;
 }
