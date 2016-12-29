@@ -178,16 +178,15 @@
     // Clean aperture setting doesn't get handled by buffer pool?
     // Set it on each buffer as we get it.
     NSDictionary *aperture = @{
-                               (id)kCVImageBufferCleanApertureWidthKey: @(self.pictureWidth * width / self.lumaWidth),
-                               (id)kCVImageBufferCleanApertureHeightKey: @(self.pictureHeight * height / self.lumaHeight),
-                               (id)kCVImageBufferCleanApertureHorizontalOffsetKey: @(-self.pictureOffsetX * width / self.lumaWidth),
-                               (id)kCVImageBufferCleanApertureVerticalOffsetKey: @(-self.pictureOffsetY * height / self.lumaHeight)
+                               (id)kCVImageBufferCleanApertureWidthKey: @(self.pictureWidth * width / self.frameWidth),
+                               (id)kCVImageBufferCleanApertureHeightKey: @(self.pictureHeight * height / self.frameHeight),
+                               (id)kCVImageBufferCleanApertureHorizontalOffsetKey: @(((self.frameWidth - self.pictureWidth) / 2 - self.pictureOffsetX) * width / self.frameWidth),
+                               (id)kCVImageBufferCleanApertureVerticalOffsetKey: @(((self.frameHeight - self.pictureHeight) / 2 - self.pictureOffsetY) * height / self.frameHeight)
                                };
     CVBufferSetAttachment(imageBuffer,
                           kCVImageBufferCleanApertureKey,
                           (__bridge CFDictionaryRef)aperture,
-                          kCVAttachmentMode_ShouldNotPropagate);
-    
+                          kCVAttachmentMode_ShouldPropagate);
     return imageBuffer;
 }
 

@@ -59,8 +59,7 @@ static const GLuint rectanglePoints = 6;
         
         // First plane holds Y
         CVOpenGLESTextureRef textureY = [self cacheTexture:pixelBufferY];
-        lumaPositionBuffer = [self setupTexturePosition:@"aLumaPosition"
-                                                texture:textureY];
+        lumaPositionBuffer = [self setupTexturePosition:@"aLumaPosition"];
         [self attachTexture:textureY
                        name:@"uTextureY"
                         reg:GL_TEXTURE0
@@ -68,8 +67,7 @@ static const GLuint rectanglePoints = 6;
         
         // Second plane holds Cb
         CVOpenGLESTextureRef textureCb = [self cacheTexture:pixelBufferCb];
-        chromaPositionBuffer = [self setupTexturePosition:@"aChromaPosition"
-                                                  texture:textureCb];
+        chromaPositionBuffer = [self setupTexturePosition:@"aChromaPosition"];
         [self attachTexture:textureCb
                        name:@"uTextureCb"
                         reg:GL_TEXTURE1
@@ -260,7 +258,7 @@ static const GLuint rectanglePoints = 6;
     [self debugCheck];
     
     // Set the aspect ratio
-    CGSize displaySize = CVImageBufferGetDisplaySize(pixelBuffer);
+    CGSize displaySize = CVImageBufferGetCleanRect(pixelBuffer).size;
 
     GLfloat frameAspect = displaySize.width / displaySize.height;
     GLfloat viewAspect = (float)width / (float)height;
@@ -302,14 +300,17 @@ static const GLuint rectanglePoints = 6;
     return rectangleBuffer;
 }
 
--(GLuint)setupTexturePosition:(NSString *)varname texture:(CVOpenGLESTextureRef)texture
+-(GLuint)setupTexturePosition:(NSString *)varname
 {
-    GLfloat lowerLeft[2];
-    GLfloat lowerRight[2];
-    GLfloat upperRight[2];
-    GLfloat upperLeft[2];
-    CVOpenGLESTextureGetCleanTexCoords(texture, lowerLeft, lowerRight, upperRight, upperLeft);
-
+    GLfloat left = (GLfloat)format.pictureOffsetX / (GLfloat)format.frameWidth;
+    GLfloat right = ((GLfloat)format.pictureOffsetX + (GLfloat)format.pictureWidth) / (GLfloat)format.frameWidth;
+    GLfloat top = ((GLfloat)format.pictureOffsetY / (GLfloat)format.frameHeight);
+    GLfloat bottom = (((GLfloat)format.pictureOffsetY + (GLfloat)format.pictureHeight) / (GLfloat)format.frameHeight);
+    GLfloat lowerLeft[2] = {left, bottom};
+    GLfloat lowerRight[2] = {right, bottom};
+    GLfloat upperRight[2] = {right, top};
+    GLfloat upperLeft[2] = {left, top};
+    
     const GLfloat textureRectangle[] = {
         lowerLeft[0], lowerLeft[1],
         lowerRight[0], lowerRight[1],
