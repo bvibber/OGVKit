@@ -31,9 +31,36 @@ typedef NS_ENUM(NSUInteger, OGVPixelFormat) {
 -(instancetype)initWithSampleBuffer:(CMSampleBufferRef)sampleBuffer;
 
 /**
- * Create a CVPixelBuffer compatible with this format, pulling from a pool.
+ * Create a YCbCr CVPixelBuffer compatible with this format, pulling from
+ * a pool. Will be suitable for the full image, using appropriate packed format
+ * compatible with CMSampleBuffer for display or encoding via AVFoundation.
+ *
+ * Beware that 4:4:4 buffers may not be compatible with AVFoundation on iOS.
+ *
+ * Fill with pixels with -[OGVVideoBuffer updatePixelBuffer:]
+ *
  * @todo manage the pool sensibly
  */
 -(CVPixelBufferRef)createPixelBuffer;
+
+/**
+ * Create a CVPixelBuffer compatible with luma planes for this format,
+ * pulling from a pool.
+ *
+ * Fill with pixels with -[OGVVideoPlane updatePixelBuffer:]
+ *
+ * @todo manage the pool sensibly
+ */
+-(CVPixelBufferRef)createPixelBufferLuma;
+
+/**
+ * Create a CVPixelBuffer compatible with chroma planes for this format,
+ * pulling from a pool.
+ *
+ * Fill with pixels with -[OGVVideoPlane updatePixelBuffer:]
+ *
+ * @todo manage the pool sensibly
+ */
+-(CVPixelBufferRef)createPixelBufferChroma;
 
 @end

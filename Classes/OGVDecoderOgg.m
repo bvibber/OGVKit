@@ -465,6 +465,11 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
 {
     OGVDecoderOggPacket *packet = [videoPackets dequeue];
 
+    if (queuedFrame) {
+        [queuedFrame neuter];
+        queuedFrame = nil;
+    }
+
 #ifdef OGVKIT_HAVE_THEORA_DECODER
     if (videoCodec == OGGZ_CONTENT_THEORA) {
         ogg_int64_t videobuf_granulepos = packet.oggzPacket->pos.calc_granulepos;

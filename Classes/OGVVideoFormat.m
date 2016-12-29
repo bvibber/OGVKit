@@ -120,50 +120,50 @@
     return self;
 }
 
-- (CVPixelBufferRef)createPixelBuffer
+- (CVPixelBufferRef)createPixelBufferLuma
 {
     static CVPixelBufferPoolRef bufferPool = NULL;
     static OGVVideoFormat *poolFormat = nil;
-
+    
     if (bufferPool && ![self isEqual:poolFormat]) {
-        NSLog(@"swapping buffer pools");
         CFRelease(bufferPool);
         bufferPool = NULL;
         poolFormat = self;
     }
     if (bufferPool == NULL) {
-        NSNumber *pixelFormat;
-        switch (self.pixelFormat) {
-            case OGVPixelFormatYCbCr420:
-                pixelFormat = @(kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange);
-                break;
-            case OGVPixelFormatYCbCr422:
-                pixelFormat = @(kCVPixelFormatType_422YpCbCr8_yuvs);
-                break;
-            case OGVPixelFormatYCbCr444:
-                // Warning: does not render on iOS device with AVSampleBufferDisplayLayer
-                pixelFormat = @(kCVPixelFormatType_444YpCbCr8);
-                break;
-        }
-        NSDictionary *poolOpts = @{(id)kCVPixelBufferPoolMinimumBufferCountKey: @1};
-        NSDictionary *opts = @{(id)kCVPixelBufferWidthKey: @(self.frameWidth),
-                               (id)kCVPixelBufferHeightKey: @(self.frameHeight),
-                               //(id)kCVPixelBufferIOSurfacePropertiesKey: @{},
-                               (id)kCVPixelBufferOpenGLESCompatibilityKey: @YES,
-                               (id)kCVPixelBufferOpenGLESTextureCacheCompatibilityKey: @YES,
-                               (id)kCVPixelBufferPixelFormatTypeKey: pixelFormat};
-        CVReturn ret = CVPixelBufferPoolCreate(NULL,
-                                               (__bridge CFDictionaryRef _Nullable)(poolOpts),
-                                               (__bridge CFDictionaryRef _Nullable)(opts),
-                                               &bufferPool);
-        if (ret != kCVReturnSuccess) {
-            @throw [NSException
-                    exceptionWithName:@"OGVVideoFormatException"
-                    reason:[NSString stringWithFormat:@"Failed to create CVPixelBufferPool %d", ret]
-                    userInfo:@{@"CVReturn": @(ret)}];
-        }
+        bufferPool = [self createPixelBufferPoolWithFormat:kCVPixelFormatType_OneComponent8
+                                                     width:self.lumaWidth
+                                                    height:self.lumaHeight];
     }
+    return [self createPixelBufferWithPool:bufferPool
+                                     width:self.lumaWidth
+                                    height:self.lumaHeight];
+}
+
+- (CVPixelBufferRef)createPixelBufferChroma
+{
+    static CVPixelBufferPoolRef bufferPool = NULL;
+    static OGVVideoFormat *poolFormat = nil;
     
+    if (bufferPool && ![self isEqual:poolFormat]) {
+        CFRelease(bufferPool);
+        bufferPool = NULL;
+        poolFormat = self;
+    }
+    if (bufferPool == NULL) {
+        bufferPool = [self createPixelBufferPoolWithFormat:kCVPixelFormatType_OneComponent8
+                                                     width:self.chromaWidth
+                                                    height:self.chromaHeight];
+    }
+    return [self createPixelBufferWithPool:bufferPool
+                                     width:self.chromaWidth
+                                    height:self.chromaHeight];
+}
+
+-(CVPixelBufferRef)createPixelBufferWithPool:(CVPixelBufferPoolRef)bufferPool
+                                       width:(int)width
+                                      height:(int)height
+{
     CVImageBufferRef imageBuffer;
     CVReturn ret = CVPixelBufferPoolCreatePixelBuffer(NULL, bufferPool, &imageBuffer);
     if (ret != kCVReturnSuccess) {
@@ -178,10 +178,10 @@
     // Clean aperture setting doesn't get handled by buffer pool?
     // Set it on each buffer as we get it.
     NSDictionary *aperture = @{
-                               (id)kCVImageBufferCleanApertureWidthKey: @(self.pictureWidth),
-                               (id)kCVImageBufferCleanApertureHeightKey: @(self.pictureHeight),
-                               (id)kCVImageBufferCleanApertureHorizontalOffsetKey: @(-self.pictureOffsetX),
-                               (id)kCVImageBufferCleanApertureVerticalOffsetKey: @(-self.pictureOffsetY)
+                               (id)kCVImageBufferCleanApertureWidthKey: @(self.pictureWidth * width / self.lumaWidth),
+                               (id)kCVImageBufferCleanApertureHeightKey: @(self.pictureHeight * height / self.lumaHeight),
+                               (id)kCVImageBufferCleanApertureHorizontalOffsetKey: @(-self.pictureOffsetX * width / self.lumaWidth),
+                               (id)kCVImageBufferCleanApertureVerticalOffsetKey: @(-self.pictureOffsetY * height / self.lumaHeight)
                                };
     CVBufferSetAttachment(imageBuffer,
                           kCVImageBufferCleanApertureKey,
@@ -189,6 +189,65 @@
                           kCVAttachmentMode_ShouldNotPropagate);
     
     return imageBuffer;
+}
+
+- (CVPixelBufferPoolRef)createPixelBufferPoolWithFormat:(OSType)format
+                                                  width:(int)width
+                                                 height:(int)height
+
+{
+    CVPixelBufferPoolRef bufferPool;
+    NSDictionary *poolOpts = @{(id)kCVPixelBufferPoolMinimumBufferCountKey: @1};
+    NSDictionary *opts = @{(id)kCVPixelBufferWidthKey: @(width),
+                           (id)kCVPixelBufferHeightKey: @(height),
+                           (id)kCVPixelBufferIOSurfacePropertiesKey: @{},
+                           (id)kCVPixelBufferPixelFormatTypeKey: @(format)};
+    CVReturn ret = CVPixelBufferPoolCreate(NULL,
+                                           (__bridge CFDictionaryRef _Nullable)(poolOpts),
+                                           (__bridge CFDictionaryRef _Nullable)(opts),
+                                           &bufferPool);
+    if (ret != kCVReturnSuccess) {
+        @throw [NSException
+                exceptionWithName:@"OGVVideoFormatException"
+                reason:[NSString stringWithFormat:@"Failed to create CVPixelBufferPool %d", ret]
+                userInfo:@{@"CVReturn": @(ret)}];
+    }
+    return bufferPool;
+}
+
+- (CVPixelBufferRef)createPixelBuffer
+{
+    static CVPixelBufferPoolRef bufferPool = NULL;
+    static OGVVideoFormat *poolFormat = nil;
+
+    if (bufferPool && ![self isEqual:poolFormat]) {
+        NSLog(@"swapping buffer pools");
+        CFRelease(bufferPool);
+        bufferPool = NULL;
+        poolFormat = self;
+    }
+    if (bufferPool == NULL) {
+        OSType pixelFormat;
+        switch (self.pixelFormat) {
+            case OGVPixelFormatYCbCr420:
+                pixelFormat = kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange;
+                break;
+            case OGVPixelFormatYCbCr422:
+                pixelFormat = kCVPixelFormatType_422YpCbCr8_yuvs;
+                break;
+            case OGVPixelFormatYCbCr444:
+                // Warning: does not render on iOS device with AVSampleBufferDisplayLayer
+                pixelFormat = kCVPixelFormatType_444YpCbCr8;
+                break;
+        }
+        bufferPool = [self createPixelBufferPoolWithFormat:pixelFormat
+                                                     width:self.lumaWidth
+                                                    height:self.lumaHeight];
+    }
+    
+    return [self createPixelBufferWithPool:bufferPool
+                                     width:self.lumaWidth
+                                    height:self.lumaHeight];
 }
 
 @end

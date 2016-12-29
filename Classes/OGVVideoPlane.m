@@ -36,17 +36,47 @@
 }
 
 -(instancetype)initWithPixelBuffer:(CVPixelBufferRef)pixelBuffer
-                             plane:(unsigned int)plane;
+                             plane:(int)plane;
 {
     return [self initWithBytes:CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, plane)
                         stride:CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, plane)
                          lines:CVPixelBufferGetHeightOfPlane(pixelBuffer, plane)];
 }
+
 -(instancetype) copyWithZone:(NSZone *)zone
 {
     return [[OGVVideoPlane alloc] initWithData:[self.data copyWithZone:zone]
                                         stride:self.stride
                                          lines:self.lines];
+}
+
+-(void)neuter
+{
+    _data = nil;
+    _stride = 0;
+    _lines = 0;
+}
+
+-(void)updatePixelBuffer:(CVPixelBufferRef)pixelBuffer
+{
+    CVPixelBufferLockBaseAddress(pixelBuffer, 0);
+
+    size_t inStride = self.stride;
+    unsigned char *pixelIn = self.data.bytes;
+
+    size_t outStride = CVPixelBufferGetBytesPerRow(pixelBuffer);
+    unsigned char *pixelOut = CVPixelBufferGetBaseAddress(pixelBuffer);
+
+    size_t width = MIN(inStride, outStride);
+    size_t height = self.lines;
+    
+    for (int y = 0; y < height; y++) {
+        memcpy(pixelOut, pixelIn, width);
+        pixelIn += inStride;
+        pixelOut += outStride;
+    }
+
+    CVPixelBufferUnlockBaseAddress(pixelBuffer, 0);
 }
 
 @end

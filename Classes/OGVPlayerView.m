@@ -425,6 +425,7 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
 
 - (void)ogvPlayerState:(OGVPlayerState *)sender drawFrame:(OGVVideoBuffer *)buffer
 {
+#ifdef USE_LAYER
     // Copy on the background thread
     CMSampleBufferRef sampleBuffer = [buffer copyAsSampleBuffer];
     CMSetAttachment(sampleBuffer, kCMSampleAttachmentKey_DisplayImmediately, kCFBooleanTrue, kCMAttachmentMode_ShouldPropagate);
@@ -432,15 +433,14 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
     // Draw on the main thread!
     dispatch_async(dispatch_get_main_queue(), ^() {
         if (sender == state) {
-#ifdef USE_LAYER
             //NSLog(@"Layer %d %@", displayLayer.status, displayLayer.error);
             [displayLayer enqueueSampleBuffer:sampleBuffer];
-#else
-            [frameView drawSampleBuffer:sampleBuffer];
-#endif
         }
         CFRelease(sampleBuffer);
     });
+#else
+    [frameView drawFrame:buffer];
+#endif
 }
 
 - (void)ogvPlayerStateDidLoadMetadata:(OGVPlayerState *)sender

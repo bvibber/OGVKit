@@ -53,6 +53,17 @@
  * Caller's responsibility to manage lifetime of the underlying lock.
  */
 -(instancetype)initWithPixelBuffer:(CVPixelBufferRef)pixelBuffer
-                             plane:(unsigned int)plane;
+                             plane:(int)plane;
+
+/**
+ * "Neuter" the underlying pointer.
+ */
+-(void)neuter;
+
+/**
+ * Copy bytes to an 8-bit single-channel CVPixelBuffer.
+ * Create a suitable one from an OGVVideoFormat object.
+ */
+-(void)updatePixelBuffer:(CVPixelBufferRef)pixelBuffer;
 
 @end

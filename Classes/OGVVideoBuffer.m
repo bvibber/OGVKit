@@ -79,14 +79,59 @@
         _Y = [[OGVVideoPlane alloc] initWithPixelBuffer:imageBuffer plane:0];
         _Cb = [[OGVVideoPlane alloc] initWithPixelBuffer:imageBuffer plane:1];
         _Cr = [[OGVVideoPlane alloc] initWithPixelBuffer:imageBuffer plane:2];
-        block();
-        _Y = nil;
-        _Cb = nil;
-        _Cr = nil;
-        CVPixelBufferUnlockBaseAddress(imageBuffer, 0);
+        @try {
+            block();
+        } @finally {
+            [_Y neuter];
+            [_Cb neuter];
+            [_Cr neuter];
+            _Y = nil;
+            _Cb = nil;
+            _Cr = nil;
+            CVPixelBufferUnlockBaseAddress(imageBuffer, 0);
+        }
     } else {
         block();
     }
+}
+
+-(void)neuter
+{
+    [_Y neuter];
+    [_Cb neuter];
+    [_Cr neuter];
+    if (_sampleBuffer) {
+        CFRelease(_sampleBuffer);
+        _sampleBuffer = nil;
+    }
+}
+
+-(CVPixelBufferRef)copyPixelBufferWithPlane:(OGVVideoPlaneIndex)plane;
+{
+    __block CVPixelBufferRef pixelBuffer;
+    [self lock:^() {
+        __block OGVVideoPlane *source;
+        switch (plane) {
+            case OGVVideoPlaneIndexY:
+                pixelBuffer = [self.format createPixelBufferLuma];
+                source = self.Y;
+                break;
+            case OGVVideoPlaneIndexCb:
+                pixelBuffer = [self.format createPixelBufferChroma];
+                source = self.Cb;
+                break;
+            case OGVVideoPlaneIndexCr:
+                pixelBuffer = [self.format createPixelBufferChroma];
+                source = self.Cr;
+                break;
+            default:
+                [NSException raise:@"OGVVideoBufferException"
+                            format:@"invalid plane %d", (int)plane];
+        }
+        
+        [source updatePixelBuffer:pixelBuffer];
+    }];
+    return pixelBuffer;
 }
 
 -(CMSampleBufferRef)copyAsSampleBuffer

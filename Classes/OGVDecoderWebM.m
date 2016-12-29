@@ -338,6 +338,10 @@ static int64_t tellCallback(void * userdata)
         unsigned int chunks = packet.count;
 
         videobufTime = packet.timestamp;
+        if (queuedFrame) {
+            [queuedFrame neuter];
+            queuedFrame = nil;
+        }
 
 #ifdef OGVKIT_HAVE_VP8_DECODER
         // uh, can this happen? curiouser :D

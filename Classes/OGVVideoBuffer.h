@@ -8,6 +8,12 @@
 
 typedef void (^OGVVideoBufferLockCallback)();
 
+typedef enum : NSUInteger {
+    OGVVideoPlaneIndexY,
+    OGVVideoPlaneIndexCb,
+    OGVVideoPlaneIndexCr,
+} OGVVideoPlaneIndex;
+
 /**
  * An OGVVideoBuffer represents a YCbCr picture frame.
  *
@@ -60,8 +66,20 @@ typedef void (^OGVVideoBufferLockCallback)();
  */
 -(void)lock:(OGVVideoBufferLockCallback)block;
 
--(CMSampleBufferRef)copyAsSampleBuffer;
+/**
+ * "Neuter" a live buffer so it will no longer be accessible.
+ */
+-(void)neuter;
 
--(void)updatePixelBuffer:(CVPixelBufferRef)pixelBuffer;
+/**
+ * Copy one of the plane's bytes to a GPU-backed buffer
+ */
+-(CVPixelBufferRef)copyPixelBufferWithPlane:(OGVVideoPlaneIndex)plane;
+
+/**
+ * Copy and remix bytes to a GPU-backed CMSampleBuffer,
+ * which can then be sent to AVAssetWriter, etc.
+ */
+-(CMSampleBufferRef)copyAsSampleBuffer;
 
 @end
