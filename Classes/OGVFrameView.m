@@ -40,6 +40,8 @@ static const GLuint rectanglePoints = 6;
         texturesToFree = nil;
     }
 
+    [self setupGLStuff];
+
     glClearColor(0, 0, 0, 1);
     [self debugCheck];
     
@@ -49,7 +51,6 @@ static const GLuint rectanglePoints = 6;
     [self debugCheck];
 
     if (format) {
-        [self setupGLStuff];
 
         GLuint rectangleBuffer = [self setupPosition:@"aPosition"
                                          pixelBuffer:pixelBufferY

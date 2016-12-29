@@ -187,9 +187,8 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
     displayLayer.frame = self.bounds;
     [self.layer addSublayer:displayLayer];
 #else
-    EAGLContext *context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3];
     frameView = [[OGVFrameView alloc] initWithFrame:self.bounds
-                                            context:context];
+                                            context:[self createGLContext]];
     [self addSubview:frameView];
 #endif
 
@@ -224,6 +223,18 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
                                              selector:@selector(appDidEnterBackground:)
                                                  name:UIApplicationDidEnterBackgroundNotification
                                                object:nil];
+}
+
+-(EAGLContext *)createGLContext
+{
+    EAGLContext *context;
+    if (floor(NSFoundationVersionNumber) >= NSFoundationVersionNumber_iOS_7_0) {
+        context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3];
+    }
+    if (context == nil) {
+        context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
+    }
+    return context;
 }
 
 - (IBAction)togglePausePlay:(id)sender
