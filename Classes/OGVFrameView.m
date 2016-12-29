@@ -10,6 +10,9 @@
 
 #import <OpenGLES/ES2/glext.h>
 
+// Uncomment to check for OpenGL ES errors. Slows rendering.
+//#define DEBUG_GL
+
 // In the world of GL there are no rectangles.
 // There are only triangles.
 // THERE IS NO SPOON.
@@ -46,60 +49,41 @@ static const GLuint rectanglePoints = 6;
     [self debugCheck];
 
     if (format) {
+        [self setupGLStuff];
+
         GLuint rectangleBuffer = [self setupPosition:@"aPosition"
                                          pixelBuffer:pixelBufferY
                                                width:self.frame.size.width
                                               height:self.frame.size.height];
 
-        GLuint lumaPositionBuffer = 0;
-        GLuint chromaPositionBuffer = 0;
+        // Just show the clean aperture rectangle!
+        GLuint texPositionBuffer = [self setupTexturePosition:@"aTexPosition"];
 
-        [self setupGLStuff];
-        
         // First plane holds Y
         CVOpenGLESTextureRef textureY = [self cacheTexture:pixelBufferY];
-        lumaPositionBuffer = [self setupTexturePosition:@"aLumaPosition"];
-        [self attachTexture:textureY
-                       name:@"uTextureY"
-                        reg:GL_TEXTURE0
-                      index:0];
+        [self attachTexture:textureY name:@"uTextureY" reg:GL_TEXTURE0 index:0];
         
         // Second plane holds Cb
         CVOpenGLESTextureRef textureCb = [self cacheTexture:pixelBufferCb];
-        chromaPositionBuffer = [self setupTexturePosition:@"aChromaPosition"];
-        [self attachTexture:textureCb
-                       name:@"uTextureCb"
-                        reg:GL_TEXTURE1
-                      index:1];
+        [self attachTexture:textureCb name:@"uTextureCb" reg:GL_TEXTURE1 index:1];
 
         // Third plane holds Cr
         CVOpenGLESTextureRef textureCr = [self cacheTexture:pixelBufferCr];
-        //chromaPositionBuffer = [self setupTexturePosition:@"aChromaPosition"
-        //                                          texture:textureCr];
-        [self attachTexture:textureCr
-                       name:@"uTextureCr"
-                        reg:GL_TEXTURE2
-                      index:2];
+        [self attachTexture:textureCr name:@"uTextureCr" reg:GL_TEXTURE2 index:2];
 
+        glDrawArrays(GL_TRIANGLES, 0, rectanglePoints);
+        [self debugCheck];
+        
+        glDeleteBuffers(1, &texPositionBuffer);
+        [self debugCheck];
+        glDeleteBuffers(1, &rectangleBuffer);
+        [self debugCheck];
+        
         // These'll get freed or reused on next draw, after drawing is complete.
         texturesToFree = @[(__bridge id)textureY, (__bridge id)textureCb, (__bridge id)textureCr];
         CFRelease(textureY);
         CFRelease(textureCb);
         CFRelease(textureCr);
-
-        glDrawArrays(GL_TRIANGLES, 0, rectanglePoints);
-        [self debugCheck];
-        
-        if (chromaPositionBuffer) {
-            glDeleteBuffers(1, &chromaPositionBuffer);
-            [self debugCheck];
-        }
-        if (lumaPositionBuffer) {
-            glDeleteBuffers(1, &lumaPositionBuffer);
-            [self debugCheck];
-        }
-        glDeleteBuffers(1, &rectangleBuffer);
-        [self debugCheck];
 
         CVOpenGLESTextureCacheFlush(textureCache, 0);
     }
@@ -195,7 +179,7 @@ static const GLuint rectanglePoints = 6;
 
     if (!program) {
         vertexShader = [self compileShader:@"OGVFrameView" type:GL_VERTEX_SHADER];
-        fragmentShader = [self compileShader:@"OGVFrameView-planar" type:GL_FRAGMENT_SHADER];
+        fragmentShader = [self compileShader:@"OGVFrameView" type:GL_FRAGMENT_SHADER];
         
         program = glCreateProgram();
         [self debugCheck];
@@ -289,7 +273,7 @@ static const GLuint rectanglePoints = 6;
     [self debugCheck];
     
     // Assign the rectangle to the position input on the vertex shader
-    GLuint positionLocation = glGetAttribLocation(program, "aPosition");
+    GLuint positionLocation = glGetAttribLocation(program, [varname UTF8String]);
     [self debugCheck];
     
     glEnableVertexAttribArray(positionLocation);
@@ -303,23 +287,22 @@ static const GLuint rectanglePoints = 6;
 
 -(GLuint)setupTexturePosition:(NSString *)varname
 {
+    // Ideally we'd use CVOpenGLESTextureGetCleanTexCoords, but this doesn't
+    // work for some mysteeeeeerious reason on the one-channel buffers I'm
+    // creating for the planes.
     GLfloat left = (GLfloat)format.pictureOffsetX / (GLfloat)format.frameWidth;
     GLfloat right = ((GLfloat)format.pictureOffsetX + (GLfloat)format.pictureWidth) / (GLfloat)format.frameWidth;
     GLfloat top = ((GLfloat)format.pictureOffsetY / (GLfloat)format.frameHeight);
     GLfloat bottom = (((GLfloat)format.pictureOffsetY + (GLfloat)format.pictureHeight) / (GLfloat)format.frameHeight);
-    GLfloat lowerLeft[2] = {left, bottom};
-    GLfloat lowerRight[2] = {right, bottom};
-    GLfloat upperRight[2] = {right, top};
-    GLfloat upperLeft[2] = {left, top};
     
     const GLfloat textureRectangle[] = {
-        lowerLeft[0], lowerLeft[1],
-        lowerRight[0], lowerRight[1],
-        upperLeft[0], upperLeft[1],
-
-        upperLeft[0], upperLeft[1],
-        lowerRight[0], lowerRight[1],
-        upperRight[0], upperRight[1]
+        left, bottom,
+        right, bottom,
+        left, top,
+        
+        left, top,
+        right, bottom,
+        right, top
     };
     
     GLuint texturePositionBuffer;
@@ -391,7 +374,7 @@ static const GLuint rectanglePoints = 6;
 
 -(void)debugCheck
 {
-#if 0
+#ifdef DEBUG_GL
     GLenum err = glGetError();
     if (err != GL_NO_ERROR) {
         NSString *str = [self stringForGLError:err];
