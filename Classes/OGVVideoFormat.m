@@ -197,7 +197,7 @@
 
 {
     CVPixelBufferPoolRef bufferPool;
-    NSDictionary *poolOpts = @{(id)kCVPixelBufferPoolMinimumBufferCountKey: @1};
+    NSDictionary *poolOpts = @{(id)kCVPixelBufferPoolMinimumBufferCountKey: @4};
     NSDictionary *opts = @{(id)kCVPixelBufferWidthKey: @(width),
                            (id)kCVPixelBufferHeightKey: @(height),
                            (id)kCVPixelBufferIOSurfacePropertiesKey: @{},
