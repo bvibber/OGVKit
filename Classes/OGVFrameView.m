@@ -38,6 +38,14 @@ static const GLuint rectanglePoints = 6;
         CVOpenGLESTextureCacheFlush(textureCache, 0);
     }
 
+    glClearColor(0, 0, 0, 1);
+    [self debugCheck];
+    
+    glDepthMask(GL_TRUE); // voodoo from http://stackoverflow.com/questions/5470822/ios-opengl-es-logical-buffer-loads
+
+    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+    [self debugCheck];
+
     if (format) {
         GLuint rectangleBuffer = [self setupPosition:@"aPosition"
                                          pixelBuffer:pixelBufferY
@@ -94,14 +102,6 @@ static const GLuint rectanglePoints = 6;
             [self debugCheck];
         }
         glDeleteBuffers(1, &rectangleBuffer);
-        [self debugCheck];
-    } else {
-        glClearColor(0, 0, 0, 1);
-        [self debugCheck];
-        
-        glDepthMask(GL_TRUE); // voodoo from http://stackoverflow.com/questions/5470822/ios-opengl-es-logical-buffer-loads
-        
-        glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
         [self debugCheck];
     }
     
