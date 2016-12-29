@@ -18,6 +18,20 @@
 // THERE IS NO SPOON.
 static const GLuint rectanglePoints = 6;
 
+// Gleefully borrowed from https://github.com/mbebenita/Broadway/blob/master/Player/YUVCanvas.js
+static const GLfloat conversionMatrix709[] = {
+    1.16438,  0.00000,  1.79274, -0.97295,
+    1.16438, -0.21325, -0.53291,  0.30148,
+    1.16438,  2.11240,  0.00000, -1.13340,
+    0, 0, 0, 1
+};
+static const GLfloat conversionMatrix601[] = {
+    1.16438,  0.00000,  1.59603, -0.87079,
+    1.16438, -0.39176, -0.81297,  0.52959,
+    1.16438,  2.01723,  0.00000, -1.08139,
+    0, 0, 0, 1
+};
+
 @implementation OGVFrameView {
     OGVVideoFormat *format;
     CVPixelBufferRef pixelBufferY;
@@ -51,6 +65,7 @@ static const GLuint rectanglePoints = 6;
     [self debugCheck];
 
     if (format) {
+        [self setupConversionMatrix];
 
         GLuint rectangleBuffer = [self setupPosition:@"aPosition"
                                          pixelBuffer:pixelBufferY
@@ -229,6 +244,11 @@ static const GLuint rectanglePoints = 6;
     }
 }
 
+-(void)setupConversionMatrix
+{
+    GLuint loc = glGetUniformLocation(program, "uConversionMatrix");
+    glUniformMatrix4fv(loc, 1, GL_FALSE, conversionMatrix709);
+}
 
 -(GLuint)setupPosition:(NSString *)varname
            pixelBuffer:(CVPixelBufferRef)pixelBuffer
