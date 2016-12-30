@@ -34,12 +34,15 @@ static const GLfloat conversionMatrixBT601[] = {
 
 @implementation OGVFrameView {
     OGVVideoFormat *format;
+    OGVVideoFormat *lastFormat;
     CVPixelBufferRef pixelBufferY;
     CVPixelBufferRef pixelBufferCb;
     CVPixelBufferRef pixelBufferCr;
     GLuint vertexShader;
     GLuint fragmentShader;
     GLuint program;
+    GLuint positionBuffer;
+    GLuint texPositionBuffer;
     CVOpenGLESTextureCacheRef textureCache;
     NSArray *texturesToFree;
 }
@@ -65,15 +68,20 @@ static const GLfloat conversionMatrixBT601[] = {
     [self debugCheck];
 
     if (format) {
-        [self setupConversionMatrix];
+        if (![format isEqual:lastFormat]) {
+            lastFormat = format;
 
-        // @todo only update buffers when the format or layer size changes
-        GLuint rectangleBuffer = [self setupPosition:@"aPosition"
-                                               width:self.frame.size.width
-                                              height:self.frame.size.height];
-
-        // Just show the clean aperture rectangle!
-        GLuint texPositionBuffer = [self setupTexturePosition:@"aTexPosition"];
+            [self setupConversionMatrix];
+            
+            // @todo only update buffers when the format or layer size changes
+            [self updateRectangleWidth:self.frame.size.width height:self.frame.size.height];
+            
+            // Just show the clean aperture rectangle!
+            [self updateTexturePosition];
+        }
+        
+        [self attachPositionBuffer:positionBuffer varname:@"aPosition"];
+        [self attachPositionBuffer:texPositionBuffer varname:@"aTexPosition"];
 
         // First plane holds Y
         CVOpenGLESTextureRef textureY = [self cacheTexture:pixelBufferY];
@@ -91,11 +99,6 @@ static const GLfloat conversionMatrixBT601[] = {
         // "Uninitialized Texture Data" which seems to be triggered by use of
         // CVOpenGLESTextureCache. This seems to be harmless.
         glDrawArrays(GL_TRIANGLES, 0, rectanglePoints);
-        [self debugCheck];
-        
-        glDeleteBuffers(1, &texPositionBuffer);
-        [self debugCheck];
-        glDeleteBuffers(1, &rectangleBuffer);
         [self debugCheck];
         
         // These'll get freed or reused on next draw, after drawing is complete.
@@ -198,7 +201,7 @@ static const GLfloat conversionMatrixBT601[] = {
                         format:@"CVOpenGLESTextureCacheCreate failed (%d)", ret];
         }
     }
-
+    
     if (!program) {
         vertexShader = [self compileShader:@"OGVFrameView" type:GL_VERTEX_SHADER];
         fragmentShader = [self compileShader:@"OGVFrameView" type:GL_FRAGMENT_SHADER];
@@ -213,6 +216,9 @@ static const GLfloat conversionMatrixBT601[] = {
         [self debugCheck];
         glUseProgram(program);
         [self debugCheck];
+
+        positionBuffer = [self setupPositionBuffer:@"aPosition"];
+        texPositionBuffer = [self setupPositionBuffer:@"aTexPosition"];
     }
 }
 
@@ -268,18 +274,63 @@ static const GLfloat conversionMatrixBT601[] = {
     glUniformMatrix4fv(loc, 1, GL_FALSE, matrix);
 }
 
--(GLuint)setupPosition:(NSString *)varname
-                 width:(int)width
-                height:(int)height
+-(GLuint)setupPositionBuffer:(NSString *)varname
 {
-    // Set up our rectangle as a buffer...
-    GLuint rectangleBuffer;
-    glGenBuffers(1, &rectangleBuffer);
+    GLuint buffer;
+    glGenBuffers(1, &buffer);
+    [self debugCheck];
+
+    glBindBuffer(GL_ARRAY_BUFFER, buffer);
     [self debugCheck];
     
-    glBindBuffer(GL_ARRAY_BUFFER, rectangleBuffer);
+    return buffer;
+}
+
+-(void)fillPositionBuffer:(GLuint)bufferId
+                     left:(GLfloat)left
+                    right:(GLfloat)right
+                      top:(GLfloat)top
+                   bottom:(GLfloat)bottom
+{
+    const GLfloat rectangle[] = {
+        // First triangle (top left, clockwise)
+        left, bottom,
+        right, bottom,
+        left, top,
+        
+        // Second triangle (bottom right, clockwise)
+        left, top,
+        right, bottom,
+        right, top
+    };
+    
+    glBindBuffer(GL_ARRAY_BUFFER, bufferId);
+    [self debugCheck];
+
+    glBufferData(GL_ARRAY_BUFFER, rectanglePoints * sizeof(GLfloat) * 2, rectangle, GL_STATIC_DRAW);
+    [self debugCheck];
+}
+
+-(void)attachPositionBuffer:(GLuint)bufferId
+                    varname:(NSString *)varname
+{
+    glBindBuffer(GL_ARRAY_BUFFER, bufferId);
+    [self debugCheck];
+
+    // Assign the rectangle to the position input on the vertex shader
+    GLuint positionLocation = glGetAttribLocation(program, [varname UTF8String]);
     [self debugCheck];
     
+    glEnableVertexAttribArray(positionLocation);
+    [self debugCheck];
+    
+    glVertexAttribPointer(positionLocation, 2, GL_FLOAT, false, 0, 0);
+    [self debugCheck];
+}
+
+-(GLuint)updateRectangleWidth:(int)width
+                       height:(int)height
+{
     // Set the aspect ratio
     GLfloat frameAspect = (float)format.pictureWidth / (float)format.pictureHeight;
     GLfloat viewAspect = (float)width / (float)height;
@@ -293,35 +344,14 @@ static const GLfloat conversionMatrixBT601[] = {
         scaleX = frameAspect / viewAspect;
     }
     
-    GLfloat rectangle[] = {
-        // First triangle (top left, clockwise)
-        -scaleX, -scaleY,
-        +scaleX, -scaleY,
-        -scaleX, +scaleY,
-        
-        // Second triangle (bottom right, clockwise)
-        -scaleX, +scaleY,
-        +scaleX, -scaleY,
-        +scaleX, +scaleY
-    };
-
-    glBufferData(GL_ARRAY_BUFFER, rectanglePoints * sizeof(GLfloat) * 2, rectangle, GL_STATIC_DRAW);
-    [self debugCheck];
-    
-    // Assign the rectangle to the position input on the vertex shader
-    GLuint positionLocation = glGetAttribLocation(program, [varname UTF8String]);
-    [self debugCheck];
-    
-    glEnableVertexAttribArray(positionLocation);
-    [self debugCheck];
-    
-    glVertexAttribPointer(positionLocation, 2, GL_FLOAT, false, 0, 0);
-    [self debugCheck];
-    
-    return rectangleBuffer;
+    [self fillPositionBuffer:positionBuffer
+                        left:-scaleX
+                       right:scaleX
+                         top:scaleY
+                      bottom:-scaleY];
 }
 
--(GLuint)setupTexturePosition:(NSString *)varname
+-(void)updateTexturePosition
 {
     // Ideally we'd use CVOpenGLESTextureGetCleanTexCoords, but this doesn't
     // work for some mysteeeeeerious reason on the one-channel buffers I'm
@@ -331,32 +361,11 @@ static const GLfloat conversionMatrixBT601[] = {
     GLfloat top = ((GLfloat)format.pictureOffsetY / (GLfloat)format.frameHeight);
     GLfloat bottom = (((GLfloat)format.pictureOffsetY + (GLfloat)format.pictureHeight) / (GLfloat)format.frameHeight);
     
-    const GLfloat textureRectangle[] = {
-        left, bottom,
-        right, bottom,
-        left, top,
-        
-        left, top,
-        right, bottom,
-        right, top
-    };
-    
-    GLuint texturePositionBuffer;
-    glGenBuffers(1, &texturePositionBuffer);
-    [self debugCheck];
-    glBindBuffer(GL_ARRAY_BUFFER, texturePositionBuffer);
-    [self debugCheck];
-    glBufferData(GL_ARRAY_BUFFER, rectanglePoints * sizeof(GLfloat) * 2, textureRectangle, GL_STATIC_DRAW);
-    [self debugCheck];
-    
-    GLuint texturePositionLocation = glGetAttribLocation(program, [varname UTF8String]);
-    [self debugCheck];
-    glEnableVertexAttribArray(texturePositionLocation);
-    [self debugCheck];
-    glVertexAttribPointer(texturePositionLocation, 2, GL_FLOAT, false, 0, 0);
-    [self debugCheck];
-    
-    return texturePositionBuffer;
+    [self fillPositionBuffer:texPositionBuffer
+                        left:left
+                       right:right
+                         top:top
+                      bottom:bottom];
 }
 
 -(void)attachTexture:(CVOpenGLESTextureRef)texture
