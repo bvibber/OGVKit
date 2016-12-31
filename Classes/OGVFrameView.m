@@ -271,6 +271,7 @@ static const GLfloat conversionMatrixSRGB[] = {
         case OGVColorSpaceBT601:
             // SDTV NTSC
             matrix = conversionMatrixBT601;
+            break;
         case OGVColorSpaceBT709:
             // HDTV
             matrix = conversionMatrixBT709;
