@@ -258,7 +258,11 @@
     if (videoOutput) {
         CMSampleBufferRef sample = [videoOutput copyNextSampleBuffer];
         if (sample) {
-            OGVVideoBuffer *buffer = [[OGVVideoBuffer alloc] initWithSampleBuffer:sample];
+            OGVVideoFormat *format = [[OGVVideoFormat alloc] initWithSampleBuffer:sample];
+            if (![format isEqual:self.videoFormat]) {
+                self.videoFormat = format;
+            }
+            OGVVideoBuffer *buffer = [self.videoFormat createVideoBufferWithSampleBuffer:sample];
             [frameBuffers queue:buffer];
             CFRelease(sample); // now belongs to the buffer
             return YES;

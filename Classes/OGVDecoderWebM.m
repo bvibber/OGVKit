@@ -411,25 +411,13 @@ static int64_t tellCallback(void * userdata)
                 self.videoFormat = format;
             }
 
-            OGVVideoPlane *Y = [[OGVVideoPlane alloc] initWithBytes:image->planes[0]
-                                                             stride:image->stride[0]
-                                                              lines:format.lumaHeight];
-
-            OGVVideoPlane *Cb = [[OGVVideoPlane alloc] initWithBytes:image->planes[1]
-                                                              stride:image->stride[1]
-                                                               lines:format.chromaHeight];
-
-            OGVVideoPlane *Cr = [[OGVVideoPlane alloc] initWithBytes:image->planes[2]
-                                                              stride:image->stride[2]
-                                                               lines:format.chromaHeight];
-
-            OGVVideoBuffer *buffer = [[OGVVideoBuffer alloc] initWithFormat:self.videoFormat
-                                                                          Y:Y
-                                                                         Cb:Cb
-                                                                         Cr:Cr
-                                                                  timestamp:videobufTime];
-
-            queuedFrame = buffer;
+            queuedFrame = [self.videoFormat createVideoBufferWithYBytes:image->planes[0]
+                                                                YStride:image->stride[0]
+                                                                CbBytes:image->planes[1]
+                                                               CbStride:image->stride[1]
+                                                                CrBytes:image->planes[2]
+                                                               CrStride:image->stride[2]
+                                                              timestamp:videobufTime];
 
             return YES;
         }

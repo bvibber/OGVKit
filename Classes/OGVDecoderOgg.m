@@ -506,24 +506,13 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
     th_ycbcr_buffer ycbcr;
     th_decode_ycbcr_out(theoraDecoderContext, ycbcr);
 
-    OGVVideoPlane *Y = [[OGVVideoPlane alloc] initWithBytes:ycbcr[0].data
-                                                     stride:ycbcr[0].stride
-                                                      lines:self.videoFormat.lumaHeight];
-
-    OGVVideoPlane *Cb = [[OGVVideoPlane alloc] initWithBytes:ycbcr[1].data
-                                                      stride:ycbcr[1].stride
-                                                       lines:self.videoFormat.chromaHeight];
-
-    OGVVideoPlane *Cr = [[OGVVideoPlane alloc] initWithBytes:ycbcr[2].data
-                                                      stride:ycbcr[2].stride
-                                                       lines:self.videoFormat.chromaHeight];
-
-    OGVVideoBuffer *buffer = [[OGVVideoBuffer alloc] initWithFormat:self.videoFormat
-                                                                  Y:Y
-                                                                 Cb:Cb
-                                                                 Cr:Cr
-                                                          timestamp:timestamp];
-    queuedFrame = buffer;
+    queuedFrame = [self.videoFormat createVideoBufferWithYBytes:ycbcr[0].data
+                                                        YStride:ycbcr[0].stride
+                                                        CbBytes:ycbcr[1].data
+                                                       CbStride:ycbcr[1].stride
+                                                        CrBytes:ycbcr[2].data
+                                                       CrStride:ycbcr[2].stride
+                                                      timestamp:timestamp];
 }
 #endif
 

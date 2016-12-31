@@ -143,6 +143,31 @@
     return self;
 }
 
+/**
+ * Allocate a video buffer wrapping existing bytes, leaving pointer
+ * lifetime up to the caller. Recommend calling -[OGVVideoBuffer neuter]
+ * on the resulting buffer when memory becomes no longer valid.
+ */
+-(OGVVideoBuffer *)createVideoBufferWithYBytes:(uint8_t *)YBytes
+                                       YStride:(size_t)YStride
+                                       CbBytes:(uint8_t *)CbBytes
+                                      CbStride:(size_t)CbStride
+                                       CrBytes:(uint8_t *)CrBytes
+                                      CrStride:(size_t)CrStride
+                                     timestamp:(double)timestamp
+{
+    return [[OGVVideoBuffer alloc] initWithFormat:self
+                                                Y:[[OGVVideoPlane alloc] initWithBytes:YBytes stride:YStride lines:self.lumaHeight]
+                                               Cb:[[OGVVideoPlane alloc] initWithBytes:CbBytes stride:CbStride lines:self.chromaHeight]
+                                               Cr:[[OGVVideoPlane alloc] initWithBytes:CrBytes stride:CrStride lines:self.chromaHeight]
+                                        timestamp:timestamp];
+}
+
+-(OGVVideoBuffer *)createVideoBufferWithSampleBuffer:(CMSampleBufferRef)sampleBuffer
+{
+    return [[OGVVideoBuffer alloc] initWithFormat:self sampleBuffer:sampleBuffer];
+}
+
 - (CVPixelBufferRef)createPixelBufferLuma
 {
     if (lumaPool == NULL) {

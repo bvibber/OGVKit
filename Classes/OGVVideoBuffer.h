@@ -59,7 +59,8 @@ typedef enum : NSUInteger {
                             Cr:(OGVVideoPlane *)Cr
                      timestamp:(float)timestamp;
 
--(instancetype)initWithSampleBuffer:(CMSampleBufferRef)sampleBuffer;
+-(instancetype)initWithFormat:(OGVVideoFormat *)format
+                 sampleBuffer:(CMSampleBufferRef)sampleBuffer;
 
 /**
  * Lock the data planes in place (they may be in GPU memory)

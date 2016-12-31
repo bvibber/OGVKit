@@ -35,11 +35,12 @@
     return self;
 }
 
-- (instancetype)initWithSampleBuffer:(CMSampleBufferRef)sampleBuffer
+- (instancetype)initWithFormat:(OGVVideoFormat *)format
+                  sampleBuffer:(CMSampleBufferRef)sampleBuffer
 {
     self = [super init];
     if (self) {
-        _format = [[OGVVideoFormat alloc] initWithSampleBuffer:sampleBuffer];
+        _format = format;
         _Y = nil;
         _Cb = nil;
         _Cr = nil;

@@ -25,6 +25,8 @@ typedef NS_ENUM(NSUInteger, OGVColorSpace) {
     OGVColorSpaceBT2020 = 5
 };
 
+@class OGVVideoBuffer;
+
 @interface OGVVideoFormat : NSObject <NSCopying>
 
 @property int frameWidth;
@@ -43,6 +45,29 @@ typedef NS_ENUM(NSUInteger, OGVColorSpace) {
 @property (readonly) int chromaHeight;
 
 -(instancetype)initWithSampleBuffer:(CMSampleBufferRef)sampleBuffer;
+
+/**
+ * Allocate a video buffer wrapping existing bytes, leaving pointer
+ * lifetime up to the caller. Recommend calling -[OGVVideoBuffer neuter]
+ * on the resulting buffer when memory becomes no longer valid.
+ */
+-(OGVVideoBuffer *)createVideoBufferWithYBytes:(uint8_t *)YBytes
+                                       YStride:(size_t)YStride
+                                       CbBytes:(uint8_t *)CbBytes
+                                      CbStride:(size_t)CbStride
+                                       CrBytes:(uint8_t *)CrBytes
+                                      CrStride:(size_t)CrStride
+                                     timestamp:(double)timestamp;
+
+/**
+ * Allocate a video buffer backed by a CMSampleBuffer; only supports
+ * uncompressed buffers using kCVPixelFormatType_420YpCbCr8Planar or
+ * kCVPixelFormatType_420YpCbCr8PlanarFullRange pixel formats.
+ *
+ * Locking/unlocking of underlying bytes must be done using the
+ * -[OGVVideoBuffer lock:] method to get at the buffer's planes.
+ */
+-(OGVVideoBuffer *)createVideoBufferWithSampleBuffer:(CMSampleBufferRef)sampleBuffer;
 
 /**
  * Create a YCbCr CVPixelBuffer compatible with this format, pulling from
