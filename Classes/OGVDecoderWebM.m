@@ -368,11 +368,25 @@ static int64_t tellCallback(void * userdata)
 
             // In VP8/VP9 the frame size can vary! Update as necessary.
             // vpx_image is pre-cropped; use only the display size
-            OGVVideoFormat *format = [self.videoFormat copy];
+            OGVVideoFormat *format = [[OGVVideoFormat alloc] init];
             format.frameWidth = image->d_w;
             format.frameHeight = image->d_h;
             format.pictureWidth = image->d_w;
             format.pictureHeight = image->d_h;
+            switch (image->fmt) {
+                case VPX_IMG_FMT_I420:
+                    format.pixelFormat = OGVPixelFormatYCbCr420;
+                    break;
+                case VPX_IMG_FMT_I422:
+                    format.pixelFormat = OGVPixelFormatYCbCr422;
+                    break;
+                case VPX_IMG_FMT_I444:
+                    format.pixelFormat = OGVPixelFormatYCbCr444;
+                    break;
+                default:
+                    [NSException raise:@"OGVDecoderWebMException"
+                                format:@"Unexpected VPX pixel format %d", (int)image->fmt];
+            }
             switch (image->cs) {
                 case VPX_CS_BT_601:
                     format.colorSpace = OGVColorSpaceBT601;
@@ -389,12 +403,12 @@ static int64_t tellCallback(void * userdata)
                 case VPX_CS_BT_2020:
                     format.colorSpace = OGVColorSpaceBT2020;
                     break;
-                case VPX_CS_SRGB:
-                    format.colorSpace = OGVColorSpaceSRGB;
-                    break;
                 case VPX_CS_UNKNOWN:
                 default:
                     format.colorSpace = OGVColorSpaceDefault;
+            }
+            if (![format isEqual:self.videoFormat]) {
+                self.videoFormat = format;
             }
 
             OGVVideoPlane *Y = [[OGVVideoPlane alloc] initWithBytes:image->planes[0]
@@ -409,7 +423,7 @@ static int64_t tellCallback(void * userdata)
                                                               stride:image->stride[2]
                                                                lines:format.chromaHeight];
 
-            OGVVideoBuffer *buffer = [[OGVVideoBuffer alloc] initWithFormat:format
+            OGVVideoBuffer *buffer = [[OGVVideoBuffer alloc] initWithFormat:self.videoFormat
                                                                           Y:Y
                                                                          Cb:Cb
                                                                          Cr:Cr

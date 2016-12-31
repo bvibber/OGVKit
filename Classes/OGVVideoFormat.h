@@ -22,8 +22,7 @@ typedef NS_ENUM(NSUInteger, OGVColorSpace) {
     // These are supported by libvpx
     OGVColorSpaceSMPTE170 = 3,
     OGVColorSpaceSMPTE240 = 4,
-    OGVColorSpaceBT2020 = 5,
-    OGVColorSpaceSRGB = 6
+    OGVColorSpaceBT2020 = 5
 };
 
 @interface OGVVideoFormat : NSObject <NSCopying>
@@ -54,7 +53,8 @@ typedef NS_ENUM(NSUInteger, OGVColorSpace) {
  *
  * Fill with pixels with -[OGVVideoBuffer updatePixelBuffer:]
  *
- * @todo manage the pool sensibly
+ * These are created from a pool for the lifetime of the format object, and
+ * will be automatically recycled after release.
  */
 -(CVPixelBufferRef)createPixelBuffer;
 
@@ -64,7 +64,8 @@ typedef NS_ENUM(NSUInteger, OGVColorSpace) {
  *
  * Fill with pixels with -[OGVVideoPlane updatePixelBuffer:]
  *
- * @todo manage the pool sensibly
+ * These are created from a pool for the lifetime of the format object, and
+ * will be automatically recycled after release.
  */
 -(CVPixelBufferRef)createPixelBufferLuma;
 
@@ -74,7 +75,8 @@ typedef NS_ENUM(NSUInteger, OGVColorSpace) {
  *
  * Fill with pixels with -[OGVVideoPlane updatePixelBuffer:]
  *
- * @todo manage the pool sensibly
+ * These are created from a pool for the lifetime of the format object, and
+ * will be automatically recycled after release.
  */
 -(CVPixelBufferRef)createPixelBufferChroma;
 

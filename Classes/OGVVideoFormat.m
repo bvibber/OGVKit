@@ -9,6 +9,11 @@
 #import "OGVKit.h"
 
 @implementation OGVVideoFormat
+{
+    CVPixelBufferPoolRef samplePool;
+    CVPixelBufferPoolRef lumaPool;
+    CVPixelBufferPoolRef chromaPool;
+}
 
 - (int)hDecimation
 {
@@ -58,6 +63,19 @@
     return self.lumaHeight >> [self vDecimation];
 }
 
+-(void)dealloc
+{
+    if (samplePool) {
+        CFRelease(samplePool);
+    }
+    if (lumaPool) {
+        CFRelease(lumaPool);
+    }
+    if (chromaPool) {
+        CFRelease(chromaPool);
+    }
+}
+
 - (instancetype)copyWithZone:(NSZone *)zone
 {
     OGVVideoFormat *other = [[OGVVideoFormat alloc] init];
@@ -103,6 +121,7 @@
         int pixelFormat = CVPixelBufferGetPixelFormatType(imageBuffer);
         switch (pixelFormat) {
             case kCVPixelFormatType_420YpCbCr8Planar:
+            case kCVPixelFormatType_420YpCbCr8PlanarFullRange:
                 self.pixelFormat = OGVPixelFormatYCbCr420;
                 break;
             default:
@@ -126,40 +145,24 @@
 
 - (CVPixelBufferRef)createPixelBufferLuma
 {
-    static CVPixelBufferPoolRef bufferPool = NULL;
-    static OGVVideoFormat *poolFormat = nil;
-    
-    if (bufferPool && ![self isEqual:poolFormat]) {
-        CFRelease(bufferPool);
-        bufferPool = NULL;
-        poolFormat = self;
+    if (lumaPool == NULL) {
+        lumaPool = [self createPixelBufferPoolWithFormat:kCVPixelFormatType_OneComponent8
+                                                   width:self.lumaWidth
+                                                  height:self.lumaHeight];
     }
-    if (bufferPool == NULL) {
-        bufferPool = [self createPixelBufferPoolWithFormat:kCVPixelFormatType_OneComponent8
-                                                     width:self.lumaWidth
-                                                    height:self.lumaHeight];
-    }
-    return [self createPixelBufferWithPool:bufferPool
+    return [self createPixelBufferWithPool:lumaPool
                                      width:self.lumaWidth
                                     height:self.lumaHeight];
 }
 
 - (CVPixelBufferRef)createPixelBufferChroma
 {
-    static CVPixelBufferPoolRef bufferPool = NULL;
-    static OGVVideoFormat *poolFormat = nil;
-    
-    if (bufferPool && ![self isEqual:poolFormat]) {
-        CFRelease(bufferPool);
-        bufferPool = NULL;
-        poolFormat = self;
-    }
-    if (bufferPool == NULL) {
-        bufferPool = [self createPixelBufferPoolWithFormat:kCVPixelFormatType_OneComponent8
+    if (chromaPool == NULL) {
+        chromaPool = [self createPixelBufferPoolWithFormat:kCVPixelFormatType_OneComponent8
                                                      width:self.chromaWidth
                                                     height:self.chromaHeight];
     }
-    return [self createPixelBufferWithPool:bufferPool
+    return [self createPixelBufferWithPool:chromaPool
                                      width:self.chromaWidth
                                     height:self.chromaHeight];
 }
@@ -220,16 +223,7 @@
 
 - (CVPixelBufferRef)createPixelBuffer
 {
-    static CVPixelBufferPoolRef bufferPool = NULL;
-    static OGVVideoFormat *poolFormat = nil;
-
-    if (bufferPool && ![self isEqual:poolFormat]) {
-        NSLog(@"swapping buffer pools");
-        CFRelease(bufferPool);
-        bufferPool = NULL;
-        poolFormat = self;
-    }
-    if (bufferPool == NULL) {
+    if (samplePool == NULL) {
         OSType pixelFormat;
         switch (self.pixelFormat) {
             case OGVPixelFormatYCbCr420:
@@ -243,12 +237,12 @@
                 pixelFormat = kCVPixelFormatType_444YpCbCr8;
                 break;
         }
-        bufferPool = [self createPixelBufferPoolWithFormat:pixelFormat
+        samplePool = [self createPixelBufferPoolWithFormat:pixelFormat
                                                      width:self.lumaWidth
                                                     height:self.lumaHeight];
     }
     
-    return [self createPixelBufferWithPool:bufferPool
+    return [self createPixelBufferWithPool:samplePool
                                      width:self.lumaWidth
                                     height:self.lumaHeight];
 }
