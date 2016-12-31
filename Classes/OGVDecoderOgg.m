@@ -686,9 +686,37 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
 - (BOOL)seekViaSkeleton:(float)seconds
 {
     int64_t offset = [self keypointOffset:seconds];
+    [self flush];
     //[self.inputStream seek:offset blocking:YES];
     oggz_seek(oggz, offset, SEEK_SET);
-    [self flush];
+    
+    // We seeked to a specific ogg *page*, which may contain multiple packets...
+    // It's possible that the keyframe is not the first packet in the ogg page.
+    // Read out anything prior to it...
+    while (YES) {
+        if ([videoPackets empty]) {
+            if ([self process]) {
+                continue;
+            } else {
+                break;
+            }
+        }
+        OGVDecoderOggPacket *packet = [videoPackets peek];
+        if (packet) {
+            ogg_int64_t granulepos = packet.oggzPacket->pos.calc_granulepos;
+            int shift = theoraInfo.keyframe_granule_shift;
+            ogg_int64_t keyframe = granulepos >> shift;
+            ogg_int64_t index = granulepos ^ (keyframe << shift);
+            if (index == 0LL) {
+                // Found a keyframe, can start decoding.
+                break;
+            } else {
+                // Discard earlier frame, can't decode it.
+                [videoPackets dequeue];
+            }
+        }
+    }
+    // @fixme technically should probably adjust the audio too
     return YES;
 }
 
