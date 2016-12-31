@@ -32,6 +32,14 @@ static const GLfloat conversionMatrixBT601[] = {
     0, 0, 0, 1
 };
 
+// per https://groups.google.com/a/webmproject.org/d/msg/codec-devel/n2fozK-rKeg/FdhqxfOjAAAJ
+static const GLfloat conversionMatrixSRGB[] = {
+    0, 0, 1, 0, // red in the Cr plane
+    1, 0, 0, 0, // green in the Y plane
+    0, 1, 0, 0, // blue in the Cb plane
+    0, 0, 0, 1  // alpha
+};
+
 @implementation OGVFrameView {
     OGVVideoFormat *format;
     OGVVideoFormat *lastFormat;
@@ -266,6 +274,9 @@ static const GLfloat conversionMatrixBT601[] = {
         case OGVColorSpaceBT709:
             // HDTV
             matrix = conversionMatrixBT709;
+            break;
+        case OGVColorSpaceSRGB:
+            matrix = conversionMatrixSRGB;
             break;
         default:
             // If unknown default to BT601 NTSC-style
