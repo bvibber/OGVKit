@@ -185,10 +185,8 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
         case STATE_HEADERS:
             return [self processHeaders:packet serialno:serialno];
         case STATE_DURATION:
-            // In duration check state we just want to run through the stream
-            // until we find the last packet, and check its time.
-            return OGGZ_CONTINUE;
         case STATE_DECODING:
+            // Just queue them up...
             return [self processDecoding:packet serialno:serialno];
         default:
             NSLog(@"Invalid state in Ogg readPacketCallback");
@@ -683,17 +681,10 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
     }
 }
 
-- (BOOL)seekViaSkeleton:(float)seconds
+-(void)seekForwardToKeyframe
 {
-    int64_t offset = [self keypointOffset:seconds];
-    [self flush];
-    //[self.inputStream seek:offset blocking:YES];
-    oggz_seek(oggz, offset, SEEK_SET);
-    
 #ifdef OGVKIT_HAVE_THEORA_DECODER
-    // We seeked to a specific ogg *page*, which may contain multiple packets...
-    // It's possible that the keyframe is not the first packet in the ogg page.
-    // Read out anything prior to it...
+    // Discard any video frames prior to the next keyframe...
     if (self.hasVideo) {
         while (YES) {
             if ([videoPackets empty]) {
@@ -718,10 +709,27 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
                 }
             }
         }
+        if (self.hasAudio && self.frameReady) {
+            // Discard any audio prior to the keyframe.
+            while (self.audioReady && self.audioTimestamp < self.frameTimestamp) {
+                [audioPackets dequeue];
+            }
+        }
     }
 #endif
+}
 
-    // @fixme technically should probably adjust the audio too
+- (BOOL)seekViaSkeleton:(float)seconds
+{
+    int64_t offset = [self keypointOffset:seconds];
+    //[self.inputStream seek:offset blocking:YES];
+    oggz_seek(oggz, offset, SEEK_SET);
+    [self flush];
+    
+    // We seeked to a specific ogg *page*, which may contain multiple packets...
+    // It's possible that the keyframe is not the first packet in the ogg page.
+    [self seekForwardToKeyframe];
+
     return YES;
 }
 
@@ -749,17 +757,56 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
 
 - (BOOL)seekViaBisection:(float)seconds
 {
+    [self flush];
+
     // Fall back to bisection sort. Very slow over network.
-    long milliseconds = (long)(seconds * 1000.0f);
+    long milliseconds = (long)(seconds * 1000.0);
+
     ogg_int64_t pos = oggz_seek_units(oggz, milliseconds, SEEK_SET);
     if (pos < 0) {
         // uhhh.... not good.
         NSLog(@"OGVDecoderOgg failed to seek to time position within file");
         return NO;
-    } else {
-        [self flush];
-        return YES;
     }
+    
+#ifdef OGVKIT_HAVE_THEORA_DECODER
+    // For video, oggz_seek_units will usually give us a result between keyframes.
+    // This means we have to derive the keyframe time and seek *again*.
+    if (self.hasVideo) {
+        while ([videoPackets empty]) {
+            if ([self process]) {
+                continue;
+            } else {
+                break;
+            }
+        }
+        OGVDecoderOggPacket *packet = [videoPackets peek];
+        if (packet) {
+            ogg_int64_t granulepos = packet.oggzPacket->pos.calc_granulepos;
+            int shift = theoraInfo.keyframe_granule_shift;
+            ogg_int64_t keyframe = granulepos >> shift;
+            ogg_int64_t keyframeGranulepos = keyframe << shift;
+            double keyframeEndTime = th_granule_time(theoraDecoderContext, keyframeGranulepos);
+            // We want the *start* of the frame.
+            double keyframeTime = keyframeEndTime - ((double)theoraInfo.fps_denominator / (double)theoraInfo.fps_numerator);
+            long keyframeMillis = (long)(keyframeTime * 1000.0);
+
+            [self flush];
+            pos = oggz_seek_units(oggz, keyframeMillis, SEEK_SET);
+            [self flush];
+            if (pos < 0) {
+                // still not good!
+                NSLog(@"OGVDecoderOgg failed to seek to keyframe time position within file");
+                return NO;
+            }
+
+            // That may still have given us a page start, so advance to keyframe:
+            [self seekForwardToKeyframe];
+        }
+    }
+#endif
+
+    return YES;
 }
 
 - (float)durationViaSkeleton
