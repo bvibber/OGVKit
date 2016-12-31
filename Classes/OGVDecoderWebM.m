@@ -218,14 +218,14 @@ static int64_t tellCallback(void * userdata)
             }
             vpx_codec_dec_init(&vpxContext, vpxDecoder, NULL, 0);
 
-            self.videoFormat = [[OGVVideoFormat alloc] init];
-            self.videoFormat.frameWidth = videoParams.width;
-            self.videoFormat.frameHeight = videoParams.height;
-            self.videoFormat.pictureWidth = videoParams.display_width;
-            self.videoFormat.pictureHeight = videoParams.display_height;
-            self.videoFormat.pictureOffsetX = videoParams.crop_left;
-            self.videoFormat.pictureOffsetY = videoParams.crop_top;
-            self.videoFormat.pixelFormat = OGVPixelFormatYCbCr420; // @todo vp9 can do other formats too
+            self.videoFormat = [[OGVVideoFormat alloc] initWithFrameWidth:videoParams.width
+                                                              frameHeight:videoParams.height
+                                                             pictureWidth:videoParams.display_width
+                                                            pictureHeight:videoParams.display_height
+                                                           pictureOffsetX:videoParams.crop_left
+                                                           pictureOffsetY:videoParams.crop_top
+                                                              pixelFormat:OGVPixelFormatYCbCr420
+                                                               colorSpace:OGVColorSpaceDefault];
 #endif
         }
     }
@@ -368,48 +368,14 @@ static int64_t tellCallback(void * userdata)
 
             // In VP8/VP9 the frame size can vary! Update as necessary.
             // vpx_image is pre-cropped; use only the display size
-            OGVVideoFormat *format = [[OGVVideoFormat alloc] init];
-            format.frameWidth = image->d_w;
-            format.frameHeight = image->d_h;
-            format.pictureWidth = image->d_w;
-            format.pictureHeight = image->d_h;
-            switch (image->fmt) {
-                case VPX_IMG_FMT_I420:
-                    format.pixelFormat = OGVPixelFormatYCbCr420;
-                    break;
-                case VPX_IMG_FMT_I422:
-                    format.pixelFormat = OGVPixelFormatYCbCr422;
-                    break;
-                case VPX_IMG_FMT_I444:
-                    format.pixelFormat = OGVPixelFormatYCbCr444;
-                    break;
-                default:
-                    [NSException raise:@"OGVDecoderWebMException"
-                                format:@"Unexpected VPX pixel format %d", (int)image->fmt];
-            }
-            switch (image->cs) {
-                case VPX_CS_BT_601:
-                    format.colorSpace = OGVColorSpaceBT601;
-                    break;
-                case VPX_CS_BT_709:
-                    format.colorSpace = OGVColorSpaceBT709;
-                    break;
-                case VPX_CS_SMPTE_170:
-                    format.colorSpace = OGVColorSpaceSMPTE170;
-                    break;
-                case VPX_CS_SMPTE_240:
-                    format.colorSpace = OGVColorSpaceSMPTE240;
-                    break;
-                case VPX_CS_BT_2020:
-                    format.colorSpace = OGVColorSpaceBT2020;
-                    break;
-                case VPX_CS_SRGB:
-                    format.colorSpace = OGVColorSpaceSRGB;
-                    break;
-                case VPX_CS_UNKNOWN:
-                default:
-                    format.colorSpace = OGVColorSpaceDefault;
-            }
+            OGVVideoFormat *format = [[OGVVideoFormat alloc] initWithFrameWidth:image->w
+                                                                    frameHeight:image->h
+                                                                   pictureWidth:image->d_w
+                                                                  pictureHeight:image->d_h
+                                                                 pictureOffsetX:0
+                                                                 pictureOffsetY:0
+                                                                    pixelFormat:[self pixelFormat:image->fmt]
+                                                                     colorSpace:[self colorSpace:image->cs]];
             if (![format isEqual:self.videoFormat]) {
                 self.videoFormat = format;
             }
@@ -430,6 +396,42 @@ static int64_t tellCallback(void * userdata)
     }
 
     return NO;
+}
+
+-(OGVPixelFormat)pixelFormat:(vpx_img_fmt_t)fmt
+{
+    switch (fmt) {
+        case VPX_IMG_FMT_I420:
+            return OGVPixelFormatYCbCr420;
+        case VPX_IMG_FMT_I422:
+            return OGVPixelFormatYCbCr422;
+        case VPX_IMG_FMT_I444:
+            return OGVPixelFormatYCbCr444;
+        default:
+            [NSException raise:@"OGVDecoderWebMException"
+                        format:@"Unexpected VPX pixel format %d", (int)fmt];
+    }
+}
+
+-(OGVColorSpace)colorSpace:(vpx_color_space_t)cs
+{
+    switch (cs) {
+        case VPX_CS_BT_601:
+            return OGVColorSpaceBT601;
+        case VPX_CS_BT_709:
+            return OGVColorSpaceBT709;
+        case VPX_CS_SMPTE_170:
+            return OGVColorSpaceSMPTE170;
+        case VPX_CS_SMPTE_240:
+            return OGVColorSpaceSMPTE240;
+        case VPX_CS_BT_2020:
+            return OGVColorSpaceBT2020;
+        case VPX_CS_SRGB:
+            return OGVColorSpaceSRGB;
+        case VPX_CS_UNKNOWN:
+        default:
+            return OGVColorSpaceDefault;
+    }
 }
 
 -(BOOL)decodeAudio

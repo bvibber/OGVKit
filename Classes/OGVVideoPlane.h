@@ -25,27 +25,27 @@
  * YCbCr planar buffers are often wider than the encoded frame width
  * for convenience or performance reasons, so hey that's fun.
  */
-@property (readonly) unsigned int stride;
+@property (readonly) size_t stride;
 
 /**
  * Number of scan lines contained.
  */
-@property (readonly) unsigned int lines;
+@property (readonly) size_t lines;
 
 /**
  * Create a new plane buffer object wrapping an existing NSData object.
  */
 -(instancetype)initWithData:(NSData *)data
-                     stride:(unsigned int)stride
-                      lines:(unsigned int)lines;
+                     stride:(size_t)stride
+                      lines:(size_t)lines;
 
 /**
  * Create a new plane buffer object wrapping an existing byte buffer.
  * Caller's responsibility to manage lifetime of the underlying byte buffer.
  */
 -(instancetype)initWithBytes:(void *)bytes
-                      stride:(unsigned int)stride
-                       lines:(unsigned int)lines;
+                      stride:(size_t)stride
+                       lines:(size_t)lines;
 
 /**
  * Create a new plane buffer object wrapping an existing plane of a
@@ -53,7 +53,7 @@
  * Caller's responsibility to manage lifetime of the underlying lock.
  */
 -(instancetype)initWithPixelBuffer:(CVPixelBufferRef)pixelBuffer
-                             plane:(int)plane;
+                             plane:(size_t)plane;
 
 /**
  * "Neuter" the underlying pointer.

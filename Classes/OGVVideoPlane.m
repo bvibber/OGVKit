@@ -11,8 +11,8 @@
 @implementation OGVVideoPlane
 
 -(instancetype)initWithData:(NSData *)data
-                     stride:(unsigned int)stride
-                      lines:(unsigned int)lines
+                     stride:(size_t)stride
+                      lines:(size_t)lines
 {
     self = [super init];
     if (self) {
@@ -25,9 +25,9 @@
     return self;
 }
 
--(instancetype)initWithBytes:(void *)bytes
-                      stride:(unsigned int)stride
-                       lines:(unsigned int)lines
+-(instancetype)initWithBytes:(uint8_t *)bytes
+                      stride:(size_t)stride
+                       lines:(size_t)lines
 {
     NSData *data = [NSData dataWithBytesNoCopy:bytes
                                         length:stride * lines
@@ -36,7 +36,7 @@
 }
 
 -(instancetype)initWithPixelBuffer:(CVPixelBufferRef)pixelBuffer
-                             plane:(int)plane;
+                             plane:(size_t)plane;
 {
     return [self initWithBytes:CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, plane)
                         stride:CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, plane)

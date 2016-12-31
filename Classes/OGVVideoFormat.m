@@ -8,6 +8,17 @@
 
 #import "OGVKit.h"
 
+@interface OGVVideoFormat (Private)
+@property int frameWidth;
+@property int frameHeight;
+@property int pictureWidth;
+@property int pictureHeight;
+@property int pictureOffsetX;
+@property int pictureOffsetY;
+@property OGVPixelFormat pixelFormat;
+@property OGVColorSpace colorSpace;
+@end
+
 @implementation OGVVideoFormat
 {
     CVPixelBufferPoolRef samplePool;
@@ -112,33 +123,57 @@
            (self.colorSpace == other.colorSpace);
 }
 
+-(instancetype)initWithFrameWidth:(int)frameWidth
+                      frameHeight:(int)frameHeight
+                     pictureWidth:(int)pictureWidth
+                    pictureHeight:(int)pictureHeight
+                   pictureOffsetX:(int)pictureOffsetX
+                   pictureOffsetY:(int)pictureOffsetY
+                      pixelFormat:(OGVPixelFormat)pixelFormat
+                       colorSpace:(OGVColorSpace)colorSpace
+{
+    self = [super init];
+    if (self) {
+        self.frameWidth = frameWidth;
+        self.frameHeight = frameHeight;
+        self.pictureWidth = pictureWidth;
+        self.pictureHeight = pictureHeight;
+        self.pictureOffsetX = pictureOffsetX;
+        self.pictureOffsetY = pictureOffsetY;
+        self.pixelFormat = pixelFormat;
+        self.colorSpace = colorSpace;
+    }
+    return self;
+}
 -(instancetype)initWithSampleBuffer:(CMSampleBufferRef)sampleBuffer
 {
     self = [super init];
     if (self) {
         CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
 
-        int pixelFormat = CVPixelBufferGetPixelFormatType(imageBuffer);
-        switch (pixelFormat) {
+        int srcPixelFormat = CVPixelBufferGetPixelFormatType(imageBuffer);
+        OGVPixelFormat pixelFormat;
+        switch (srcPixelFormat) {
             case kCVPixelFormatType_420YpCbCr8Planar:
             case kCVPixelFormatType_420YpCbCr8PlanarFullRange:
-                self.pixelFormat = OGVPixelFormatYCbCr420;
+                pixelFormat = OGVPixelFormatYCbCr420;
                 break;
             default:
                 [NSException raise:@"OGVVideoFormatException"
-                            format:@"incompatible pixel format (%d)", pixelFormat];
+                            format:@"incompatible pixel format (%d)", srcPixelFormat];
         }
 
-        self.frameWidth = CVPixelBufferGetWidth(imageBuffer);
-        self.frameHeight = CVPixelBufferGetHeight(imageBuffer);
-
         CGRect cleanRect = CVImageBufferGetCleanRect(imageBuffer);
-        self.pictureWidth = cleanRect.size.width;
-        self.pictureHeight = cleanRect.size.height;
-        self.pictureOffsetX = cleanRect.origin.x;
-        self.pictureOffsetY = cleanRect.origin.y;
         
         // @fixme get the colorspace
+        return [self initWithFrameWidth:CVPixelBufferGetWidth(imageBuffer)
+                            frameHeight:CVPixelBufferGetHeight(imageBuffer)
+                           pictureWidth:cleanRect.size.width
+                          pictureHeight:cleanRect.size.height
+                         pictureOffsetX:cleanRect.origin.x
+                         pictureOffsetY:cleanRect.origin.y
+                            pixelFormat:pixelFormat
+                             colorSpace:OGVColorSpaceDefault];
     }
     return self;
 }
