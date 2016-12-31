@@ -277,27 +277,14 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
 
                     theoraDecoderContext = th_decode_alloc(&theoraInfo,theoraSetupInfo);
 
-                    self.videoFormat = [[OGVVideoFormat alloc] init];
-                    self.videoFormat.frameWidth = theoraInfo.frame_width;
-                    self.videoFormat.frameHeight = theoraInfo.frame_height;
-                    self.videoFormat.pictureWidth = theoraInfo.pic_width;
-                    self.videoFormat.pictureHeight = theoraInfo.pic_height;
-                    self.videoFormat.pictureOffsetX = theoraInfo.pic_x;
-                    self.videoFormat.pictureOffsetY = theoraInfo.pic_y;
-                    self.videoFormat.pixelFormat = [self theoraPixelFormat:theoraInfo.pixel_fmt];
-                    switch (theoraInfo.colorspace) {
-                        case TH_CS_ITU_REC_470M:
-                            // NTSC
-                            self.videoFormat.colorSpace = OGVColorSpaceBT601;
-                            break;
-                        case TH_CS_ITU_REC_470BG:
-                            // PAL/SECAM
-                            self.videoFormat.colorSpace = OGVColorSpaceBT601BG;
-                            break;
-                        case TH_CS_UNSPECIFIED:
-                        default:
-                            self.videoFormat.colorSpace = OGVColorSpaceDefault;
-                    }
+                    self.videoFormat = [[OGVVideoFormat alloc] initWithFrameWidth:theoraInfo.frame_width
+                                                                      frameHeight:theoraInfo.frame_height
+                                                                     pictureWidth:theoraInfo.pic_width
+                                                                    pictureHeight:theoraInfo.pic_height
+                                                                   pictureOffsetX:theoraInfo.pic_x
+                                                                   pictureOffsetY:theoraInfo.pic_y
+                                                                      pixelFormat:[self theoraPixelFormat:theoraInfo.pixel_fmt]
+                                                                       colorSpace:[self theoraColorSpace:theoraInfo.colorspace]];
 
                     // Surprise! This is actually the first video packet.
                     // Save it for later.
@@ -389,6 +376,21 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
             // @todo handle error state gracefully
             abort();
             return 0;
+    }
+}
+
+-(OGVColorSpace)theoraColorSpace:(th_colorspace)cs
+{
+    switch (cs) {
+        case TH_CS_ITU_REC_470M:
+            // NTSC
+            return OGVColorSpaceBT601;
+        case TH_CS_ITU_REC_470BG:
+            // PAL/SECAM
+            return OGVColorSpaceBT601BG;
+        case TH_CS_UNSPECIFIED:
+        default:
+            return OGVColorSpaceDefault;
     }
 }
 #endif

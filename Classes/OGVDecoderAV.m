@@ -118,12 +118,14 @@
             CMFormatDescriptionRef desc = (__bridge CMFormatDescriptionRef)(videoTrack.formatDescriptions.firstObject);
             CMVideoDimensions dim = CMVideoFormatDescriptionGetDimensions(desc);
             CGSize size = CMVideoFormatDescriptionGetPresentationDimensions(desc, YES, YES);
-            self.videoFormat = [[OGVVideoFormat alloc] init];
-            self.videoFormat.frameWidth = dim.width;
-            self.videoFormat.frameHeight = dim.height;
-            self.videoFormat.pictureWidth = size.width;
-            self.videoFormat.pictureHeight = size.height;
-            self.videoFormat.pixelFormat = OGVPixelFormatYCbCr420;
+            self.videoFormat = [[OGVVideoFormat alloc] initWithFrameWidth:dim.width
+                                                              frameHeight:dim.height
+                                                             pictureWidth:dim.width
+                                                            pictureHeight:dim.height
+                                                           pictureOffsetX:0
+                                                           pictureOffsetY:0
+                                                              pixelFormat:OGVPixelFormatYCbCr420
+                                                               colorSpace:OGVColorSpaceDefault];
         }
         if (audioTrack) {
             audioOutput = [[AVAssetReaderTrackOutput alloc] initWithTrack:audioTrack

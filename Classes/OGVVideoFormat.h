@@ -30,21 +30,34 @@ typedef NS_ENUM(NSUInteger, OGVColorSpace) {
 
 @interface OGVVideoFormat : NSObject <NSCopying>
 
-@property int frameWidth;
-@property int frameHeight;
-@property int pictureWidth;
-@property int pictureHeight;
-@property int pictureOffsetX;
-@property int pictureOffsetY;
-
-@property OGVPixelFormat pixelFormat;
-@property OGVColorSpace colorSpace;
+@property (readonly) int frameWidth;
+@property (readonly) int frameHeight;
+@property (readonly) int pictureWidth;
+@property (readonly) int pictureHeight;
+@property (readonly) int pictureOffsetX;
+@property (readonly) int pictureOffsetY;
+@property (readonly) OGVPixelFormat pixelFormat;
+@property (readonly) OGVColorSpace colorSpace;
 
 @property (readonly) int lumaWidth;
 @property (readonly) int lumaHeight;
 @property (readonly) int chromaWidth;
 @property (readonly) int chromaHeight;
 
+/**
+ * Initialize with given values
+ */
+-(instancetype)initWithFrameWidth:(int)frameWidth
+                      frameHeight:(int)frameHeight
+                     pictureWidth:(int)pictureWidth
+                    pictureHeight:(int)pictureHeight
+                   pictureOffsetX:(int)pictureOffsetX
+                   pictureOffsetY:(int)pictureOffsetY
+                      pixelFormat:(OGVPixelFormat)pixelFormat
+                       colorSpace:(OGVColorSpace)colorSpace;
+/**
+ * Initialize format properties to match an existing CMSampleBuffer.
+ */
 -(instancetype)initWithSampleBuffer:(CMSampleBufferRef)sampleBuffer;
 
 /**
