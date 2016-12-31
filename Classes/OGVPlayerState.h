@@ -9,6 +9,12 @@
 
 @class OGVPlayerState;
 
+
+/**
+ * Delegate messages are sent on the main thread dispatch queue, unless
+ * a different queue is specified in the init call. If NULL is specified
+ * as the dispatch queue, delegate calls will be on the decode thread.
+ */
 @protocol OGVPlayerStateDelegate<NSObject>
 
 -(void)ogvPlayerState:(OGVPlayerState *)state drawFrame:(OGVVideoBuffer *)buffer;
@@ -36,7 +42,13 @@
 
 @interface OGVPlayerState : NSObject <OGVInputStreamDelegate>
 
--(instancetype)initWithInputStream:(OGVInputStream *)inputStream delegate:(id<OGVPlayerStateDelegate>)delegate;
+-(instancetype)initWithInputStream:(OGVInputStream *)inputStream
+                          delegate:(id<OGVPlayerStateDelegate>)delegate;
+
+-(instancetype)initWithInputStream:(OGVInputStream *)inputStream
+                          delegate:(id<OGVPlayerStateDelegate>)delegate
+                     delegateQueue:(dispatch_queue_t)delegateQueue;
+
 -(instancetype)initWithURL:(NSURL *)URL delegate:(id<OGVPlayerStateDelegate>)delegate;
 
 -(void)play;
@@ -48,6 +60,5 @@
 @property (readonly) float playbackPosition;
 @property (readonly) float duration;
 @property (readonly) BOOL seekable;
-
 
 @end

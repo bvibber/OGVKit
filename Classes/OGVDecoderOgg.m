@@ -287,6 +287,17 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
                     self.videoFormat.pictureOffsetX = theoraInfo.pic_x;
                     self.videoFormat.pictureOffsetY = theoraInfo.pic_y;
                     self.videoFormat.pixelFormat = [self theoraPixelFormat:theoraInfo.pixel_fmt];
+                    switch (theoraInfo.colorspace) {
+                        case TH_CS_ITU_REC_470M:
+                            self.videoFormat.colorSpace = OGVColorSpaceBT709;
+                            break;
+                        case TH_CS_ITU_REC_470BG:
+                            self.videoFormat.colorSpace = OGVColorSpaceBT601;
+                            break;
+                        case TH_CS_UNSPECIFIED:
+                        default:
+                            self.videoFormat.colorSpace = OGVColorSpaceDefault;
+                    }
 
                     // Surprise! This is actually the first video packet.
                     // Save it for later.
@@ -465,6 +476,11 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
 {
     OGVDecoderOggPacket *packet = [videoPackets dequeue];
 
+    if (queuedFrame) {
+        [queuedFrame neuter];
+        queuedFrame = nil;
+    }
+
 #ifdef OGVKIT_HAVE_THEORA_DECODER
     if (videoCodec == OGGZ_CONTENT_THEORA) {
         ogg_int64_t videobuf_granulepos = packet.oggzPacket->pos.calc_granulepos;
@@ -490,24 +506,13 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
     th_ycbcr_buffer ycbcr;
     th_decode_ycbcr_out(theoraDecoderContext, ycbcr);
 
-    OGVVideoPlane *Y = [[OGVVideoPlane alloc] initWithBytes:ycbcr[0].data
-                                                     stride:ycbcr[0].stride
-                                                      lines:self.videoFormat.lumaHeight];
-
-    OGVVideoPlane *Cb = [[OGVVideoPlane alloc] initWithBytes:ycbcr[1].data
-                                                      stride:ycbcr[1].stride
-                                                       lines:self.videoFormat.chromaHeight];
-
-    OGVVideoPlane *Cr = [[OGVVideoPlane alloc] initWithBytes:ycbcr[2].data
-                                                      stride:ycbcr[2].stride
-                                                       lines:self.videoFormat.chromaHeight];
-
-    OGVVideoBuffer *buffer = [[OGVVideoBuffer alloc] initWithFormat:self.videoFormat
-                                                                  Y:Y
-                                                                 Cb:Cb
-                                                                 Cr:Cr
-                                                          timestamp:timestamp];
-    queuedFrame = buffer;
+    queuedFrame = [self.videoFormat createVideoBufferWithYBytes:ycbcr[0].data
+                                                        YStride:ycbcr[0].stride
+                                                        CbBytes:ycbcr[1].data
+                                                       CbStride:ycbcr[1].stride
+                                                        CrBytes:ycbcr[2].data
+                                                       CrStride:ycbcr[2].stride
+                                                      timestamp:timestamp];
 }
 #endif
 
@@ -546,30 +551,12 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
 
 - (OGVVideoBuffer *)frameBuffer
 {
-    if (queuedFrame) {
-        OGVVideoBuffer *buffer = queuedFrame;
-        queuedFrame = nil;
-        return buffer;
-    } else {
-        @throw [NSException
-                exceptionWithName:@"OGVDecoderFrameNotReadyException"
-                reason:@"Tried to read frame when none available"
-                userInfo:nil];
-    }
+    return queuedFrame;
 }
 
 - (OGVAudioBuffer *)audioBuffer
 {
-    if (queuedAudio) {
-        OGVAudioBuffer *buffer = queuedAudio;
-        queuedAudio = nil;
-        return buffer;
-    } else {
-        @throw [NSException
-                exceptionWithName:@"OGVDecoderAudioNotReadyException"
-                reason:@"Tried to read audio buffer when none available"
-                userInfo:nil];
-    }
+    return queuedAudio;
 }
 
 - (BOOL)process
@@ -667,7 +654,7 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
 -(void)flush
 {
     if (videoStream) {
-        queuedFrame = nil;
+        queuedFrame = NULL;
         [videoPackets flush];
     }
 

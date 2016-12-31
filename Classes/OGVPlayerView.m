@@ -10,6 +10,15 @@
 
 @import CoreText;
 
+// Uncomment to use experimental output via AVSampleBufferDisplayLayer
+// instead of OGVFrameView. This has some issues:
+//  - requires extra pixel format conversions
+//  - image isn't retained when app goes into background
+//  - 4:4:4 doesn't output at all on device
+//  - weird offset bug at 640x360 on iPad Pro
+//
+//#define USE_LAYER 1
+
 static NSString *kOGVPlayerTimeLabelEmpty = @"-:--";
 
 // Icons from Font Awesome custom subset
@@ -46,6 +55,11 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
     NSTimer *controlsTimeout;
     NSTimer *seekTimeout;
     BOOL seeking;
+#ifdef USE_LAYER
+    AVSampleBufferDisplayLayer *displayLayer;
+#else
+    OGVFrameView *frameView;
+#endif
 }
 
 #pragma mark - Public methods
@@ -87,14 +101,20 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
 {
     if (state) {
         [state cancel];
-        [self.frameView clearFrame];
+#ifdef USE_LAYER
+        [displayLayer flushAndRemoveImage];
+#else
+        [frameView clearFrame];
+#endif
         state = nil;
     }
     _inputStream = inputStream;
     _sourceURL = inputStream.URL;
     [self updateTimeLabel];
     if (_inputStream) {
-        state = [[OGVPlayerState alloc] initWithInputStream:_inputStream delegate:self];
+        state = [[OGVPlayerState alloc] initWithInputStream:_inputStream
+                                                   delegate:self
+                                              delegateQueue:NULL];
     }
 }
 
@@ -145,6 +165,16 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
     }
 }
 
+-(void)layoutSubviews
+{
+    [super layoutSubviews];
+#ifdef USE_LAYER
+    displayLayer.frame = self.bounds;
+#else
+    frameView.frame = self.bounds;
+#endif
+}
+
 #pragma mark - private methods
 
 -(void)setup
@@ -157,12 +187,21 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
         CTFontManagerRegisterFontsForURL((__bridge CFURLRef)fontURL, kCTFontManagerScopeProcess, nil);
         OGVPlayerViewDidRegisterIconFont = YES;
     }
+    
+    // Output layer
+#ifdef USE_LAYER
+    displayLayer = [[AVSampleBufferDisplayLayer alloc] init];
+    displayLayer.frame = self.bounds;
+    [self.layer addSublayer:displayLayer];
+#else
+    frameView = [[OGVFrameView alloc] initWithFrame:self.bounds
+                                            context:[self createGLContext]];
+    [self addSubview:frameView];
+#endif
 
+    // Controls
     UINib *nib = [UINib nibWithNibName:@"OGVPlayerView" bundle:bundle];
     UIView *interface = [nib instantiateWithOwner:self options:nil][0];
-
-    // @todo move this into OGVFrameView
-    self.frameView.context = [self createGLContext];
 
     // can this be set in the nib?
     [self.pausePlayButton setTitleColor:[UIColor blackColor] forState:UIControlStateHighlighted];
@@ -404,87 +443,120 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
 
 - (void)ogvPlayerState:(OGVPlayerState *)sender drawFrame:(OGVVideoBuffer *)buffer
 {
-    if (sender == state) {
-        [self.frameView drawFrame:buffer];
-    }
+#ifdef USE_LAYER
+    // Copy on the background thread
+    CMSampleBufferRef sampleBuffer = [buffer copyAsSampleBuffer];
+    CMSetAttachment(sampleBuffer, kCMSampleAttachmentKey_DisplayImmediately, kCFBooleanTrue, kCMAttachmentMode_ShouldPropagate);
+    
+    // Draw on the main thread!
+    dispatch_async(dispatch_get_main_queue(), ^() {
+        if (sender == state) {
+            //NSLog(@"Layer %d %@", displayLayer.status, displayLayer.error);
+            [displayLayer enqueueSampleBuffer:sampleBuffer];
+        }
+        CFRelease(sampleBuffer);
+    });
+#else
+    [frameView drawFrame:buffer];
+#endif
 }
 
 - (void)ogvPlayerStateDidLoadMetadata:(OGVPlayerState *)sender
 {
-    if (sender == state) {
-        if ([self.delegate respondsToSelector:@selector(ogvPlayerDidLoadMetadata:)]) {
-            [self.delegate ogvPlayerDidLoadMetadata:self];
+    dispatch_async(dispatch_get_main_queue(), ^() {
+        if (sender == state) {
+            if ([self.delegate respondsToSelector:@selector(ogvPlayerDidLoadMetadata:)]) {
+                [self.delegate ogvPlayerDidLoadMetadata:self];
+            }
         }
-    }
+    });
 }
 
 - (void)ogvPlayerStateDidPlay:(OGVPlayerState *)sender
 {
-    if (sender == state) {
-        [self.pausePlayButton setTitle:kOGVPlayerIconCharPause forState:UIControlStateNormal];
-        [self.pausePlayButton setTitle:kOGVPlayerIconCharPause forState:UIControlStateHighlighted];
-        [self startTimeTimer];
-        [self updateTimeLabel];
+    dispatch_async(dispatch_get_main_queue(), ^() {
+        if (sender == state) {
+            [self.pausePlayButton setTitle:kOGVPlayerIconCharPause forState:UIControlStateNormal];
+            [self.pausePlayButton setTitle:kOGVPlayerIconCharPause forState:UIControlStateHighlighted];
+            [self startTimeTimer];
+            [self updateTimeLabel];
+            
+#ifdef USE_LAYER
+            [displayLayer flush];
+#endif
 
-        if (![self controlsAreVisible]) {
-            [self showControls];
-        }
-        [self startControlsTimeout];
+            if (![self controlsAreVisible]) {
+                [self showControls];
+            }
+            [self startControlsTimeout];
 
-        if ([self.delegate respondsToSelector:@selector(ogvPlayerDidPlay:)]) {
-            [self.delegate ogvPlayerDidPlay:self];
+            if ([self.delegate respondsToSelector:@selector(ogvPlayerDidPlay:)]) {
+                [self.delegate ogvPlayerDidPlay:self];
+            }
         }
-    }
+    });
 }
 
 - (void)ogvPlayerStateDidPause:(OGVPlayerState *)sender
 {
-    if (sender == state) {
-        [self.pausePlayButton setTitle:kOGVPlayerIconCharPlay forState:UIControlStateNormal];
-        [self.pausePlayButton setTitle:kOGVPlayerIconCharPlay forState:UIControlStateHighlighted];
-        [self updateTimeLabel];
-        [self stopTimeTimer];
+    dispatch_async(dispatch_get_main_queue(), ^() {
+        if (sender == state) {
+            [self.pausePlayButton setTitle:kOGVPlayerIconCharPlay forState:UIControlStateNormal];
+            [self.pausePlayButton setTitle:kOGVPlayerIconCharPlay forState:UIControlStateHighlighted];
+            [self updateTimeLabel];
+            [self stopTimeTimer];
 
-        if ([self controlsAreHidden]) {
-            [self showControls];
-        } else {
-            [self stopControlsTimeout];
-        }
+            if ([self controlsAreHidden]) {
+                [self showControls];
+            } else {
+                [self stopControlsTimeout];
+            }
 
-        if ([self.delegate respondsToSelector:@selector(ogvPlayerDidPause:)]) {
-            [self.delegate ogvPlayerDidPause:self];
+            if ([self.delegate respondsToSelector:@selector(ogvPlayerDidPause:)]) {
+                [self.delegate ogvPlayerDidPause:self];
+            }
         }
-    }
+    });
 }
 
 - (void)ogvPlayerStateDidEnd:(OGVPlayerState *)sender
 {
-    if (sender == state) {
-        if ([self.delegate respondsToSelector:@selector(ogvPlayerDidEnd:)]) {
-            [self.delegate ogvPlayerDidEnd:self];
+    dispatch_async(dispatch_get_main_queue(), ^() {
+        if (sender == state) {
+            if ([self.delegate respondsToSelector:@selector(ogvPlayerDidEnd:)]) {
+                [self.delegate ogvPlayerDidEnd:self];
+            }
         }
-    }
+    });
 }
 
 - (void)ogvPlayerStateDidSeek:(OGVPlayerState *)sender
 {
-    if (sender == state) {
-        seeking = NO;
-        self.activityIndicator.hidden = YES;
-        [self.activityIndicator stopAnimating];
-        [self updateTimeLabel];
+    dispatch_async(dispatch_get_main_queue(), ^() {
+        if (sender == state) {
+            seeking = NO;
+            self.activityIndicator.hidden = YES;
+            [self.activityIndicator stopAnimating];
+            [self updateTimeLabel];
 
-        if ([self.delegate respondsToSelector:@selector(ogvPlayerDidSeek:)]) {
-            [self.delegate ogvPlayerDidSeek:self];
+#ifdef USE_LAYER
+            [displayLayer flush];
+#endif
+
+            if ([self.delegate respondsToSelector:@selector(ogvPlayerDidSeek:)]) {
+                [self.delegate ogvPlayerDidSeek:self];
+            }
         }
-    }
+    });
 }
 
 - (void)ogvPlayerState:(OGVPlayerState *)state customizeURLRequest:(NSMutableURLRequest *)request
 {
-    if ([self.delegate respondsToSelector:@selector(ogvPlayer:customizeURLRequest:)]) {
-        [self.delegate ogvPlayer:self customizeURLRequest:request];
-    }
+    dispatch_async(dispatch_get_main_queue(), ^() {
+        if ([self.delegate respondsToSelector:@selector(ogvPlayer:customizeURLRequest:)]) {
+            [self.delegate ogvPlayer:self customizeURLRequest:request];
+        }
+    });
 }
 
 @end

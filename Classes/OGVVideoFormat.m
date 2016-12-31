@@ -9,6 +9,11 @@
 #import "OGVKit.h"
 
 @implementation OGVVideoFormat
+{
+    CVPixelBufferPoolRef samplePool;
+    CVPixelBufferPoolRef lumaPool;
+    CVPixelBufferPoolRef chromaPool;
+}
 
 - (int)hDecimation
 {
@@ -58,6 +63,19 @@
     return self.lumaHeight >> [self vDecimation];
 }
 
+-(void)dealloc
+{
+    if (samplePool) {
+        CFRelease(samplePool);
+    }
+    if (lumaPool) {
+        CFRelease(lumaPool);
+    }
+    if (chromaPool) {
+        CFRelease(chromaPool);
+    }
+}
+
 - (instancetype)copyWithZone:(NSZone *)zone
 {
     OGVVideoFormat *other = [[OGVVideoFormat alloc] init];
@@ -68,7 +86,190 @@
     other.pictureOffsetX = self.pictureOffsetX;
     other.pictureOffsetY = self.pictureOffsetY;
     other.pixelFormat = self.pixelFormat;
+    other.colorSpace = self.colorSpace;
     return other;
+}
+
+- (BOOL)isEqual:(id)object
+{
+    if (!object) {
+        return NO;
+    }
+    if ([object class] != [self class]) {
+        return NO;
+    }
+    if (self == object) {
+        return YES;
+    }
+    OGVVideoFormat *other = object;
+    return (self.frameWidth == other.frameWidth) &&
+           (self.frameHeight == other.frameHeight) &&
+           (self.pictureWidth == other.pictureWidth) &&
+           (self.pictureHeight == other.pictureHeight) &&
+           (self.pictureOffsetX == other.pictureOffsetX) &&
+           (self.pictureOffsetY == other.pictureOffsetY) &&
+           (self.pixelFormat == other.pixelFormat) &&
+           (self.colorSpace == other.colorSpace);
+}
+
+-(instancetype)initWithSampleBuffer:(CMSampleBufferRef)sampleBuffer
+{
+    self = [super init];
+    if (self) {
+        CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
+
+        int pixelFormat = CVPixelBufferGetPixelFormatType(imageBuffer);
+        switch (pixelFormat) {
+            case kCVPixelFormatType_420YpCbCr8Planar:
+            case kCVPixelFormatType_420YpCbCr8PlanarFullRange:
+                self.pixelFormat = OGVPixelFormatYCbCr420;
+                break;
+            default:
+                [NSException raise:@"OGVVideoFormatException"
+                            format:@"incompatible pixel format (%d)", pixelFormat];
+        }
+
+        self.frameWidth = CVPixelBufferGetWidth(imageBuffer);
+        self.frameHeight = CVPixelBufferGetHeight(imageBuffer);
+
+        CGRect cleanRect = CVImageBufferGetCleanRect(imageBuffer);
+        self.pictureWidth = cleanRect.size.width;
+        self.pictureHeight = cleanRect.size.height;
+        self.pictureOffsetX = cleanRect.origin.x;
+        self.pictureOffsetY = cleanRect.origin.y;
+        
+        // @fixme get the colorspace
+    }
+    return self;
+}
+
+/**
+ * Allocate a video buffer wrapping existing bytes, leaving pointer
+ * lifetime up to the caller. Recommend calling -[OGVVideoBuffer neuter]
+ * on the resulting buffer when memory becomes no longer valid.
+ */
+-(OGVVideoBuffer *)createVideoBufferWithYBytes:(uint8_t *)YBytes
+                                       YStride:(size_t)YStride
+                                       CbBytes:(uint8_t *)CbBytes
+                                      CbStride:(size_t)CbStride
+                                       CrBytes:(uint8_t *)CrBytes
+                                      CrStride:(size_t)CrStride
+                                     timestamp:(double)timestamp
+{
+    return [[OGVVideoBuffer alloc] initWithFormat:self
+                                                Y:[[OGVVideoPlane alloc] initWithBytes:YBytes stride:YStride lines:self.lumaHeight]
+                                               Cb:[[OGVVideoPlane alloc] initWithBytes:CbBytes stride:CbStride lines:self.chromaHeight]
+                                               Cr:[[OGVVideoPlane alloc] initWithBytes:CrBytes stride:CrStride lines:self.chromaHeight]
+                                        timestamp:timestamp];
+}
+
+-(OGVVideoBuffer *)createVideoBufferWithSampleBuffer:(CMSampleBufferRef)sampleBuffer
+{
+    return [[OGVVideoBuffer alloc] initWithFormat:self sampleBuffer:sampleBuffer];
+}
+
+- (CVPixelBufferRef)createPixelBufferLuma
+{
+    if (lumaPool == NULL) {
+        lumaPool = [self createPixelBufferPoolWithFormat:kCVPixelFormatType_OneComponent8
+                                                   width:self.lumaWidth
+                                                  height:self.lumaHeight];
+    }
+    return [self createPixelBufferWithPool:lumaPool
+                                     width:self.lumaWidth
+                                    height:self.lumaHeight];
+}
+
+- (CVPixelBufferRef)createPixelBufferChroma
+{
+    if (chromaPool == NULL) {
+        chromaPool = [self createPixelBufferPoolWithFormat:kCVPixelFormatType_OneComponent8
+                                                     width:self.chromaWidth
+                                                    height:self.chromaHeight];
+    }
+    return [self createPixelBufferWithPool:chromaPool
+                                     width:self.chromaWidth
+                                    height:self.chromaHeight];
+}
+
+-(CVPixelBufferRef)createPixelBufferWithPool:(CVPixelBufferPoolRef)bufferPool
+                                       width:(int)width
+                                      height:(int)height
+{
+    CVImageBufferRef imageBuffer;
+    CVReturn ret = CVPixelBufferPoolCreatePixelBuffer(NULL, bufferPool, &imageBuffer);
+    if (ret != kCVReturnSuccess) {
+        @throw [NSException
+                exceptionWithName:@"OGVVideoFormatException"
+                reason:[NSString stringWithFormat:@"Failed to create CVPixelBuffer %d", ret]
+                userInfo:@{@"CVReturn": @(ret)}];
+    }
+    
+    CVPixelBufferPoolFlush(bufferPool, 0);
+    
+    // Clean aperture setting doesn't get handled by buffer pool?
+    // Set it on each buffer as we get it.
+    NSDictionary *aperture = @{
+                               (id)kCVImageBufferCleanApertureWidthKey: @(self.pictureWidth * width / self.frameWidth),
+                               (id)kCVImageBufferCleanApertureHeightKey: @(self.pictureHeight * height / self.frameHeight),
+                               (id)kCVImageBufferCleanApertureHorizontalOffsetKey: @(((self.frameWidth - self.pictureWidth) / 2 - self.pictureOffsetX) * width / self.frameWidth),
+                               (id)kCVImageBufferCleanApertureVerticalOffsetKey: @(((self.frameHeight - self.pictureHeight) / 2 - self.pictureOffsetY) * height / self.frameHeight)
+                               };
+    CVBufferSetAttachment(imageBuffer,
+                          kCVImageBufferCleanApertureKey,
+                          (__bridge CFDictionaryRef)aperture,
+                          kCVAttachmentMode_ShouldPropagate);
+    return imageBuffer;
+}
+
+- (CVPixelBufferPoolRef)createPixelBufferPoolWithFormat:(OSType)format
+                                                  width:(int)width
+                                                 height:(int)height
+
+{
+    CVPixelBufferPoolRef bufferPool;
+    NSDictionary *poolOpts = @{(id)kCVPixelBufferPoolMinimumBufferCountKey: @4};
+    NSDictionary *opts = @{(id)kCVPixelBufferWidthKey: @(width),
+                           (id)kCVPixelBufferHeightKey: @(height),
+                           (id)kCVPixelBufferIOSurfacePropertiesKey: @{},
+                           (id)kCVPixelBufferPixelFormatTypeKey: @(format)};
+    CVReturn ret = CVPixelBufferPoolCreate(NULL,
+                                           (__bridge CFDictionaryRef _Nullable)(poolOpts),
+                                           (__bridge CFDictionaryRef _Nullable)(opts),
+                                           &bufferPool);
+    if (ret != kCVReturnSuccess) {
+        @throw [NSException
+                exceptionWithName:@"OGVVideoFormatException"
+                reason:[NSString stringWithFormat:@"Failed to create CVPixelBufferPool %d", ret]
+                userInfo:@{@"CVReturn": @(ret)}];
+    }
+    return bufferPool;
+}
+
+- (CVPixelBufferRef)createPixelBuffer
+{
+    if (samplePool == NULL) {
+        OSType pixelFormat;
+        switch (self.pixelFormat) {
+            case OGVPixelFormatYCbCr420:
+                pixelFormat = kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange;
+                break;
+            case OGVPixelFormatYCbCr422:
+                pixelFormat = kCVPixelFormatType_422YpCbCr8_yuvs;
+                break;
+            case OGVPixelFormatYCbCr444:
+                // Warning: does not render on iOS device with AVSampleBufferDisplayLayer
+                pixelFormat = kCVPixelFormatType_444YpCbCr8;
+                break;
+        }
+        samplePool = [self createPixelBufferPoolWithFormat:pixelFormat
+                                                     width:self.lumaWidth
+                                                    height:self.lumaHeight];
+    }
+    
+    return [self createPixelBufferWithPool:samplePool
+                                     width:self.lumaWidth
+                                    height:self.lumaHeight];
 }
 
 @end

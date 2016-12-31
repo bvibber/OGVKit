@@ -3,7 +3,7 @@
 //  OGVKit
 //
 //  Created by Brion on 6/21/15.
-//  Copyright (c) 2015 Brion Vibber. All rights reserved.
+//  Copyright (c) 2015-2016 Brion Vibber. All rights reserved.
 //
 
 /**
@@ -46,5 +46,24 @@
 -(instancetype)initWithBytes:(void *)bytes
                       stride:(unsigned int)stride
                        lines:(unsigned int)lines;
+
+/**
+ * Create a new plane buffer object wrapping an existing plane of a
+ * CVPixelBuffer in memory. Base address must be locked already.
+ * Caller's responsibility to manage lifetime of the underlying lock.
+ */
+-(instancetype)initWithPixelBuffer:(CVPixelBufferRef)pixelBuffer
+                             plane:(int)plane;
+
+/**
+ * "Neuter" the underlying pointer.
+ */
+-(void)neuter;
+
+/**
+ * Copy bytes to an 8-bit single-channel CVPixelBuffer.
+ * Create a suitable one from an OGVVideoFormat object.
+ */
+-(void)updatePixelBuffer:(CVPixelBufferRef)pixelBuffer;
 
 @end

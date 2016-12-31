@@ -9,6 +9,7 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #import <GLKit/GLKit.h>
+#import <AVFoundation/AVFoundation.h>
 
 @class OGVKit;
 

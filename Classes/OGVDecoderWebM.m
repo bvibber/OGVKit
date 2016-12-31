@@ -338,6 +338,10 @@ static int64_t tellCallback(void * userdata)
         unsigned int chunks = packet.count;
 
         videobufTime = packet.timestamp;
+        if (queuedFrame) {
+            [queuedFrame neuter];
+            queuedFrame = nil;
+        }
 
 #ifdef OGVKIT_HAVE_VP8_DECODER
         // uh, can this happen? curiouser :D
@@ -364,35 +368,62 @@ static int64_t tellCallback(void * userdata)
 
             // In VP8/VP9 the frame size can vary! Update as necessary.
             // vpx_image is pre-cropped; use only the display size
-            OGVVideoFormat *format = [self.videoFormat copy];
+            OGVVideoFormat *format = [[OGVVideoFormat alloc] init];
             format.frameWidth = image->d_w;
             format.frameHeight = image->d_h;
             format.pictureWidth = image->d_w;
             format.pictureHeight = image->d_h;
+            switch (image->fmt) {
+                case VPX_IMG_FMT_I420:
+                    format.pixelFormat = OGVPixelFormatYCbCr420;
+                    break;
+                case VPX_IMG_FMT_I422:
+                    format.pixelFormat = OGVPixelFormatYCbCr422;
+                    break;
+                case VPX_IMG_FMT_I444:
+                    format.pixelFormat = OGVPixelFormatYCbCr444;
+                    break;
+                default:
+                    [NSException raise:@"OGVDecoderWebMException"
+                                format:@"Unexpected VPX pixel format %d", (int)image->fmt];
+            }
+            switch (image->cs) {
+                case VPX_CS_BT_601:
+                    format.colorSpace = OGVColorSpaceBT601;
+                    break;
+                case VPX_CS_BT_709:
+                    format.colorSpace = OGVColorSpaceBT709;
+                    break;
+                case VPX_CS_SMPTE_170:
+                    format.colorSpace = OGVColorSpaceSMPTE170;
+                    break;
+                case VPX_CS_SMPTE_240:
+                    format.colorSpace = OGVColorSpaceSMPTE240;
+                    break;
+                case VPX_CS_BT_2020:
+                    format.colorSpace = OGVColorSpaceBT2020;
+                    break;
+                case VPX_CS_UNKNOWN:
+                default:
+                    format.colorSpace = OGVColorSpaceDefault;
+            }
+            if (![format isEqual:self.videoFormat]) {
+                self.videoFormat = format;
+            }
 
-            OGVVideoPlane *Y = [[OGVVideoPlane alloc] initWithBytes:image->planes[0]
-                                                             stride:image->stride[0]
-                                                              lines:format.lumaHeight];
+            queuedFrame = [self.videoFormat createVideoBufferWithYBytes:image->planes[0]
+                                                                YStride:image->stride[0]
+                                                                CbBytes:image->planes[1]
+                                                               CbStride:image->stride[1]
+                                                                CrBytes:image->planes[2]
+                                                               CrStride:image->stride[2]
+                                                              timestamp:videobufTime];
 
-            OGVVideoPlane *Cb = [[OGVVideoPlane alloc] initWithBytes:image->planes[1]
-                                                              stride:image->stride[1]
-                                                               lines:format.chromaHeight];
-
-            OGVVideoPlane *Cr = [[OGVVideoPlane alloc] initWithBytes:image->planes[2]
-                                                              stride:image->stride[2]
-                                                               lines:format.chromaHeight];
-
-            OGVVideoBuffer *buffer = [[OGVVideoBuffer alloc] initWithFormat:format
-                                                                          Y:Y
-                                                                         Cb:Cb
-                                                                         Cr:Cr
-                                                                  timestamp:videobufTime];
-
-            queuedFrame = buffer;
+            return YES;
         }
 #endif
         
-        return YES;
+        return NO;
     }
 
     return NO;
@@ -456,16 +487,12 @@ static int64_t tellCallback(void * userdata)
 
 - (OGVVideoBuffer *)frameBuffer
 {
-    OGVVideoBuffer *buffer = queuedFrame;
-    queuedFrame = nil;
-    return buffer;
+    return queuedFrame;
 }
 
 - (OGVAudioBuffer *)audioBuffer
 {
-    OGVAudioBuffer *buffer = queuedAudio;
-    queuedAudio = nil;
-    return buffer;
+    return queuedAudio;
 }
 
 -(void)dealloc
