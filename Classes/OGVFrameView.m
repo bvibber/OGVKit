@@ -261,14 +261,15 @@ static const GLfloat conversionMatrixBT601[] = {
     GLfloat *matrix;
     switch (format.colorSpace) {
         case OGVColorSpaceBT601:
-        case OGVColorSpaceSMPTE170:
+            // SDTV NTSC
             matrix = conversionMatrixBT601;
-            break;
         case OGVColorSpaceBT709:
-        case OGVColorSpaceSMPTE240:
-        default:
-            // If unknown default to BT709
+            // HDTV
             matrix = conversionMatrixBT709;
+            break;
+        default:
+            // If unknown default to BT601 NTSC-style
+            matrix = conversionMatrixBT601;
     }
     GLuint loc = glGetUniformLocation(program, "uConversionMatrix");
     glUniformMatrix4fv(loc, 1, GL_FALSE, matrix);

@@ -403,6 +403,9 @@ static int64_t tellCallback(void * userdata)
                 case VPX_CS_BT_2020:
                     format.colorSpace = OGVColorSpaceBT2020;
                     break;
+                case VPX_CS_SRGB:
+                    format.colorSpace = OGVColorSpaceSRGB;
+                    break;
                 case VPX_CS_UNKNOWN:
                 default:
                     format.colorSpace = OGVColorSpaceDefault;

@@ -287,10 +287,12 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
                     self.videoFormat.pixelFormat = [self theoraPixelFormat:theoraInfo.pixel_fmt];
                     switch (theoraInfo.colorspace) {
                         case TH_CS_ITU_REC_470M:
-                            self.videoFormat.colorSpace = OGVColorSpaceBT709;
+                            // NTSC
+                            self.videoFormat.colorSpace = OGVColorSpaceBT601;
                             break;
                         case TH_CS_ITU_REC_470BG:
-                            self.videoFormat.colorSpace = OGVColorSpaceBT601;
+                            // PAL/SECAM
+                            self.videoFormat.colorSpace = OGVColorSpaceBT601BG;
                             break;
                         case TH_CS_UNSPECIFIED:
                         default:

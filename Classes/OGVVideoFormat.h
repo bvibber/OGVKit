@@ -14,15 +14,16 @@ typedef NS_ENUM(NSUInteger, OGVPixelFormat) {
 
 typedef NS_ENUM(NSUInteger, OGVColorSpace) {
     OGVColorSpaceDefault = 0,
-    
-    // Supported by Theora and VP8/VP9
-    OGVColorSpaceBT709 = 1,
-    OGVColorSpaceBT601 = 2,
-    
-    // These are supported by libvpx
-    OGVColorSpaceSMPTE170 = 3,
-    OGVColorSpaceSMPTE240 = 4,
-    OGVColorSpaceBT2020 = 5
+
+    OGVColorSpaceBT601 = 1,    // Theora, VP8, VP9
+    OGVColorSpaceBT601BG = 2,  // Theora
+
+    // Supported by VP8/VP9
+    OGVColorSpaceBT709 = 3,    // VP9
+    OGVColorSpaceSMPTE170 = 4, // VP9
+    OGVColorSpaceSMPTE240 = 5, // VP9
+    OGVColorSpaceBT2020 = 6,   // VP9
+    OGVColorSpaceSRGB = 7      // VP9 profile 1 & 3 only
 };
 
 @class OGVVideoBuffer;
