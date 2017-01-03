@@ -43,9 +43,18 @@ static const GLfloat conversionMatrixSRGB[] = {
 // Getting CIE XYZ from BT 601 (SMPTE-C NTSC variant)
 // http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
 static const GLfloat colorMatrixFromBT601[] = {
+    // Using native white point
     0.3935891,  0.3652497,  0.1916313,
     0.2124132,  0.7010437,  0.0865432,
-    0.0187423,  0.1119313,  0.9581563};
+    0.0187423,  0.1119313,  0.9581563
+
+    /*
+    // Converting to D50
+    0.4163290,  0.3931464,  0.1547446,
+    0.2216999,  0.7032549,  0.0750452,
+    0.0136576,  0.0913604,  0.7201920
+    */
+};
 
 // For converting CIE XYZ to sRGB primaries...
 // http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
