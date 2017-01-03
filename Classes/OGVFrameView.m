@@ -11,7 +11,7 @@
 #import <OpenGLES/ES2/glext.h>
 
 // Uncomment to check for OpenGL ES errors. Slows rendering.
-//#define DEBUG_GL
+#define DEBUG_GL
 
 // In the world of GL there are no rectangles.
 // There are only triangles.
@@ -31,7 +31,6 @@ static const GLfloat conversionMatrixBT601[] = {
     1.16438,  2.01723,  0.00000, -1.08139,
     0, 0, 0, 1
 };
-
 // per https://groups.google.com/a/webmproject.org/d/msg/codec-devel/n2fozK-rKeg/FdhqxfOjAAAJ
 static const GLfloat conversionMatrixSRGB[] = {
     0, 0, 1, 0, // red in the Cr plane
@@ -39,6 +38,23 @@ static const GLfloat conversionMatrixSRGB[] = {
     0, 1, 0, 0, // blue in the Cb plane
     0, 0, 0, 1  // alpha
 };
+
+
+// Getting CIE XYZ from BT 601 (SMPTE-C NTSC variant)
+// http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
+static const GLfloat colorMatrixFromBT601[] = {
+    0.3935891,  0.3652497,  0.1916313,
+    0.2124132,  0.7010437,  0.0865432,
+    0.0187423,  0.1119313,  0.9581563};
+
+// For converting CIE XYZ to sRGB primaries...
+// http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
+static const GLfloat colorMatrixToSRGB[] = {
+     3.2404542, -1.5371385, -0.4985314,
+    -0.9692660,  1.8760108,  0.0415560,
+     0.0556434, -0.2040259,  1.0572252
+};
+
 
 @implementation OGVFrameView {
     OGVVideoFormat *format;
@@ -247,8 +263,19 @@ static const GLfloat conversionMatrixSRGB[] = {
     glCompileShader(shader);
     [self debugCheck];
 
-    // todo: error handling? meh whatever
-    
+    GLint success = 0;
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        GLint logSize = 0;
+        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logSize);
+
+        GLchar *infoLog = malloc(logSize);
+        glGetShaderInfoLog(shader, logSize, NULL, infoLog);
+
+        NSLog(@"shader compilation failed: %s", infoLog);
+        free(infoLog);
+    }
+
     return shader;
 }
 
@@ -266,25 +293,40 @@ static const GLfloat conversionMatrixSRGB[] = {
 
 -(void)setupConversionMatrix
 {
-    GLfloat *matrix;
+    GLuint loc;
+    GLfloat *conversionMatrix;
+    GLfloat *colorMatrixInverse;
+    GLfloat *colorMatrixOut;
+
     switch (format.colorSpace) {
-        case OGVColorSpaceBT601:
-            // SDTV NTSC
-            matrix = conversionMatrixBT601;
-            break;
         case OGVColorSpaceBT709:
             // HDTV
-            matrix = conversionMatrixBT709;
+            conversionMatrix = conversionMatrixBT709;
+            colorMatrixInverse = colorMatrixFromBT601;
             break;
         case OGVColorSpaceSRGB:
-            matrix = conversionMatrixSRGB;
+            conversionMatrix = conversionMatrixSRGB;
             break;
         default:
             // If unknown default to BT601 NTSC-style
-            matrix = conversionMatrixBT601;
+        case OGVColorSpaceBT601:
+            // SDTV NTSC
+            conversionMatrix = conversionMatrixBT601;
+            colorMatrixInverse = colorMatrixFromBT601;
+            break;
     }
-    GLuint loc = glGetUniformLocation(program, "uConversionMatrix");
-    glUniformMatrix4fv(loc, 1, GL_FALSE, matrix);
+
+    // Output is always sRGB on iOS, in theory.
+    colorMatrixOut = colorMatrixToSRGB;
+
+    loc = glGetUniformLocation(program, "uConversionMatrix");
+    glUniformMatrix4fv(loc, 1, GL_FALSE, conversionMatrix);
+
+    loc = glGetUniformLocation(program, "uColorMatrixInverse");
+    glUniformMatrix3fv(loc, 1, GL_FALSE, colorMatrixInverse);
+
+    loc = glGetUniformLocation(program, "uColorMatrixOut");
+    glUniformMatrix3fv(loc, 1, GL_FALSE, colorMatrixOut);
 }
 
 -(GLuint)setupPositionBuffer:(NSString *)varname
