@@ -368,8 +368,8 @@ static int64_t tellCallback(void * userdata)
 
             // In VP8/VP9 the frame size can vary! Update as necessary.
             // vpx_image is pre-cropped; use only the display size
-            OGVVideoFormat *format = [[OGVVideoFormat alloc] initWithFrameWidth:image->w
-                                                                    frameHeight:image->h
+            OGVVideoFormat *format = [[OGVVideoFormat alloc] initWithFrameWidth:image->d_w
+                                                                    frameHeight:image->d_h
                                                                    pictureWidth:image->d_w
                                                                   pictureHeight:image->d_h
                                                                  pictureOffsetX:0
