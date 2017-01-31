@@ -53,6 +53,11 @@ typedef enum : NSUInteger {
  */
 @property (readonly) float timestamp;
 
+/**
+ * Duration of the frame, in seconds.
+ */
+@property (readonly) float duration;
+
 - (instancetype)initWithFormat:(OGVVideoFormat *)format
                              Y:(OGVVideoPlane *)Y
                             Cb:(OGVVideoPlane *)Cb

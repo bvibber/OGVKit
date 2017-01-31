@@ -7,11 +7,17 @@
 
 #import "OGVKit.h"
 
-@implementation OGVVideoncoder
+const NSString *OGVVideoEncoderOptionsBitrateKey = @"bitrate";
+
+@implementation OGVVideoEncoder
 
 -(instancetype)initWithFormat:(OGVVideoFormat *)format
 {
-    NSLog(@"encoding not implemented");
+    self = [self init];
+    if (self) {
+        _format = format;
+    }
+    return self;
 }
 
 -(OGVPacket *)encodeFrame:(OGVVideoBuffer *)buffer

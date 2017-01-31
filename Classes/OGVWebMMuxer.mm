@@ -82,8 +82,8 @@ public:
 {
     OGVKitMkvWriter *writer;
     mkvmuxer::Segment *segment;
-    mkvmuxer::VideoTrack *videoTrack;
-    mkvmuxer::AudioTrack *audioTrack;
+    uint64_t videoTrackId;
+    uint64_t audioTrackId;
 }
 
 -(instancetype)initWithOutputStream:(OGVOutputStream *)outputStream
@@ -92,7 +92,6 @@ public:
 {
     self = [super initWithOutputStream:outputStream audioFormat:audioFormat videoFormat:videoFormat];
     if (self) {
-        // @fixme init writer
         writer = new OGVKitMkvWriter(self.outputStream);
         segment = new mkvmuxer::Segment();
         segment->Init(writer);
@@ -112,40 +111,58 @@ public:
 
 -(void)writeHeaders
 {
-    // set segment info?
-    
-    uint64_t vid_track = segment->AddVideoTrack(self.videoFormat.frameWidth,
-                                                self.videoFormat.frameHeight,
-                                                0);
-    videoTrack = static_cast<mkvmuxer::VideoTrack*>(segment->GetTrackByNumber(vid_track));
-    videoTrack->set_codec_id("VP80");
-    videoTrack->set_display_width(self.videoFormat.pictureWidth);
-    videoTrack->set_display_height(self.videoFormat.pictureHeight);
-    videoTrack->set_crop_left(self.videoFormat.pictureOffsetX);
-    videoTrack->set_crop_top(self.videoFormat.pictureOffsetY);
-    videoTrack->set_crop_right(self.videoFormat.frameWidth - self.videoFormat.pictureOffsetX - self.videoFormat.pictureWidth);
-    videoTrack->set_crop_bottom(self.videoFormat.frameHeight - self.videoFormat.pictureOffsetY - self.videoFormat.pictureHeight);
-    
-    mkvmuxer::Cues *const cues = segment->GetCues();
-    cues->set_output_block_number(true);
-    segment->CuesTrack(vid_track);
+    if (self.videoFormat) {
+        videoTrackId = segment->AddVideoTrack(self.videoFormat.frameWidth,
+                                              self.videoFormat.frameHeight,
+                                              0);
+        mkvmuxer::VideoTrack* videoTrack = static_cast<mkvmuxer::VideoTrack*>(segment->GetTrackByNumber(videoTrackId));
+        videoTrack->set_codec_id("VP80");
+        videoTrack->set_display_width(self.videoFormat.pictureWidth);
+        videoTrack->set_display_height(self.videoFormat.pictureHeight);
+        videoTrack->set_crop_left(self.videoFormat.pictureOffsetX);
+        videoTrack->set_crop_top(self.videoFormat.pictureOffsetY);
+        videoTrack->set_crop_right(self.videoFormat.frameWidth - self.videoFormat.pictureOffsetX - self.videoFormat.pictureWidth);
+        videoTrack->set_crop_bottom(self.videoFormat.frameHeight - self.videoFormat.pictureOffsetY - self.videoFormat.pictureHeight);
+        
+        mkvmuxer::Cues *const cues = segment->GetCues();
+        cues->set_output_block_number(true);
+        segment->CuesTrack(videoTrackId);
+    }
+    if (self.audioFormat) {
+        audioTrackId = segment->AddAudioTrack(self.audioFormat.sampleRate,
+                                              self.audioFormat.channels,
+                                              0);
+    }
 }
 
 
 -(void)appendAudioPacket:(OGVPacket *)packet
 {
-    NSLog(@"encoding not implemented");
+    mkvmuxer::Frame frame;
+    if (!frame.Init((const uint8_t *)packet.data.bytes, packet.data.length)) {
+        [NSException raise:@"OGVWebMMuxerException"
+                    format:@"failed to init webm audio frame"];
+    }
+    frame.set_track_number(audioTrackId);
+    frame.set_timestamp(packet.timestamp * NSEC_PER_SEC);
+    frame.set_duration(packet.duration * NSEC_PER_SEC);
+    
+    if (!segment->AddGenericFrame(&frame)) {
+        [NSException raise:@"OGVWebMMuxerException"
+                    format:@"failed to add webm audio frame"];
+    }
 }
 
 -(void)appendVideoPacket:(OGVPacket *)packet
 {
-    NSLog(@"encoding not implemented");
     mkvmuxer::Frame frame;
     if (!frame.Init((const uint8_t *)packet.data.bytes, packet.data.length)) {
         [NSException raise:@"OGVWebMMuxerException"
                     format:@"failed to init webm frame"];
     }
+    frame.set_track_number(videoTrackId);
     frame.set_timestamp(packet.timestamp * NSEC_PER_SEC);
+    frame.set_duration(packet.duration * NSEC_PER_SEC);
     
     if (!segment->AddGenericFrame(&frame)) {
         [NSException raise:@"OGVWebMMuxerException"

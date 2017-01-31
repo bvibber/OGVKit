@@ -9,8 +9,8 @@
 
 @property NSData *data;
 @property float timestamp;
+@property float duration;
 
--(instancetype)initWithData:(NSData *)data timestamp:(float)timestamp;
-+(OGVPacket *)packetWithData:(NSData *)data timestamp:(float)timestamp;
+-(instancetype)initWithData:(NSData *)data timestamp:(float)timestamp duration:(float)duration;
 
 @end

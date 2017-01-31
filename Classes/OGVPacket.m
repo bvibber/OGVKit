@@ -19,10 +19,5 @@
     return self;
 }
 
-+(OGVPacket *)packetWithData:(NSData *)data timestamp:(float)timestamp
-{
-    return [[OGVPacket alloc] initWithData:data timestamp:timestamp];
-}
-
 @end
 
