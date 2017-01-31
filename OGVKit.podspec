@@ -164,6 +164,10 @@ Pod::Spec.new do |s|
                             "Classes/OGVPacket.m",
                             "Classes/OGVMuxer.h",
                             "Classes/OGVMuxer.m",
+                            "Classes/OGVOutputStream.h",
+                            "Classes/OGVOutputStream.m",
+                            "Classes/OGVFileOutputStream.h",
+                            "Classes/OGVFileOutputStream.m",
                             "Classes/OGVAudioEncoder.h",
                             "Classes/OGVAudioEncoder.m",
                             "Classes/OGVVideoEncoder.h",
@@ -212,5 +216,5 @@ Pod::Spec.new do |s|
 
     sskel.dependency 'libogg'
   end
-  
+
 end

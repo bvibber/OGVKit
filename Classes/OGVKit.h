@@ -33,6 +33,8 @@
 
 #ifdef OGVKIT_HAVE_ENCODER
 #import "OGVPacket.h"
+#import "OGVOutputStream.h"
+#import "OGVFileOutputStream.h"
 #import "OGVMuxer.h"
 #import "OGVAudioEncoder.h"
 #import "OGVVideoEncoder.h"
