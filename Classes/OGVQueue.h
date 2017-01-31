@@ -6,8 +6,6 @@
 //  Copyright (c) 2015 Brion Vibber. All rights reserved.
 //
 
-#import "OGVKit.h"
-
 @interface OGVQueue : NSObject
 
 @property (readonly) BOOL empty;

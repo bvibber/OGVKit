@@ -5,7 +5,8 @@
 //  Copyright (c) 2016 Brion Vibber. All rights reserved.
 //
 
-#include "OGVKit.h"
+#import "OGVKit.h"
+#import "OGVVP8Encoder.h"
 
 #define VPX_CODEC_DISABLE_COMPAT 1
 #include <VPX/vpx/vpx_encoder.h>
@@ -44,7 +45,7 @@
     //
 }
 
--(OGVPacket *)encodeFrame:(OGVVideoBuffer *)buffer
+-(void)encodeFrame:(OGVVideoBuffer *)buffer
 {
     vpx_img_fmt_t fmt;
     switch (buffer.format.pixelFormat) {
@@ -84,15 +85,10 @@
     vpx_codec_iter_t iter = NULL;
     vpx_codec_cx_pkt_t *pkt;
     while ((pkt = vpx_codec_get_cx_data(&codec, &iter)) != NULL) {
-        if (packet) {
-            [NSException raise:@"OGVVP8EncoderException"
-                        format:@"got unexpected second packet"];
-        }
-        packet = [[OGVPacket alloc] initWithData:[NSData dataWithBytes:pkt->data.frame.buf length:pkt->data.frame.sz]
+        [self.packets queue:[[OGVPacket alloc] initWithData:[NSData dataWithBytes:pkt->data.frame.buf length:pkt->data.frame.sz]
                                                   timestamp:pkt->data.frame.pts / 1000.0
-                                                   duration:pkt->data.frame.duration / 1000.0];
+                                                   duration:pkt->data.frame.duration / 1000.0]];
     }
-    return packet;
 }
 
 -(void)copyPlane:(OGVVideoPlane *)plane image:(vpx_image_t *)img index:(size_t)index

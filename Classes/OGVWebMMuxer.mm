@@ -86,19 +86,6 @@ public:
     uint64_t audioTrackId;
 }
 
--(instancetype)initWithOutputStream:(OGVOutputStream *)outputStream
-                        audioFormat:(OGVAudioFormat *)audioFormat
-                        videoFormat:(OGVVideoFormat *)videoFormat
-{
-    self = [super initWithOutputStream:outputStream audioFormat:audioFormat videoFormat:videoFormat];
-    if (self) {
-        writer = new OGVKitMkvWriter(self.outputStream);
-        segment = new mkvmuxer::Segment();
-        segment->Init(writer);
-    }
-    return self;
-}
-
 -(void)dealloc
 {
     if (segment) {
@@ -109,8 +96,14 @@ public:
     }
 }
 
--(void)writeHeaders
+-(void)openOutputStream:(OGVOutputStream *)outputStream
 {
+    [super openOutputStream:outputStream];
+
+    writer = new OGVKitMkvWriter(self.outputStream);
+    segment = new mkvmuxer::Segment();
+    segment->Init(writer);
+
     if (self.videoFormat) {
         videoTrackId = segment->AddVideoTrack(self.videoFormat.frameWidth,
                                               self.videoFormat.frameHeight,
@@ -128,6 +121,7 @@ public:
         cues->set_output_block_number(true);
         segment->CuesTrack(videoTrackId);
     }
+
     if (self.audioFormat) {
         audioTrackId = segment->AddAudioTrack(self.audioFormat.sampleRate,
                                               self.audioFormat.channels,

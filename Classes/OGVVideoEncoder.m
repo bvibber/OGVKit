@@ -7,22 +7,31 @@
 
 #import "OGVKit.h"
 
-const NSString *OGVVideoEncoderOptionsBitrateKey = @"bitrate";
+const NSString *OGVVideoEncoderOptionsBitrateKey = @"videoBitrate";
+const NSString *OGVVideoEncoderOptionsKeyframeIntervalKey = @"keyframeInterval";
 
 @implementation OGVVideoEncoder
 
 -(instancetype)initWithFormat:(OGVVideoFormat *)format
+                      options:(NSDictionary *)options;
 {
     self = [self init];
     if (self) {
         _format = format;
+        _options = options;
+        _packets = [[OGVQueue alloc] init];
     }
     return self;
 }
 
--(OGVPacket *)encodeFrame:(OGVVideoBuffer *)buffer
+-(void)encodeFrame:(OGVVideoBuffer *)buffer
 {
     NSLog(@"encoding not implemented");
+}
+
+-(void)close
+{
+    // no-op
 }
 
 @end

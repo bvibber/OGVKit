@@ -304,4 +304,39 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
     */
 }
 
+-(void)transcode
+{
+    OGVDecoder *decoder;
+    
+    [decoder process];
+
+    OGVFileOutputStream *outputStream = [[OGVFileOutputStream alloc] initWithPath:@"/tmp/foo.webm"];
+
+    OGVEncoder *encoder = [[OGVEncoder alloc] initWithMediaType:[[OGVMediaType alloc] initWithString:@"video/webm"]];
+    [encoder addVideoTrackFormat:decoder.videoFormat
+                         options:@{OGVVideoEncoderOptionsBitrateKey:@1000000,
+                                   OGVVideoEncoderOptionsKeyframeIntervalKey: @150}];
+    [encoder addAudioTrackFormat:decoder.audioFormat
+                         options:@{OGVAudioEncoderOptionsBitrateKey:@128000}];
+    [encoder openOutputStream:outputStream];
+
+    while (true) {
+        if (decoder.frameReady) {
+            if ([decoder decodeFrame]) {
+                [encoder encodeFrame:decoder.frameBuffer];
+            }
+        }
+        if (decoder.audioReady) {
+            if ([decoder decodeAudio]) {
+                [encoder encodeAudio:decoder.audioBuffer];
+            }
+        }
+        if (![decoder process]) {
+            break;
+        }
+    }
+
+    [encoder close];
+}
+
 @end

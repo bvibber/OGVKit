@@ -13,6 +13,8 @@
 
 @class OGVKit;
 
+#import "OGVQueue.h"
+
 #import "OGVMediaType.h"
 
 #import "OGVAudioFormat.h"
@@ -38,6 +40,7 @@
 #import "OGVMuxer.h"
 #import "OGVAudioEncoder.h"
 #import "OGVVideoEncoder.h"
+#import "OGVEncoder.h"
 #endif
 
 /**
@@ -70,5 +73,9 @@
  * not correctly labeled or the type was vague.
  */
 - (OGVDecoder *)decoderForType:(OGVMediaType *)mediaType;
+
+- (OGVMuxer *)muxerForType:(OGVMediaType *)mediaType;
+- (OGVVideoEncoder *)videoEncoderForType:(OGVMediaType *)mediaType format:(OGVVideoFormat *)format options:(NSDictionary *)options;
+- (OGVAudioEncoder *)audioEncoderForType:(OGVMediaType *)mediaType format:(OGVAudioFormat *)format options:(NSDictionary *)options;
 
 @end

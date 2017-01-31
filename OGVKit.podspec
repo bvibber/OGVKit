@@ -47,6 +47,7 @@ Pod::Spec.new do |s|
                          "Classes/OGVPlayerView.{h,m}"
 
     score.public_header_files = "Classes/OGVKit.h",
+                                "Classes/OGVQueue.h",
                                 "Classes/OGVMediaType.h",
                                 "Classes/OGVAudioFormat.h",
                                 "Classes/OGVAudioBuffer.h",
@@ -171,7 +172,16 @@ Pod::Spec.new do |s|
                             "Classes/OGVAudioEncoder.h",
                             "Classes/OGVAudioEncoder.m",
                             "Classes/OGVVideoEncoder.h",
-                            "Classes/OGVVideoEncoder.m"
+                            "Classes/OGVVideoEncoder.m",
+                            "Classes/OGVEncoder.h",
+                            "Classes/OGVEncoder.m"
+    scoreenc.public_header_files = "Classes/OGVPacket.h",
+                                   "Classes/OGVMuxer.h",
+                                   "Classes/OGVOutputStream.h",
+                                   "Classes/OGVFileOutputStream.h",
+                                   "Classes/OGVAudioEncoder.h",
+                                   "Classes/OGVVideoEncoder.h",
+                                   "Classes/OGVEncoder.h"
   end
 
   s.subspec "VorbisEncoder" do |svorbisenc|

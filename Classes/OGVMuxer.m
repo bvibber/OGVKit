@@ -9,15 +9,19 @@
 
 @implementation OGVMuxer
 
--(instancetype)initWithOutputStream:(NSOutputStream *)outputStream
-                        audioFormat:(OGVAudioFormat *)audioFormat
-                        videoFormat:(OGVVideoFormat *)videoFormat
+-(void)addAudioTrackFormat:(OGVAudioFormat *)audioFormat
 {
-    self = [self init];
-    if (self) {
-        self.audioFormat = audioFormat;
-        self.videoFormat = videoFormat;
-    }
+    _audioFormat = audioFormat;
+}
+
+-(void)addVideoTrackFormat:(OGVVideoFormat *)videoFormat
+{
+    _videoFormat = videoFormat;
+}
+
+-(void)openOutputStream:(OGVOutputStream *)outputStream
+{
+    _outputStream = outputStream;
 }
 
 -(void)appendAudioPacket:(OGVPacket *)packet

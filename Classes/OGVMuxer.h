@@ -12,11 +12,18 @@
 @property OGVAudioFormat *audioFormat;
 @property OGVVideoFormat *videoFormat;
 
--(instancetype)initWithOutputStream:(OGVOutputStream *)outputStream
-                        audioFormat:(OGVAudioFormat *)audioFormat
-                        videoFormat:(OGVVideoFormat *)videoFormat;
+-(instancetype)init;
+
+-(void)addAudioTrackFormat:(OGVAudioFormat *)audioFormat;
+
+-(void)addVideoTrackFormat:(OGVVideoFormat *)videoFormat;
+
+-(void)openOutputStream:(OGVOutputStream *)outputStream;
+
 -(void)appendAudioPacket:(OGVPacket *)packet;
+
 -(void)appendVideoPacket:(OGVPacket *)packet;
+
 -(void)close;
 
 @end
