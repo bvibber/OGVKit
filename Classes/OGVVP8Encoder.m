@@ -45,6 +45,11 @@
     //
 }
 
+-(NSString *)codec
+{
+    return @"vp8";
+}
+
 -(void)encodeFrame:(OGVVideoBuffer *)buffer
 {
     vpx_img_fmt_t fmt;

@@ -37,9 +37,9 @@
 #import "OGVPacket.h"
 #import "OGVOutputStream.h"
 #import "OGVFileOutputStream.h"
-#import "OGVMuxer.h"
 #import "OGVAudioEncoder.h"
 #import "OGVVideoEncoder.h"
+#import "OGVMuxer.h"
 #import "OGVEncoder.h"
 #endif
 

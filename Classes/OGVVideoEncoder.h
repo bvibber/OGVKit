@@ -10,9 +10,11 @@ extern const NSString *OGVVideoEncoderOptionsKeyframeIntervalKey;
 
 @interface OGVVideoEncoder : NSObject
 
+@property (readonly) NSString *codec;
 @property (readonly) OGVVideoFormat *format;
 @property (readonly) NSDictionary *options;
 @property (readonly) OGVQueue *packets;
+@property (readonly) NSArray *headers;
 
 -(instancetype)initWithFormat:(OGVVideoFormat *)format
                       options:(NSDictionary *)options;

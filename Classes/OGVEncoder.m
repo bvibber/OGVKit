@@ -8,11 +8,11 @@
     OGVAudioEncoder *audioEncoder;
 }
 
--(instancetype)initWithMediaType:(OGVMediaType *)mediaType
+-(instancetype)initWithMediaType:(OGVMediaType *)_mediaType
 {
     self = [self init];
     if (self) {
-        mediaType = mediaType;
+        mediaType = _mediaType;
         muxer = [[OGVKit singleton] muxerForType:mediaType];
     }
     return self;
@@ -25,10 +25,10 @@
         [NSException raise:@"OGVEncoderException"
                     format:@"can only handle one video track"];
     }
-    [muxer addVideoTrackFormat:videoFormat];
     videoEncoder = [[OGVKit singleton] videoEncoderForType:mediaType
-                                                         format:videoFormat
-                                                        options:options];
+                                                    format:videoFormat
+                                                   options:options];
+    [muxer addVideoTrack:videoEncoder];
 }
 
 
@@ -39,10 +39,10 @@
         [NSException raise:@"OGVEncoderException"
                     format:@"can only handle one audio track"];
     }
-    [muxer addAudioTrackFormat:audioFormat];
     audioEncoder = [[OGVKit singleton] audioEncoderForType:mediaType
-                                                         format:audioFormat
-                                                        options:options];
+                                                    format:audioFormat
+                                                   options:options];
+    [muxer addAudioTrack:audioEncoder];
 }
 
 -(void)openOutputStream:(OGVOutputStream *)outputStream

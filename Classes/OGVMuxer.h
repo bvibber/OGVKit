@@ -8,15 +8,11 @@
 
 @interface OGVMuxer : NSObject
 
-@property OGVOutputStream *outputStream;
-@property OGVAudioFormat *audioFormat;
-@property OGVVideoFormat *videoFormat;
-
 -(instancetype)init;
 
--(void)addAudioTrackFormat:(OGVAudioFormat *)audioFormat;
+-(void)addAudioTrack:(OGVAudioEncoder *)audioEncoder;
 
--(void)addVideoTrackFormat:(OGVVideoFormat *)videoFormat;
+-(void)addVideoTrack:(OGVVideoEncoder *)videoEncoder;
 
 -(void)openOutputStream:(OGVOutputStream *)outputStream;
 

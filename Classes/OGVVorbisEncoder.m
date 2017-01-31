@@ -18,6 +18,7 @@
     vorbis_block vb;
     
     int64_t lastSample;
+    NSArray *_headers;
 }
 
 -(instancetype)initWithFormat:(OGVAudioFormat *)format
@@ -55,10 +56,10 @@
             [NSException raise:@"OGVVorbisEncoderException"
                         format:@"vorbis_analysis_headerout returned %d", ret];
         }
-        [self enqueueOggHeader:&op];
-        [self enqueueOggHeader:&op_comm];
-        [self enqueueOggHeader:&op_code];
-        
+        _headers = @[[self oggHeaderPacket:&op],
+                     [self oggHeaderPacket:&op_comm],
+                     [self oggHeaderPacket:&op_code]];
+
         ret = vorbis_block_init(&v, &vb);
         if (ret) {
             [NSException raise:@"OGVVorbisEncoderException"
@@ -78,13 +79,21 @@
     vorbis_info_clear(&vi);
 }
 
--(void)enqueueOggHeader:(ogg_packet *)op
+-(NSString *)codec
 {
-    NSData *data = [[NSData alloc] initWithBytes:op->packet length:op->bytes];
-    OGVPacket *packet = [[OGVPacket alloc] initWithData:data timestamp:0 duration:0];
-    [self.packets queue:packet];
+    return @"vorbis";
 }
 
+-(OGVPacket *)oggHeaderPacket:(ogg_packet *)op
+{
+    NSData *data = [[NSData alloc] initWithBytes:op->packet length:op->bytes];
+    return [[OGVPacket alloc] initWithData:data timestamp:0 duration:0];
+}
+
+-(NSArray *)headers
+{
+    return _headers;
+}
 
 -(void)encodeAudio:(OGVAudioBuffer *)buffer
 {

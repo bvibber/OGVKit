@@ -80,6 +80,12 @@ public:
 
 @implementation OGVWebMMuxer
 {
+    OGVOutputStream *outputStream;
+    OGVAudioFormat *audioFormat;
+    OGVVideoFormat *videoFormat;
+    NSArray *audioHeaders;
+    NSArray *videoHeaders;
+    
     OGVKitMkvWriter *writer;
     mkvmuxer::Segment *segment;
     uint64_t videoTrackId;
@@ -96,39 +102,97 @@ public:
     }
 }
 
--(void)openOutputStream:(OGVOutputStream *)outputStream
+-(void)openOutputStream:(OGVOutputStream *)_outputStream
 {
-    [super openOutputStream:outputStream];
+    outputStream = _outputStream;
 
-    writer = new OGVKitMkvWriter(self.outputStream);
+    writer = new OGVKitMkvWriter(outputStream);
     segment = new mkvmuxer::Segment();
     segment->Init(writer);
-
-    if (self.videoFormat) {
-        videoTrackId = segment->AddVideoTrack(self.videoFormat.frameWidth,
-                                              self.videoFormat.frameHeight,
-                                              0);
-        mkvmuxer::VideoTrack* videoTrack = static_cast<mkvmuxer::VideoTrack*>(segment->GetTrackByNumber(videoTrackId));
-        videoTrack->set_codec_id("VP80");
-        videoTrack->set_display_width(self.videoFormat.pictureWidth);
-        videoTrack->set_display_height(self.videoFormat.pictureHeight);
-        videoTrack->set_crop_left(self.videoFormat.pictureOffsetX);
-        videoTrack->set_crop_top(self.videoFormat.pictureOffsetY);
-        videoTrack->set_crop_right(self.videoFormat.frameWidth - self.videoFormat.pictureOffsetX - self.videoFormat.pictureWidth);
-        videoTrack->set_crop_bottom(self.videoFormat.frameHeight - self.videoFormat.pictureOffsetY - self.videoFormat.pictureHeight);
-        
-        mkvmuxer::Cues *const cues = segment->GetCues();
-        cues->set_output_block_number(true);
-        segment->CuesTrack(videoTrackId);
-    }
-
-    if (self.audioFormat) {
-        audioTrackId = segment->AddAudioTrack(self.audioFormat.sampleRate,
-                                              self.audioFormat.channels,
-                                              0);
-    }
 }
 
+-(void)addVideoTrack:(OGVVideoEncoder *)videoEncoder
+{
+    OGVVideoFormat *videoFormat = videoEncoder.format;
+
+    videoTrackId = segment->AddVideoTrack(videoFormat.frameWidth,
+                                          videoFormat.frameHeight,
+                                          0);
+    auto videoTrack = static_cast<mkvmuxer::VideoTrack*>(segment->GetTrackByNumber(videoTrackId));
+    if ([videoEncoder.codec isEqualToString:@"vp8"]) {
+        videoTrack->set_codec_id("V_VP8");
+    } else {
+        [NSException raise:@"OGVWebMMuxerException"
+                    format:@"unexpected video type"];
+    }
+
+    videoTrack->set_display_width(videoFormat.pictureWidth);
+    videoTrack->set_display_height(videoFormat.pictureHeight);
+    videoTrack->set_crop_left(videoFormat.pictureOffsetX);
+    videoTrack->set_crop_top(videoFormat.pictureOffsetY);
+    videoTrack->set_crop_right(videoFormat.frameWidth - videoFormat.pictureOffsetX - videoFormat.pictureWidth);
+    videoTrack->set_crop_bottom(videoFormat.frameHeight - videoFormat.pictureOffsetY - videoFormat.pictureHeight);
+    
+    mkvmuxer::Cues *const cues = segment->GetCues();
+    cues->set_output_block_number(true);
+    segment->CuesTrack(videoTrackId);
+}
+
+-(void)addAudioTrack:(OGVAudioEncoder *)audioEncoder
+{
+    audioTrackId = segment->AddAudioTrack(audioEncoder.format.sampleRate,
+                                          audioEncoder.format.channels,
+                                          0);
+    auto audioTrack = static_cast<mkvmuxer::AudioTrack*>(segment->GetTrackByNumber(audioTrackId));
+    if ([audioEncoder.codec isEqualToString:@"vorbis"]) {
+        audioTrack->set_codec_id("A_VORBIS");
+    } else if ([audioEncoder.codec isEqualToString:@"opus"]) {
+        audioTrack->set_codec_id("A_OPUS");
+    } else {
+        [NSException raise:@"OGVWebMMuxerException"
+                    format:@"unexpected audio type"];
+    }
+
+    NSData *codecPrivate = [self encodeCodecPrivate:audioEncoder.headers];
+    audioTrack->SetCodecPrivate((const uint8_t *)codecPrivate.bytes, codecPrivate.length);
+}
+
+// https://matroska.org/technical/specs/index.html#lacing
+-(NSData *)encodeCodecPrivate:(NSArray *)headers
+{
+    if (!headers.count) {
+        [NSException raise:@"OGVWebMMuxerException"
+                    format:@"missing codec private headers"];
+    }
+    size_t nbytes = 1;
+    for (OGVPacket *packet in headers) {
+        size_t packetLength = packet.data.length;
+        while (packetLength >= 255) {
+            nbytes++;
+            packetLength -= 255;
+        }
+        nbytes++;
+        nbytes += packet.data.length;
+    }
+
+    NSMutableData *codecPrivate = [[NSMutableData alloc] initWithLength:nbytes];
+    uint8_t *bytes = (uint8_t *)codecPrivate.bytes;
+    *bytes++ = headers.count - 1;
+    for (OGVPacket *packet in headers) {
+        size_t packetLength = packet.data.length;
+        while (packetLength >= 255) {
+            *bytes++ = 255;
+            packetLength -= 255;
+        }
+        *bytes++ = packetLength;
+    }
+    for (OGVPacket *packet in headers) {
+        memcpy((void *)packet.data.bytes, (void *)bytes, packet.data.length);
+        bytes += packet.data.length;
+    }
+
+    return codecPrivate;
+}
 
 -(void)appendAudioPacket:(OGVPacket *)packet
 {
@@ -170,7 +234,7 @@ public:
         [NSException raise:@"OGVWebMMuxerException"
                     format:@"failed to finalize webm output"];
     }
-    [self.outputStream close];
+    [outputStream close];
 }
 
 @end

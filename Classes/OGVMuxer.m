@@ -9,19 +9,16 @@
 
 @implementation OGVMuxer
 
--(void)addAudioTrackFormat:(OGVAudioFormat *)audioFormat
+-(void)addAudioTrack:(OGVAudioEncoder *)audioEncoder
 {
-    _audioFormat = audioFormat;
 }
 
--(void)addVideoTrackFormat:(OGVVideoFormat *)videoFormat
+-(void)addVideoTrack:(OGVVideoEncoder *)videoEncoder
 {
-    _videoFormat = videoFormat;
 }
 
 -(void)openOutputStream:(OGVOutputStream *)outputStream
 {
-    _outputStream = outputStream;
 }
 
 -(void)appendAudioPacket:(OGVPacket *)packet

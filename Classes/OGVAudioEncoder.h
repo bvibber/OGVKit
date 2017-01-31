@@ -9,9 +9,11 @@ extern const NSString *OGVAudioEncoderOptionsBitrateKey;
 
 @interface OGVAudioEncoder : NSObject
 
+@property (readonly) NSString *codec;
 @property (readonly) OGVAudioFormat *format;
 @property (readonly) NSDictionary *options;
 @property (readonly) OGVQueue *packets;
+@property (readonly) NSArray *headers;
 
 -(instancetype)initWithFormat:(OGVAudioFormat *)format
                       options:(NSDictionary *)options;
