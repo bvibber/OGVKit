@@ -30,10 +30,10 @@
             </objects>
             <point key="canvasLocation" x="-1564" y="568"/>
         </scene>
-        <!--Item-->
+        <!--Playback-->
         <scene sceneID="ufC-wZ-h7g">
             <objects>
-                <viewController id="vXZ-lx-hvc" customClass="OGVViewController" sceneMemberID="viewController">
+                <viewController title="Playback" id="vXZ-lx-hvc" customClass="OGVViewController" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="jyV-Pf-zRb"/>
                         <viewControllerLayoutGuide type="bottom" id="2fi-mo-0CV"/>
@@ -121,7 +121,7 @@
                             </mask>
                         </variation>
                     </view>
-                    <tabBarItem key="tabBarItem" title="Item" id="qpF-mK-cyH"/>
+                    <tabBarItem key="tabBarItem" title="Playback" image="play" id="qpF-mK-cyH"/>
                     <connections>
                         <outlet property="formatSelector" destination="xBv-uU-ejx" id="ZwM-x2-LhU"/>
                         <outlet property="player" destination="pz3-3A-vGf" id="7YC-Gf-IGt"/>
@@ -133,7 +133,7 @@
             </objects>
             <point key="canvasLocation" x="369" y="188"/>
         </scene>
-        <!--Item-->
+        <!--Encoding-->
         <scene sceneID="hBb-gP-EIM">
             <objects>
                 <viewController id="UpT-6e-czY" sceneMemberID="viewController">
@@ -216,11 +216,15 @@
                             <constraint firstAttribute="trailingMargin" secondItem="E75-XL-zPB" secondAttribute="trailing" id="tAS-M4-NQG"/>
                         </constraints>
                     </view>
-                    <tabBarItem key="tabBarItem" title="Item" id="dlf-q4-4fI"/>
+                    <tabBarItem key="tabBarItem" title="Encoding" image="export" id="dlf-q4-4fI"/>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="NNb-Ah-8Py" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="465" y="977.11267605633805"/>
         </scene>
     </scenes>
+    <resources>
+        <image name="export" width="25" height="25"/>
+        <image name="play" width="25" height="25"/>
+    </resources>
 </document>
