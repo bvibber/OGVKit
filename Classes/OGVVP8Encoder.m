@@ -42,7 +42,7 @@
 
 -(void)dealloc
 {
-    //
+    vpx_codec_destroy(&codec);
 }
 
 -(NSString *)codec
@@ -72,6 +72,7 @@
     @try {
         vpx_img_alloc(&img, fmt, buffer.format.frameWidth, buffer.format.frameHeight, 16);
 
+        // @fixme do we need to alloc or can we just change the pointers?
         [self copyPlane:buffer.Y image:&img index:0];
         [self copyPlane:buffer.Cb image:&img index:1];
         [self copyPlane:buffer.Cr image:&img index:2];
