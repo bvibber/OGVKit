@@ -109,7 +109,7 @@
     }
 
     for (int i = 0; i < buffer.format.channels; i++) {
-        memcpy([buffer PCMForChannel:i], ab[i], buffer.samples * sizeof(float));
+        memcpy(ab[i], [buffer PCMForChannel:i], buffer.samples * sizeof(float));
     }
     
     int ret = vorbis_analysis_wrote(&v, buffer.samples);
