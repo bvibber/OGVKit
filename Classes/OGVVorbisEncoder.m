@@ -143,43 +143,47 @@
             [NSException raise:@"OGVVorbisEncoderException"
                         format:@"vorbis_analysis_blockout returned %d", ret];
         }
-        BOOL moreBlocks = (ret > 0);
-        
-        ret = vorbis_analysis(&vb, NULL);
-        if (ret) {
-            [NSException raise:@"OGVVorbisEncoderException"
-                        format:@"vorbis_analysis returned %d", ret];
-        }
-        
-        ret = vorbis_bitrate_addblock(&vb);
-        if (ret) {
-            [NSException raise:@"OGVVorbisEncoderException"
-                        format:@"vorbis_bitrate_addblock returned %d", ret];
-        }
-        
-        ogg_packet op;
-        BOOL morePackets;
-        do {
-            ret = vorbis_bitrate_flushpacket(&v, &op);
-            if (ret < 0) {
+        moreBlocks = (ret > 0);
+        if (moreBlocks) {
+            
+            ret = vorbis_analysis(&vb, NULL);
+            if (ret) {
                 [NSException raise:@"OGVVorbisEncoderException"
-                            format:@"vorbis_bitrate_flushpacket returned %d", ret];
+                            format:@"vorbis_analysis returned %d", ret];
             }
-            morePackets = (ret > 0);
             
-            NSData *data = [[NSData alloc] initWithBytes:op.packet length:op.bytes];
+            ret = vorbis_bitrate_addblock(&vb);
+            if (ret) {
+                [NSException raise:@"OGVVorbisEncoderException"
+                            format:@"vorbis_bitrate_addblock returned %d", ret];
+            }
             
-            int64_t endSample = op.granulepos;
-            int64_t startSample = lastSample;
-            int64_t samples = endSample - startSample;
-            lastSample = endSample;
-            
-            OGVPacket *packet = [[OGVPacket alloc] initWithData:data
-                                                      timestamp:startSample / self.format.sampleRate
-                                                       duration:samples / self.format.sampleRate
-                                                       keyframe:YES];
-            [self.packets queue:packet];
-        } while (morePackets);
+            ogg_packet op;
+            BOOL morePackets;
+            do {
+                ret = vorbis_bitrate_flushpacket(&v, &op);
+                if (ret < 0) {
+                    [NSException raise:@"OGVVorbisEncoderException"
+                                format:@"vorbis_bitrate_flushpacket returned %d", ret];
+                }
+                morePackets = (ret > 0);
+                if (morePackets) {
+                    
+                    NSData *data = [[NSData alloc] initWithBytes:op.packet length:op.bytes];
+                    
+                    int64_t endSample = op.granulepos;
+                    int64_t startSample = lastSample;
+                    int64_t samples = endSample - startSample;
+                    lastSample = endSample;
+                    
+                    OGVPacket *packet = [[OGVPacket alloc] initWithData:data
+                                                              timestamp:(double)startSample / self.format.sampleRate
+                                                               duration:(double)samples / self.format.sampleRate
+                                                               keyframe:YES];
+                    [self.packets queue:packet];
+                }
+            } while (morePackets);
+        }
     } while (moreBlocks);
 }
 

@@ -203,9 +203,10 @@ public:
     }
     frame.set_track_number(audioTrackId);
     frame.set_timestamp(packet.timestamp * NSEC_PER_SEC);
-    frame.set_duration(packet.duration * NSEC_PER_SEC);
+    //frame.set_duration(packet.duration * NSEC_PER_SEC);
     frame.set_is_key(packet.keyframe);
     
+    NSLog(@"appending audio %f %f %d", packet.timestamp, packet.duration, (int)packet.keyframe);
     if (!segment->AddGenericFrame(&frame)) {
         [NSException raise:@"OGVWebMMuxerException"
                     format:@"failed to add webm audio frame"];
@@ -221,9 +222,10 @@ public:
     }
     frame.set_track_number(videoTrackId);
     frame.set_timestamp(packet.timestamp * NSEC_PER_SEC);
-    frame.set_duration(packet.duration * NSEC_PER_SEC);
+    //frame.set_duration(packet.duration * NSEC_PER_SEC);
     frame.set_is_key(packet.keyframe);
     
+    NSLog(@"appending video %f %f %d", packet.timestamp, packet.duration, (int)packet.keyframe);
     if (!segment->AddGenericFrame(&frame)) {
         [NSException raise:@"OGVWebMMuxerException"
                     format:@"failed to add webm frame"];

@@ -53,39 +53,50 @@
 -(void)encodeAudio:(OGVAudioBuffer *)buffer
 {
     [audioEncoder encodeAudio:buffer];
-    [self writeAudioPackets];
+    [self writePackets];
 }
 
 -(void)encodeFrame:(OGVVideoBuffer *)buffer
 {
     [videoEncoder encodeFrame:buffer];
-    [self writeVideoPackets];
+    [self writePackets];
 }
 
 -(void)close
 {
     [videoEncoder close];
-    [self writeVideoPackets];
-
     [audioEncoder close];
-    [self writeAudioPackets];
+    [self writeFinalPackets];
 
     [muxer close];
 }
 
 #pragma mark - private methods
 
--(void)writeVideoPackets
+// Write out any packets known to be in order
+// Don't write out the last packets, since there might be stuff after
+-(void)writePackets
 {
-    while ([videoEncoder.packets peek]) {
-        [muxer appendVideoPacket:[videoEncoder.packets dequeue]];
+    OGVPacket *videoPacket;
+    OGVPacket *audioPacket;
+    while ([audioEncoder.packets peek] && [videoEncoder.packets peek]) {
+        while ([audioEncoder.packets peek] && ((OGVPacket *)[audioEncoder.packets peek]).timestamp <= ((OGVPacket *)[videoEncoder.packets peek]).timestamp) {
+            [muxer appendAudioPacket:[audioEncoder.packets dequeue]];
+        }
+        while ([videoEncoder.packets peek] && ((OGVPacket *)[videoEncoder.packets peek]).timestamp <= ((OGVPacket *)[audioEncoder.packets peek]).timestamp) {
+            [muxer appendVideoPacket:[videoEncoder.packets dequeue]];
+        }
     }
 }
 
--(void)writeAudioPackets
+-(void)writeFinalPackets
 {
-    while ([audioEncoder.packets peek]) {
+    [self writePackets];
+    if ([audioEncoder.packets peek]) {
         [muxer appendAudioPacket:[audioEncoder.packets dequeue]];
+    }
+    if ([videoEncoder.packets peek]) {
+        [muxer appendVideoPacket:[videoEncoder.packets dequeue]];
     }
 }
 
