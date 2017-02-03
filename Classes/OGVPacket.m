@@ -9,12 +9,17 @@
 
 @implementation OGVPacket
 
--(instancetype)initWithData:(NSData *)data timestamp:(float)timestamp
+-(instancetype)initWithData:(NSData *)data
+                  timestamp:(float)timestamp
+                   duration:(float)duration
+                   keyframe:(BOOL)keyframe
 {
     self = [self init];
     if (self) {
         self.data = data;
         self.timestamp = timestamp;
+        self.duration = duration;
+        self.keyframe = keyframe;
     }
     return self;
 }

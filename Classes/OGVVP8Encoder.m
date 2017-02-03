@@ -19,7 +19,7 @@
 
 -(instancetype)initWithFormat:(OGVVideoFormat *)format options:(NSDictionary *)options
 {
-    self = [self initWithFormat:format options:options];
+    self = [super initWithFormat:format options:options];
     if (self) {
         vpx_codec_iface_t *encoderInterface = vpx_codec_vp8_cx();
 
@@ -77,10 +77,12 @@
         [self copyPlane:buffer.Cb image:&img index:1];
         [self copyPlane:buffer.Cr image:&img index:2];
         
-        vpx_codec_err_t ret = vpx_codec_encode(&codec, &img, buffer.timestamp * 1000, buffer.duration * 1000, 0, 0);
+        // @fixme get correct duration from input data...
+        vpx_codec_err_t ret = vpx_codec_encode(&codec, &img, buffer.timestamp * 1000, /*buffer.duration * 1000*/(1000/30), 0, 0);
         if (ret != VPX_CODEC_OK) {
+            
             [NSException raise:@"OGVVP8EncoderException"
-                        format:@"vpx_codec_encode returned %d", ret];
+                        format:@"vpx_codec_encode returned %d: %s %s", ret, vpx_codec_error(&codec), vpx_codec_error_detail(&codec)];
         }
     } @finally {
         vpx_img_free(&img);
@@ -93,7 +95,8 @@
     while ((pkt = vpx_codec_get_cx_data(&codec, &iter)) != NULL) {
         [self.packets queue:[[OGVPacket alloc] initWithData:[NSData dataWithBytes:pkt->data.frame.buf length:pkt->data.frame.sz]
                                                   timestamp:pkt->data.frame.pts / 1000.0
-                                                   duration:pkt->data.frame.duration / 1000.0]];
+                                                   duration:pkt->data.frame.duration / 1000.0
+                                                   keyframe:(pkt->data.frame.flags & VPX_FRAME_IS_KEY) != 0]];
     }
 }
 

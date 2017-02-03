@@ -14,11 +14,15 @@
 
 -(instancetype)initWithPath:(NSString *)path
 {
-    file = fopen([path UTF8String], "wb");
-    if (!file) {
-        [NSException raise:@"OGVFileOutputStreamException"
-                    format:@"failed to open file %@", path];
+    self = [super init];
+    if (self) {
+        file = fopen([path UTF8String], "wb");
+        if (!file) {
+            [NSException raise:@"OGVFileOutputStreamException"
+                        format:@"failed to open file %@", path];
+        }
     }
+    return self;
 }
 
 -(int64_t)offset

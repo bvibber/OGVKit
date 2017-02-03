@@ -136,7 +136,7 @@
         <!--Encoding-->
         <scene sceneID="hBb-gP-EIM">
             <objects>
-                <viewController id="UpT-6e-czY" sceneMemberID="viewController">
+                <viewController id="UpT-6e-czY" customClass="OGVEncodingViewController" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="LGJ-u7-ogz"/>
                         <viewControllerLayoutGuide type="bottom" id="a6n-dY-hBU"/>
@@ -151,6 +151,9 @@
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="1Uq-S5-Yx0">
                                         <rect key="frame" x="102" y="0.0" width="85" height="30"/>
                                         <state key="normal" title="Select video"/>
+                                        <connections>
+                                            <action selector="chooserAction:" destination="UpT-6e-czY" eventType="touchUpInside" id="Acs-Px-7h3"/>
+                                        </connections>
                                     </button>
                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="OZK-0q-HEo" customClass="OGVPlayerView">
                                         <rect key="frame" x="0.0" y="38" width="288" height="162"/>
@@ -175,6 +178,9 @@
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="tQX-IY-68b">
                                         <rect key="frame" x="75" y="0.0" width="138" height="30"/>
                                         <state key="normal" title="Transcode to WebM"/>
+                                        <connections>
+                                            <action selector="transcodeAction:" destination="UpT-6e-czY" eventType="touchUpInside" id="E4G-hk-Wdi"/>
+                                        </connections>
                                     </button>
                                     <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" progress="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="sMn-Um-yJs">
                                         <rect key="frame" x="54" y="38" width="180" height="2"/>
@@ -217,6 +223,13 @@
                         </constraints>
                     </view>
                     <tabBarItem key="tabBarItem" title="Encoding" image="export" id="dlf-q4-4fI"/>
+                    <connections>
+                        <outlet property="chooserButton" destination="1Uq-S5-Yx0" id="z2b-5p-r1d"/>
+                        <outlet property="inputPlayer" destination="OZK-0q-HEo" id="CyN-xt-Byi"/>
+                        <outlet property="outputPlayer" destination="zZ2-H0-Zbc" id="rRu-ik-1Uw"/>
+                        <outlet property="transcodeButton" destination="tQX-IY-68b" id="Cxq-fS-guD"/>
+                        <outlet property="transcodeProgress" destination="sMn-Um-yJs" id="06n-HM-ILf"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="NNb-Ah-8Py" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>

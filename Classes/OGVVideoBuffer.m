@@ -30,6 +30,7 @@
         _Cb = Cb;
         _Cr = Cr;
         _timestamp = timestamp;
+        // @fixme duration
         _sampleBuffer = NULL;
     }
     return self;
@@ -45,6 +46,12 @@
         _Cb = nil;
         _Cr = nil;
         _timestamp = CMTimeGetSeconds(CMSampleBufferGetPresentationTimeStamp(sampleBuffer));
+        CMTime duration = CMSampleBufferGetDuration(sampleBuffer);
+        if (!CMTIME_IS_VALID(duration)) {
+            NSLog(@"invalid duration");
+        } else {
+            _duration = CMTimeGetSeconds(duration);
+        }
         _sampleBuffer = sampleBuffer;
         CFRetain(_sampleBuffer);
     }

@@ -10,7 +10,7 @@
 
 -(instancetype)initWithMediaType:(OGVMediaType *)_mediaType
 {
-    self = [self init];
+    self = [super init];
     if (self) {
         mediaType = _mediaType;
         muxer = [[OGVKit singleton] muxerForType:mediaType];
@@ -78,7 +78,7 @@
 -(void)writeVideoPackets
 {
     while ([videoEncoder.packets peek]) {
-        [muxer appendAudioPacket:[videoEncoder.packets dequeue]];
+        [muxer appendVideoPacket:[videoEncoder.packets dequeue]];
     }
 }
 

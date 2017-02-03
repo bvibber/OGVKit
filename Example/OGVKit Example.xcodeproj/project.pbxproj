@@ -13,6 +13,8 @@
 		D42B38491CD7B17500529092 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = D42B38471CD7B17500529092 /* InfoPlist.strings */; };
 		D42B384C1CD7B17B00529092 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D42B384A1CD7B17B00529092 /* Main.storyboard */; };
 		D43498031E03864700085E6E /* kitty-short.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = D43498021E03864700085E6E /* kitty-short.mp4 */; };
+		D463DE111E43FD8A00EDFA49 /* OGVEncodingViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D463DE101E43FD8A00EDFA49 /* OGVEncodingViewController.m */; };
+		D463DE131E4400EB00EDFA49 /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D463DE121E4400EB00EDFA49 /* MobileCoreServices.framework */; };
 		D474D5BD1CD7AFFE00D8BBE3 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D474D5AD1CD7AFFE00D8BBE3 /* Images.xcassets */; };
 		D474D5BE1CD7AFFE00D8BBE3 /* Launch Screen.xib in Resources */ = {isa = PBXBuildFile; fileRef = D474D5AE1CD7AFFE00D8BBE3 /* Launch Screen.xib */; };
 		D474D5BF1CD7AFFE00D8BBE3 /* OGVAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = D474D5B01CD7AFFE00D8BBE3 /* OGVAppDelegate.m */; };
@@ -50,6 +52,9 @@
 		D42B38481CD7B17500529092 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		D42B384B1CD7B17B00529092 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		D43498021E03864700085E6E /* kitty-short.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; name = "kitty-short.mp4"; path = "Samples/kitty-short.mp4"; sourceTree = SOURCE_ROOT; };
+		D463DE0F1E43FD8A00EDFA49 /* OGVEncodingViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVEncodingViewController.h; sourceTree = "<group>"; };
+		D463DE101E43FD8A00EDFA49 /* OGVEncodingViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGVEncodingViewController.m; sourceTree = "<group>"; };
+		D463DE121E4400EB00EDFA49 /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
 		D474D5AD1CD7AFFE00D8BBE3 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		D474D5AE1CD7AFFE00D8BBE3 /* Launch Screen.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = "Launch Screen.xib"; sourceTree = "<group>"; };
 		D474D5AF1CD7AFFE00D8BBE3 /* OGVAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGVAppDelegate.h; sourceTree = "<group>"; };
@@ -83,6 +88,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D463DE131E4400EB00EDFA49 /* MobileCoreServices.framework in Frameworks */,
 				4D59E30BF54DDE9CCFFD9D02 /* Pods_OGVKit_Example.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -101,6 +107,7 @@
 		7016D2F53EB12107BE8CD805 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				D463DE121E4400EB00EDFA49 /* MobileCoreServices.framework */,
 				A7C3D9A2848BAFADE8CD1F89 /* Pods_OGVKit_Example.framework */,
 				15293075762407D432DDD467 /* Pods_OGVKit_Tests.framework */,
 			);
@@ -166,6 +173,8 @@
 				D474D5BA1CD7AFFE00D8BBE3 /* OGVViewController.m */,
 				D4F61F741CD7ADAD00898F7F /* Info.plist */,
 				D4F61F631CD7ADAD00898F7F /* Supporting Files */,
+				D463DE0F1E43FD8A00EDFA49 /* OGVEncodingViewController.h */,
+				D463DE101E43FD8A00EDFA49 /* OGVEncodingViewController.m */,
 			);
 			path = "OGVKit Example";
 			sourceTree = "<group>";
@@ -397,6 +406,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D463DE111E43FD8A00EDFA49 /* OGVEncodingViewController.m in Sources */,
 				D4F61F651CD7ADAD00898F7F /* main.m in Sources */,
 				D474D5C01CD7AFFE00D8BBE3 /* OGVCommonsExampleItem.m in Sources */,
 				D474D5C11CD7AFFE00D8BBE3 /* OGVExampleItem.m in Sources */,
