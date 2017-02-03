@@ -187,7 +187,7 @@ public:
         *bytes++ = packetLength;
     }
     for (OGVPacket *packet in headers) {
-        memcpy((void *)packet.data.bytes, (void *)bytes, packet.data.length);
+        memcpy((void *)bytes, (void *)packet.data.bytes, packet.data.length);
         bytes += packet.data.length;
     }
 

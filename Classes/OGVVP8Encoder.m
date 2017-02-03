@@ -73,9 +73,11 @@
         vpx_img_alloc(&img, fmt, buffer.format.frameWidth, buffer.format.frameHeight, 16);
 
         // @fixme do we need to alloc or can we just change the pointers?
-        [self copyPlane:buffer.Y image:&img index:0];
-        [self copyPlane:buffer.Cb image:&img index:1];
-        [self copyPlane:buffer.Cr image:&img index:2];
+        [buffer lock:^() {
+            [self copyPlane:buffer.Y image:&img index:0];
+            [self copyPlane:buffer.Cb image:&img index:1];
+            [self copyPlane:buffer.Cr image:&img index:2];
+        }];
         
         // @fixme get correct duration from input data...
         vpx_codec_err_t ret = vpx_codec_encode(&codec, &img, buffer.timestamp * 1000, /*buffer.duration * 1000*/(1000/30), 0, 0);
@@ -103,8 +105,8 @@
 -(void)copyPlane:(OGVVideoPlane *)plane image:(vpx_image_t *)img index:(size_t)index
 {
     for (size_t y = 0; y < plane.lines; y++) {
-        memcpy(plane.data.bytes + y * plane.stride,
-               img->planes[index] + y * img->stride[index],
+        memcpy(img->planes[index] + y * img->stride[index],
+               plane.data.bytes + y * plane.stride,
                MIN(plane.stride, img->stride[index]));
     }
 }
