@@ -165,20 +165,25 @@ public:
                     format:@"missing codec private headers"];
     }
     size_t nbytes = 1;
-    for (OGVPacket *packet in headers) {
+    for (int i = 0; i < headers.count; i++) {
+        OGVPacket *packet = headers[i];
         size_t packetLength = packet.data.length;
-        while (packetLength >= 255) {
+        if (i < headers.count - 1) {
+            // encode laced length for all but the last header packet
+            while (packetLength >= 255) {
+                nbytes++;
+                packetLength -= 255;
+            }
             nbytes++;
-            packetLength -= 255;
         }
-        nbytes++;
         nbytes += packet.data.length;
     }
 
     NSMutableData *codecPrivate = [[NSMutableData alloc] initWithLength:nbytes];
     uint8_t *bytes = (uint8_t *)codecPrivate.bytes;
     *bytes++ = headers.count - 1;
-    for (OGVPacket *packet in headers) {
+    for (int i = 0; i < headers.count - 1; i++) {
+        OGVPacket *packet = headers[i];
         size_t packetLength = packet.data.length;
         while (packetLength >= 255) {
             *bytes++ = 255;
