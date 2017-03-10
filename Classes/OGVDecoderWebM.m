@@ -24,6 +24,10 @@
 #include <vorbis/codec.h>
 #endif
 
+#ifdef OGVKIT_HAVE_OPUS_DECODER
+#include "libopus/opus.h"
+#endif
+
 // Does a brute-force seek when asked to seek WebM files without cues
 #define OGVKIT_WEBM_SEEK_BRUTE_FORCE 1
 
@@ -130,6 +134,15 @@ static int64_t tellCallback(void * userdata)
     vorbis_comment    vorbisComment;
 #endif
 
+#ifdef OGVKIT_HAVE_OPUS_DECODER
+    OpusDecoder* opusDecoder;
+    int opusChannels;
+    opus_int32 opusSampleRate;
+    float* opusPcmNonInterleaved;
+    float* opusPcmInterleaved;
+    int opusFrameSize;
+#endif
+
     OGVAudioBuffer *queuedAudio;
     OGVVideoBuffer *queuedFrame;
 
@@ -160,6 +173,15 @@ static int64_t tellCallback(void * userdata)
         /* init supporting Vorbis structures needed in header parsing */
         vorbis_info_init(&vorbisInfo);
         vorbis_comment_init(&vorbisComment);
+#endif
+
+#ifdef OGVKIT_HAVE_OPUS_DECODER
+        opusDecoder = NULL;
+        opusPcmNonInterleaved = NULL;
+        opusPcmInterleaved = NULL;
+        opusFrameSize = 960*6;
+        opusChannels = -1;
+        opusSampleRate = -1;
 #endif
     }
     return self;
@@ -194,8 +216,8 @@ static int64_t tellCallback(void * userdata)
         }
         
         if (trackType == NESTEGG_TRACK_AUDIO && !hasAudio) {
-#ifdef OGVKIT_HAVE_VORBIS_DECODER
-            if (codec == NESTEGG_CODEC_VORBIS /* || codec == NESTEGG_CODEC_OPUS */) {
+#if defined(OGVKIT_HAVE_VORBIS_DECODER) || defined(OGVKIT_HAVE_OPUS_DECODER)
+            if (codec == NESTEGG_CODEC_VORBIS || codec == NESTEGG_CODEC_OPUS) {
                 hasAudio = YES;
                 audioTrack = track;
                 audioCodec = codec;
@@ -267,6 +289,44 @@ static int64_t tellCallback(void * userdata)
                 }
             }
 #endif
+#ifdef OGVKIT_HAVE_OPUS_DECODER
+            if (audioCodec == NESTEGG_CODEC_OPUS) {
+                opusSampleRate = (opus_int32) audioParams.rate;
+                opusChannels = audioParams.channels;
+                int opusErr;
+                assert(opusDecoder == NULL);
+                opusDecoder = opus_decoder_create(opusSampleRate, opusChannels, &opusErr);
+                if (opusErr != OPUS_OK) {
+                    NSLog(@"Unable to initialize opus decoder with %@Hz and %@ channels. Error %d", opusSampleRate, opusChannels, opusErr);
+                    return NO;
+                }
+
+                unsigned int codecDataCount;
+                int nesteggErr = nestegg_track_codec_data_count(demuxContext, audioTrack, &codecDataCount);
+                if (nesteggErr != 0) {
+                    NSLog(@"Unable to get tracks count");
+                    return NO;
+                }
+
+                for (unsigned int i = 0; i < codecDataCount; i++) {
+                    unsigned char *data;
+                    size_t len;
+                    int ret = nestegg_track_codec_data(demuxContext, audioTrack, i, &data, &len);
+                    if (ret < 0) {
+                        NSLog(@"failed to read codec data %d", i);
+                        return NO;
+                    }
+
+                    // Skip OPUS-specific header like this: "OpusHead\x01\x028\x01\x80\xbb"
+                    NSLog(@"Skip handling OPUS packet");
+                }
+
+                assert(opusPcmNonInterleaved == NULL);
+                opusPcmNonInterleaved = (float*) malloc(sizeof(float) * opusChannels * opusFrameSize);
+                assert(opusPcmInterleaved == NULL);
+                opusPcmInterleaved = (float*) malloc(sizeof(float) * opusChannels * opusFrameSize);
+            }
+#endif
         }
     }
     
@@ -278,6 +338,12 @@ static int64_t tellCallback(void * userdata)
         self.audioFormat = [[OGVAudioFormat alloc] initWithChannels:vorbisInfo.channels
                                                          sampleRate:vorbisInfo.rate];
 	}
+#endif
+#ifdef OGVKIT_HAVE_OPUS_DECODER
+    if (opusDecoder) {
+        self.audioFormat = [[OGVAudioFormat alloc] initWithChannels:opusChannels
+                                                         sampleRate:opusSampleRate];
+    }
 #endif
 
     appState = STATE_DECODING;
@@ -471,6 +537,36 @@ static int64_t tellCallback(void * userdata)
             }
         }
 #endif
+
+#ifdef OGVKIT_HAVE_OPUS_DECODER
+        if (audioCodec == NESTEGG_CODEC_OPUS) {
+            NSData* opusPacket = [packet dataAtIndex: 0];
+            int sampleCount = opus_decode_float(opusDecoder, opusPacket.bytes, opusPacket.length, opusPcmInterleaved, opusFrameSize, 0);
+            if (sampleCount > 0) {
+                foundSome = YES;
+                for (int channel = 0; channel < opusChannels; channel++) {
+                    for (int sample = 0; sample < sampleCount; sample++) {
+                        opusPcmNonInterleaved[channel * sampleCount + sample] = opusPcmInterleaved[channel + opusChannels * sample];
+                    }
+                }
+
+                float* pcmJagged[opusChannels];
+                for (int i = 0; i < opusChannels; i++) {
+                    pcmJagged[i] = &(opusPcmNonInterleaved[i * sampleCount]);
+                }
+
+                queuedAudio = [[OGVAudioBuffer alloc] initWithPCM:pcmJagged samples:sampleCount format:self.audioFormat timestamp:packet.timestamp];
+
+                if (audiobufGranulepos != -1) {
+                    // keep track of how much time we've decodec
+                    audiobufGranulepos += sampleCount;
+                    audiobufTime = (double)audiobufGranulepos / self.audioFormat.sampleRate;
+                }
+            } else {
+                NSLog(@"OPUS decoder gave an empty packet!");
+            }
+        }
+#endif
     }
 
     return foundSome;
@@ -511,6 +607,20 @@ static int64_t tellCallback(void * userdata)
         vorbis_info_clear(&vorbisInfo);
     }
 #endif
+#ifdef OGVKIT_HAVE_OPUS_DECODER
+    if (opusDecoder) {
+        opus_decoder_destroy(opusDecoder);
+        opusDecoder = NULL;
+    }
+    if (opusPcmNonInterleaved) {
+        free(opusPcmNonInterleaved);
+        opusPcmNonInterleaved = NULL;
+    }
+    if (opusPcmInterleaved) {
+        free(opusPcmInterleaved);
+        opusPcmInterleaved = NULL;
+    }
+#endif
 #ifdef OGVKIT_HAVE_VP8_DECODER
     if (vpxDecoder) {
         vpx_codec_destroy(&vpxContext);
@@ -537,6 +647,16 @@ static int64_t tellCallback(void * userdata)
 #ifdef OGVKIT_HAVE_VORBIS_DECODER
         if (audioCodec == NESTEGG_CODEC_VORBIS) {
             vorbis_synthesis_restart(&vorbisDspState);
+        }
+#endif
+#ifdef OGVKIT_HAVE_OPUS_DECODER
+        if (audioCodec == NESTEGG_CODEC_OPUS) {
+            assert(opusDecoder != NULL);
+            int opusErr = opus_decoder_init(opusDecoder, opusSampleRate, opusChannels);
+            if (opusErr != OPUS_OK) {
+                NSLog(@"Unable to initialize previously allocated opus decoder with rate %@ and channels %@", opusSampleRate, opusChannels);
+                assert(false);
+            }
         }
 #endif
     }
@@ -665,6 +785,12 @@ static int64_t tellCallback(void * userdata)
 #endif
 #ifdef OGVKIT_HAVE_VORBIS_DECODER
                 if ([codec isEqualToString:@"vorbis"]) {
+                    knownCodecs++;
+                    continue;
+                }
+#endif
+#ifdef OGVKIT_HAVE_OPUS_DECODER
+                if ([codec isEqualToString:@"opus"]) {
                     knownCodecs++;
                     continue;
                 }
