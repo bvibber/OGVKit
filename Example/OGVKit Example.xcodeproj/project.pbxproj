@@ -28,6 +28,8 @@
 		D4C009871E12148E0002D6F3 /* hacking-444.ogv in Resources */ = {isa = PBXBuildFile; fileRef = D4C009841E12148E0002D6F3 /* hacking-444.ogv */; };
 		D4D8E6A61DEFE0B20020F1A6 /* bunny.webm in Resources */ = {isa = PBXBuildFile; fileRef = D4D8E6A51DEFE0B20020F1A6 /* bunny.webm */; };
 		D4F61F651CD7ADAD00898F7F /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = D4F61F641CD7ADAD00898F7F /* main.m */; };
+		DD8A506FD85F5A250221726A /* bunny_opus_vp8.webm in Resources */ = {isa = PBXBuildFile; fileRef = DD8A56AF7A230FD69EAC33A9 /* bunny_opus_vp8.webm */; };
+		DD8A5A9E0C27E70ED811521D /* bunny_opus_vp9.webm in Resources */ = {isa = PBXBuildFile; fileRef = DD8A5464BF31D7D7528F738C /* bunny_opus_vp9.webm */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -76,6 +78,8 @@
 		D4F61F641CD7ADAD00898F7F /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		D4F61F741CD7ADAD00898F7F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D4F61F791CD7ADAD00898F7F /* OGVKit Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "OGVKit Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		DD8A5464BF31D7D7528F738C /* bunny_opus_vp9.webm */ = {isa = PBXFileReference; lastKnownFileType = file.webm; name = bunny_opus_vp9.webm; path = Samples/bunny_opus_vp9.webm; sourceTree = SOURCE_ROOT; };
+		DD8A56AF7A230FD69EAC33A9 /* bunny_opus_vp8.webm */ = {isa = PBXFileReference; lastKnownFileType = file.webm; name = bunny_opus_vp8.webm; path = Samples/bunny_opus_vp8.webm; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -166,6 +170,8 @@
 				D474D5BA1CD7AFFE00D8BBE3 /* OGVViewController.m */,
 				D4F61F741CD7ADAD00898F7F /* Info.plist */,
 				D4F61F631CD7ADAD00898F7F /* Supporting Files */,
+				DD8A56AF7A230FD69EAC33A9 /* bunny_opus_vp8.webm */,
+				DD8A5464BF31D7D7528F738C /* bunny_opus_vp9.webm */,
 			);
 			path = "OGVKit Example";
 			sourceTree = "<group>";
@@ -287,6 +293,8 @@
 				D4C009851E12148E0002D6F3 /* hacking-420.ogv in Resources */,
 				D48929FC1DEE9C60008E662A /* bunny.ogv in Resources */,
 				D4D8E6A61DEFE0B20020F1A6 /* bunny.webm in Resources */,
+				DD8A506FD85F5A250221726A /* bunny_opus_vp8.webm in Resources */,
+				DD8A5A9E0C27E70ED811521D /* bunny_opus_vp9.webm in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

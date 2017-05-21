@@ -39,7 +39,7 @@ Audio:
  * decode: yes
  * encode: not yet
 * Opus
- * decode: not yet
+ * decode: yes
  * encode: not yet
 
 # Getting started

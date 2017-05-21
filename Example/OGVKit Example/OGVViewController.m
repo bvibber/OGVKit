@@ -97,9 +97,18 @@
                                                         URL:[[NSBundle mainBundle] URLForResource:@"bunny"
                                                                                     withExtension:@"ogv"]],
 
-                [[OGVLinkedExampleItem alloc] initWithTitle:@"Bunny low-res VP9 (local)"
+                [[OGVLinkedExampleItem alloc] initWithTitle:@"Bunny low-res VP9 Vorbis (local)"
                                                         URL:[[NSBundle mainBundle] URLForResource:@"bunny"
                                                                                     withExtension:@"webm"]],
+                
+                [[OGVLinkedExampleItem alloc] initWithTitle:@"Bunny low-res VP9 OPUS (local)"
+                                                        URL:[[NSBundle mainBundle] URLForResource:@"bunny_opus_vp9"
+                                                                                    withExtension:@"webm"]],
+                
+                [[OGVLinkedExampleItem alloc] initWithTitle:@"Bunny low-res VP8 OPUS (local)"
+                                                        URL:[[NSBundle mainBundle] URLForResource:@"bunny_opus_vp8"
+                                                                                    withExtension:@"webm"]],
+
 
                 [[OGVLinkedExampleItem alloc] initWithTitle:@"Kitty cat MP4 (local)"
                                                         URL:[[NSBundle mainBundle] URLForResource:@"kitty-short"
