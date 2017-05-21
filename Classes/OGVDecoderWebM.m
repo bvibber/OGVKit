@@ -238,7 +238,13 @@ static int64_t tellCallback(void * userdata)
             } else if (videoCodec == NESTEGG_CODEC_VP9) {
                 vpxDecoder = vpx_codec_vp9_dx();
             }
-            vpx_codec_dec_init(&vpxContext, vpxDecoder, NULL, 0);
+
+            vpx_codec_dec_cfg_t cfg;
+            cfg.threads = (unsigned int)[NSProcessInfo processInfo].activeProcessorCount;
+            cfg.w = 0;
+            cfg.h = 0;
+
+            vpx_codec_dec_init(&vpxContext, vpxDecoder, &cfg, 0);
 
             self.videoFormat = [[OGVVideoFormat alloc] initWithFrameWidth:videoParams.width
                                                               frameHeight:videoParams.height
