@@ -39,7 +39,7 @@ Audio:
  * decode: yes
  * encode: not yet
 * Opus
- * decode: yes
+ * decode: yes (WebM only)
  * encode: not yet
 
 # Getting started
