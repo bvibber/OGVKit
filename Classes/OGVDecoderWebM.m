@@ -297,7 +297,7 @@ static int64_t tellCallback(void * userdata)
                 assert(opusDecoder == NULL);
                 opusDecoder = opus_decoder_create(opusSampleRate, opusChannels, &opusErr);
                 if (opusErr != OPUS_OK) {
-                    NSLog(@"Unable to initialize opus decoder with %@Hz and %@ channels. Error %d", opusSampleRate, opusChannels, opusErr);
+                    NSLog(@"Unable to initialize opus decoder with %dHz and %d channels. Error %d", opusSampleRate, opusChannels, opusErr);
                     return NO;
                 }
 
@@ -654,7 +654,7 @@ static int64_t tellCallback(void * userdata)
             assert(opusDecoder != NULL);
             int opusErr = opus_decoder_init(opusDecoder, opusSampleRate, opusChannels);
             if (opusErr != OPUS_OK) {
-                NSLog(@"Unable to initialize previously allocated opus decoder with rate %@ and channels %@", opusSampleRate, opusChannels);
+                NSLog(@"Unable to initialize previously allocated opus decoder with rate %d and channels %d", opusSampleRate, opusChannels);
                 assert(false);
             }
         }
