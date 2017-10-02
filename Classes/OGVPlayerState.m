@@ -45,7 +45,7 @@
                   delegate:(id<OGVPlayerStateDelegate>)aDelegate
 {
     return [self initWithInputStream:[OGVInputStream inputStreamWithURL:URL]
-                            delegate:delegate];
+                            delegate:aDelegate];
 }
 
 -(instancetype)initWithInputStream:(OGVInputStream *)inputStream
