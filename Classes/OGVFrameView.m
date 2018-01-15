@@ -341,7 +341,7 @@ static const GLfloat conversionMatrixSRGB[] = {
     [self debugCheck];
 }
 
--(GLuint)updateRectangleWidth:(int)width
+-(void)updateRectangleWidth:(int)width
                        height:(int)height
 {
     // Set the aspect ratio

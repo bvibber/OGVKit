@@ -482,6 +482,7 @@ static int64_t tellCallback(void * userdata)
         default:
             [NSException raise:@"OGVDecoderWebMException"
                         format:@"Unexpected VPX pixel format %d", (int)fmt];
+            return OGVPixelFormatYCbCr420; // unreachable
     }
 }
 
