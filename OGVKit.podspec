@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = "OGVKit"
-  s.version      = "0.5.11"
+  s.version      = "0.5.12"
   s.summary      = "Ogg Vorbis/Theora and WebM media playback widget for iOS."
 
   s.description  = <<-DESC
@@ -122,7 +122,7 @@ Pod::Spec.new do |s|
     swebmdemuxer.private_header_files = "Classes/OGVDecoderWebM.h",
                                         "Classes/OGVDecoderWebMPacket.h"
     swebmdemuxer.dependency 'OGVKit/Core'
-    swebmdemuxer.dependency 'libnestegg'
+    swebmdemuxer.dependency 'libnestegg', '~>0.2'
   end
 
   # Video decoder module subspecs
