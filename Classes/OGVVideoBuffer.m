@@ -199,9 +199,9 @@
     size_t lumaInStride = self.Y.stride;
     size_t chromaCbInStride = self.Cb.stride;
     size_t chromaCrInStride = self.Cr.stride;
-    unsigned char *lumaIn = self.Y.data.bytes;
-    unsigned char *chromaCbIn = self.Cb.data.bytes;
-    unsigned char *chromaCrIn = self.Cr.data.bytes;
+    const unsigned char *lumaIn = self.Y.data.bytes;
+    const unsigned char *chromaCbIn = self.Cb.data.bytes;
+    const unsigned char *chromaCrIn = self.Cr.data.bytes;
 
     size_t lumaOutStride = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 0);
     size_t chromaOutStride = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 1);
@@ -220,7 +220,7 @@
         const int skip = chromaWidth & ~0xf;
         for (int x = 0; x < skip; x += 16) {
             const uint8x16x2_t tmp = {
-                val: {
+                .val = {
                     vld1q_u8(chromaCbIn + x),
                     vld1q_u8(chromaCrIn + x)
                 }
@@ -248,7 +248,6 @@
 {
     CVPixelBufferLockBaseAddress(pixelBuffer, 0);
 
-    int lumaWidth = self.format.lumaWidth;
     int chromaWidth = self.format.chromaWidth;
     int height = self.format.frameHeight;
     size_t lumaInStride = self.Y.stride;
@@ -268,7 +267,7 @@
         for (int x = 0; x < skip; x += 16) {
             const uint8x16x2_t lumaTmp = vld2q_u8(lumaIn + x * 2);
             const uint8x16x4_t tmp = {
-                val: {
+                .val = {
                     lumaTmp.val[0],
                     vld1q_u8(chromaCbIn + x),
                     lumaTmp.val[1],
@@ -307,9 +306,9 @@
     size_t lumaInStride = self.Y.stride;
     size_t chromaCbInStride = self.Cb.stride;
     size_t chromaCrInStride = self.Cr.stride;
-    unsigned char *lumaIn = self.Y.data.bytes;
-    unsigned char *chromaCbIn = self.Cb.data.bytes;
-    unsigned char *chromaCrIn = self.Cr.data.bytes;
+    const unsigned char *lumaIn = self.Y.data.bytes;
+    const unsigned char *chromaCbIn = self.Cb.data.bytes;
+    const unsigned char *chromaCrIn = self.Cr.data.bytes;
 
     size_t outStride = CVPixelBufferGetBytesPerRow(pixelBuffer);
     unsigned char *pixelOut = CVPixelBufferGetBaseAddress(pixelBuffer);
@@ -320,7 +319,7 @@
         const int skip = width & ~0xf;
         for (int x = 0; x < skip; x += 16) {
             const uint8x16x3_t tmp = {
-                val: {
+                .val = {
                     vld1q_u8(lumaIn + x),
                     vld1q_u8(chromaCbIn + x),
                     vld1q_u8(chromaCrIn + x)

@@ -311,7 +311,7 @@
         channelPtrs[i] = &floatPtr[i * samples];
     }
     OGVAudioBuffer *audioBuffer = [[OGVAudioBuffer alloc] initWithPCM:channelPtrs
-                                                              samples:samples
+                                                              samples:(unsigned int)samples
                                                                format:format
                                                             timestamp:time];
     free(channelPtrs);

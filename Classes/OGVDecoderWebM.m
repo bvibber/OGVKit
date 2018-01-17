@@ -548,7 +548,7 @@ static int64_t tellCallback(void * userdata)
 #ifdef OGVKIT_HAVE_OPUS_DECODER
         if (audioCodec == NESTEGG_CODEC_OPUS) {
             NSData* opusPacket = [packet dataAtIndex: 0];
-            int sampleCount = opus_decode_float(opusDecoder, opusPacket.bytes, opusPacket.length, opusPcmInterleaved, opusFrameSize, 0);
+            int sampleCount = opus_decode_float(opusDecoder, opusPacket.bytes, (opus_int32)opusPacket.length, opusPcmInterleaved, opusFrameSize, 0);
             if (sampleCount > 0) {
                 foundSome = YES;
                 for (int channel = 0; channel < opusChannels; channel++) {
