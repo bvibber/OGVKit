@@ -268,7 +268,7 @@
         decoder.inputStream = stream;
         [self processHeaders];
     } else {
-        NSLog(@"no decoder, this should not happen");
+        [OGVKit.singleton.logger fatalWithFormat:@"no decoder, this should not happen"];
         abort();
     }
     // @fixme update our state
@@ -350,7 +350,7 @@
             });
         }
     } else {
-        NSLog(@"Error processing header state. :(");
+        [OGVKit.singleton.logger errorWithFormat:@"Error processing header state. :("];
     }
 }
 
@@ -364,7 +364,7 @@
         more = [decoder process];
         if (!more) {
             if (decoder.inputStream.state == OGVInputStreamStateFailed) {
-                NSLog(@"Hey! The input stream failed. Handle this more gracefully.");
+                [OGVKit.singleton.logger errorWithFormat:@"Hey! The input stream failed. Handle this more gracefully."];
                 [self pause];
                 playing = NO;
                 return;
@@ -382,7 +382,7 @@
                 } else {
                     timeLeft = 0;
                 }
-                NSLog(@"ended? time left %f", timeLeft);
+                [OGVKit.singleton.logger debugWithFormat:@"ended? time left %f", timeLeft];
                 if (timeLeft > 0) {
                     [self pingProcessing:timeLeft];
                 } else {
@@ -424,28 +424,25 @@
                 float audioBufferedDuration = [audioFeeder secondsQueued];
                 BOOL readyForAudio = (audioBufferedDuration <= bufferDuration);
 
-                //NSLog(@"have %f ms", audioBufferedDuration * 1000);
                 if (readyForAudio) {
                     BOOL ok = [decoder decodeAudio];
                     if (ok) {
-                        //NSLog(@"Buffering audio...");
                         OGVAudioBuffer *audioBuffer = [decoder audioBuffer];
                         if (![audioFeeder bufferData:audioBuffer]) {
                             if ([audioFeeder isClosed]) {
                                 // Audio died, perhaps due to starvation during slow decodes
                                 // or something else unexpected. Close it out and we'll start
                                 // up a new one.
-                                NSLog(@"CLOSING OUT CLOSED AUDIO FEEDER");
+                                [OGVKit.singleton.logger debugWithFormat:@"CLOSING OUT CLOSED AUDIO FEEDER"];
                                 [self stopAudio];
                                 [self startAudio:audioTimestamp];
                                 [audioFeeder bufferData:audioBuffer];
                             }
                         }
                         // Go back around the loop in case we need more
-                        //NSLog(@"queued");
                         continue;
                     } else {
-                        NSLog(@"Bad audio packet or something");
+                        [OGVKit.singleton.logger errorWithFormat:@"Bad audio packet or something"];
                     }
                 }
 
@@ -460,54 +457,22 @@
                 // Need to find some more packets
                 continue;
             }
-            
-            /*
-            // Drive on the audio clock!
-            const int bufferSize = 8192;
-            const float bufferDuration = (float)bufferSize / decoder.audioFormat.sampleRate;
-            
-            float audioBufferedDuration = [audioFeeder secondsQueued];
-            BOOL readyForAudio = (audioBufferedDuration <= bufferDuration * 4) || ![audioFeeder isStarted];
-            
-            //NSLog(@"%d %d / %d %d (%f - %f)", readyForAudio, decoder.audioReady, readyForFrame, decoder.frameReady, frameEndTimestamp, playbackPosition);
-            if (readyForAudio && decoder.audioReady) {
-                //NSLog(@"%f ms audio queued; buffering", audioBufferedDuration * 1000);
-                BOOL ok = [decoder decodeAudio];
-                if (ok) {
-                    //NSLog(@"Buffering audio...");
-                    OGVAudioBuffer *audioBuffer = [decoder audioBuffer];
-                    [audioFeeder bufferData:audioBuffer];
-                } else {
-                    NSLog(@"Bad audio packet or something");
-                }
-            }
-            
-            if (audioBufferedDuration <= bufferDuration) {
-                // NEED MOAR BUFFERS
-                nextDelay = 0;
-            } else {
-                // Check in when the audio buffer runs low again...
-                nextDelay = fminf(nextDelay, bufferDuration / 4.0f);
-                // @todo revisit this checkin frequency, it's pretty made up
-            }
-            */
+
         }
         
         if (decoder.hasVideo) {
             if (decoder.frameReady) {
-                //NSLog(@"%f ms frame delay", frameDelay * 1000);
                 if (readyToDecodeFrame) {
                     BOOL ok = [decoder decodeFrame];
                     if (ok) {
                         // Check if it's time to draw (AKA the frame timestamp is at or past the playhead)
                         // If we're already playing, DRAW!
-                        //NSLog(@"DRAW");
                         [self drawFrame];
 
                         // End the processing loop, we'll ping again after drawing
                         //return;
                     } else {
-                        NSLog(@"Bad video packet or something");
+                        [OGVKit.singleton.logger errorWithFormat:@"Bad video packet or something"];
                         continue;
                     }
                 }
@@ -522,14 +487,13 @@
         }
 
         if (nextDelay < INFINITY) {
-            //NSLog(@"loop %f ms", nextDelay * 1000.0);
             [self pingProcessing:nextDelay];
             
             // End the processing loop and wait for next ping.
             return;
         } else {
             // nothing to do?
-            NSLog(@"loop drop?");
+            [OGVKit.singleton.logger errorWithFormat:@"loop drop?"];
             return;
         }
         
@@ -540,7 +504,6 @@
 
 - (void)pingProcessing:(float)delay
 {
-    //NSLog(@"after %f ms", delay * 1000);
     dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delay * NSEC_PER_SEC));
     dispatch_after(popTime, decodeQueue, ^() {
         [self processNextFrame];
@@ -554,7 +517,6 @@
 {
     OGVVideoBuffer *buffer = decoder.frameBuffer;
     frameEndTimestamp = buffer.timestamp;
-    //NSLog(@"frame: %f %f", frameEndTimestamp, self.playbackPosition);
     // Note: this must be sync because memory may belong to the decoder!
     [self callDelegateSelector:@selector(ogvPlayerState:drawFrame:) sync:YES withBlock:^() {
         [delegate ogvPlayerState:self drawFrame:buffer];
@@ -566,7 +528,7 @@
     while (YES) {
         while ((decoder.hasAudio && !decoder.audioReady) || (decoder.hasVideo && !decoder.frameReady)) {
             if (![decoder process]) {
-                NSLog(@"Got to end of file before found data again after seek.");
+                [OGVKit.singleton.logger errorWithFormat:@"Got to end of file before found data again after seek."];
                 return NO;
             }
         }
@@ -608,7 +570,7 @@
             break;
 
         case OGVInputStreamStateFailed:
-            NSLog(@"Stream file failed.");
+            [OGVKit.singleton.logger errorWithFormat:@"Stream file failed."];
             stream.delegate = nil;
             [stream cancel];
             stream = nil;
@@ -619,7 +581,7 @@
             break;
 
         default:
-            NSLog(@"Unexpected stream state change! %d", (int)stream.state);
+            [OGVKit.singleton.logger errorWithFormat:@"Unexpected stream state change! %d", (int)stream.state];
             stream.delegate = nil;
             [stream cancel];
             stream = nil;

@@ -50,7 +50,6 @@ static void throwIfNSError(NSErrorWrapperBlock wrappedBlock) {
 
 static void OGVAudioFeederBufferHandler(void *data, AudioQueueRef queue, AudioQueueBufferRef buffer)
 {
-    //NSLog(@"bufferHandler");
     OGVAudioFeeder *feeder = (__bridge OGVAudioFeeder *)data;
     @autoreleasepool {
         [feeder handleQueue:queue buffer:buffer];
@@ -161,12 +160,9 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
         if (isClosing || isClosed) {
             return NO;
         }
-        //NSLog(@"queuing samples: %d", buffer.samples);
         if (buffer.samples > 0) {
             [self queueInput:buffer];
-            //NSLog(@"buffered count: %d", [self circularCount]);
             if (!isStarting && !isRunning && !isClosing && !isClosed && samplesQueued >= circularBufferSize / 4) {
-                //NSLog(@"Starting audio!");
                 [self startAudio];
             }
         }
@@ -257,15 +253,12 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
 {
     @synchronized (timeLock) {
         if (shouldClose) {
-            //NSLog(@"Stopping queue");
             AudioQueueStop(queue, NO);
             return;
         }
         
         size_t samplesAvailable = samplesQueued - samplesPlayed;
         if (samplesAvailable > 0) {
-            //NSLog(@"handleQueue has data");
-            
             size_t sampleCount = samplesAvailable;
             if (sampleCount > bufferSize) {
                 sampleCount = bufferSize;
@@ -273,7 +266,6 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
             unsigned int channels = self.format.channels;
             size_t channelSize = sampleCount * sampleSize;
             size_t packetSize = channelSize * channels;
-            //NSLog(@"channelSize %d | packetSize %d | samples %d", channelSize, packetSize, sampleCount);
             
             Float32 *dest = (Float32 *)buffer->mAudioData;
             for (size_t i = 0; i < sampleCount * channels; i++) {
@@ -288,8 +280,7 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
                 return AudioQueueEnqueueBuffer(queue, buffer, 0, NULL);
             });
         } else {
-            NSLog(@"starved for audio!");
-
+            [OGVKit.singleton.logger warnWithFormat:@"starved for audio!"];
             // Close it out when ready
             isClosing = YES;
             //AudioQueueStop(queue, NO);
@@ -308,7 +299,6 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
                 return AudioQueueGetProperty(queue, prop, &_isRunning, &_size);
             });
             isRunning = (BOOL)_isRunning;
-            //NSLog(@"isRunning is %d", (int)isRunning);
             if (isStarting) {
                 isStarting = NO;
             }

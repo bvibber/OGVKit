@@ -29,6 +29,7 @@
 {
     self = [super init];
     if (self) {
+        self.logger = [[OGVLogger alloc] init];
         decoderClasses = [[NSMutableArray alloc] init];
 
 #ifdef OGVKIT_HAVE_OGG_DEMUXER

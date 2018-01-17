@@ -87,7 +87,7 @@
         case OGVInputStreamStateSeeking:
         case OGVInputStreamStateFailed:
         case OGVInputStreamStateCanceled:
-            NSLog(@"OGVDataInputStream reading in invalid state %d", (int)self.state);
+            [OGVKit.singleton.logger errorWithFormat:@"OGVDataInputStream reading in invalid state %d", (int)self.state ];
             @throw [NSError errorWithDomain:@"com.brionv.OGVKit"
                                        code:1000
                                    userInfo:@{@"URL": self.URL}];

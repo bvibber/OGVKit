@@ -189,7 +189,7 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
             // Just queue them up...
             return [self processDecoding:packet serialno:serialno];
         default:
-            NSLog(@"Invalid state in Ogg readPacketCallback");
+            [OGVKit.singleton.logger errorWithFormat:@"Invalid state in Ogg readPacketCallback"];
             return OGGZ_STOP_ERR;
     }
 }
@@ -212,13 +212,13 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
         int ret = th_decode_headerin(&theoraInfo, &theoraComment, &theoraSetupInfo, packet.oggPacket);
         if (ret == 0) {
             // At end of Theora headers surprisingly early...
-            NSLog(@"Theora headers ended after first packet, which is impossible");
+            [OGVKit.singleton.logger errorWithFormat:@"Theora headers ended after first packet, which is impossible"];
             return OGGZ_STOP_ERR;
         } else if (ret > 0) {
             // Still processing headerssssss!
             return OGGZ_CONTINUE;
         } else {
-            NSLog(@"Error reading theora headers: %d.", ret);
+            [OGVKit.singleton.logger errorWithFormat:@"Error reading theora headers: %d.", ret];
             return OGGZ_STOP_ERR;
         }
     }
@@ -235,7 +235,7 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
             // First of 3 header packets down.
             return OGGZ_CONTINUE;
         } else {
-            NSLog(@"Error reading Vorbis headers (packet %d): %d", vorbis_processing_headers, ret);
+            [OGVKit.singleton.logger errorWithFormat:@"Error reading Vorbis headers (packet %d): %d", vorbis_processing_headers, ret];
             return OGGZ_STOP_ERR;
         }
         return OGGZ_CONTINUE;
@@ -251,7 +251,7 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
         } else if (ret > 0) {
             // Just keep going
         } else {
-            NSLog(@"Invalid ogg skeleton track data? %d", ret);
+            [OGVKit.singleton.logger errorWithFormat:@"Invalid ogg skeleton track data? %d", ret];
             return OGGZ_STOP_ERR;
         }
     }
@@ -292,7 +292,7 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
                 } else if (ret > 0) {
                     // Still processing headerssssss!
                 } else {
-                    NSLog(@"Error reading theora headers: %d.", ret);
+                    [OGVKit.singleton.logger errorWithFormat:@"Error reading theora headers: %d.", ret];
                     return OGGZ_STOP_ERR;
                 }
             }
@@ -323,7 +323,7 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
                                                                          sampleRate:vi.rate];
                     }
                 } else {
-                    NSLog(@"Error reading Vorbis headers (packet %d): %d", vorbis_processing_headers, ret);
+                    [OGVKit.singleton.logger errorWithFormat:@"Error reading Vorbis headers (packet %d): %d", vorbis_processing_headers, ret];
                     return OGGZ_STOP_ERR;
                 }
             }
@@ -335,7 +335,7 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
     if (skeletonStream == serialno) {
         int ret = oggskel_decode_header(skeleton, packet.oggPacket);
         if (ret < 0) {
-            NSLog(@"Error processing skeleton packet: %d", ret);
+            [OGVKit.singleton.logger errorWithFormat:@"Error processing skeleton packet: %d", ret];
             return OGGZ_STOP_ERR;
         }
         if (packet.oggPacket->e_o_s) {
@@ -372,7 +372,7 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
         case TH_PF_444:
             return OGVPixelFormatYCbCr444;
         default:
-            NSLog(@"Invalid pixel format. whoops");
+            [OGVKit.singleton.logger fatalWithFormat:@"Invalid pixel format. whoops"];
             // @todo handle error state gracefully
             abort();
             return 0;
@@ -411,7 +411,7 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
         if (self.inputStream.length > endChunkSize) {
             oggz_off_t ret = oggz_seek(oggz, -endChunkSize, SEEK_END);
             if (ret < 0) {
-                NSLog(@"Unable to seek to end of Ogg file for duration check.");
+                [OGVKit.singleton.logger errorWithFormat:@"Unable to seek to end of Ogg file for duration check."];
                 return NO;
             }
         }
@@ -420,7 +420,7 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
             long readRet = oggz_read(oggz, kOGVDecoderReadBufferSize);
             if (readRet == OGGZ_ERR_HOLE_IN_DATA) {
                 // We seeked to mid-stream so this is expected.
-                NSLog(@"resyncing ogg stream...");
+                [OGVKit.singleton.logger debugWithFormat:@"resyncing ogg stream..."];
                 continue;
             } else if (readRet == OGGZ_ERR_STOP_OK) {
                 // Not sure why this happens. Our callback should
@@ -430,7 +430,7 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
                 // Got to the end of the file.
                 break;
             } else if (readRet < 0) {
-                NSLog(@"Error %d reading for Ogg file duration.", (int)readRet);
+                [OGVKit.singleton.logger errorWithFormat:@"Error %d reading for Ogg file duration.", (int)readRet];
                 return NO;
             } else {
                 // processed some number of bytes...
@@ -439,15 +439,15 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
 
         ogg_int64_t finalTime = oggz_tell_units(oggz);
         if (finalTime < 0) {
-            NSLog(@"Unable to read time from end of Ogg file for duration check: %d", (int)finalTime);
+            [OGVKit.singleton.logger errorWithFormat:@"Unable to read time from end of Ogg file for duration check: %d", (int)finalTime];
             return NO;
         }
         duration = (float)finalTime / 1000.0f;
-        NSLog(@"duration: %f", duration);
+        [OGVKit.singleton.logger debugWithFormat:@"duration: %f", duration];
 
         oggz_off_t ret = oggz_seek(oggz, 0, SEEK_SET);
         if (ret < 0) {
-            NSLog(@"Unable to seek back to current Ogg position in duration check: %d", (int)ret);
+            [OGVKit.singleton.logger errorWithFormat:@"Unable to seek back to current Ogg position in duration check: %d", (int)ret];
             return NO;
         }
 
@@ -493,7 +493,7 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
             [self doDecodeTheora:videobuf_time];
             return YES;
         } else {
-            NSLog(@"Theora decoder failed mysteriously? %d", ret);
+            [OGVKit.singleton.logger errorWithFormat:@"Theora decoder failed mysteriously? %d", ret];
             return NO;
         }
     }
@@ -538,11 +538,11 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
                 vorbis_synthesis_read(&vd, sampleCount);
                 return YES;
             } else {
-                NSLog(@"Vorbis decoder gave empty packet; ignore it!");
+                [OGVKit.singleton.logger debugWithFormat:@"Vorbis decoder gave empty packet; ignore it!"];
                 return NO;
             }
         } else {
-            NSLog(@"Vorbis decoder failed mysteriously? %d", ret);
+            [OGVKit.singleton.logger errorWithFormat:@"Vorbis decoder failed mysteriously? %d", ret];
             return NO;
         }
     }
@@ -575,7 +575,7 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
                 return YES;
             } else {
                 // something exploded
-                NSLog(@"error during Ogg duration extraction");
+                [OGVKit.singleton.logger errorWithFormat:@"error during Ogg duration extraction"];
                 return NO;
             }
             break;
@@ -591,28 +591,25 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
             break;
 
         default:
-            NSLog(@"Invalid internal state %d in OGVDecoderOgg", (int)appState);
+            [OGVKit.singleton.logger errorWithFormat:@"Invalid internal state %d in OGVDecoderOgg", (int)appState];
             return NO;
     }
 
     if (needData) {
-        //NSLog(@"READING:");
         long ret = oggz_read(oggz, kOGVDecoderReadBufferSize);
         if (ret > 0) {
             // just chillin'
-            //NSLog(@"READ A BUNCH OF DATA from oggz_read? frameReady:%d audioReady:%d", (int)self.frameReady, (int)self.audioReady);
             return 1;
         } else if (ret == 0) {
             // end of file
-            NSLog(@"END OF FILE from oggz_read?");
+            [OGVKit.singleton.logger debugWithFormat:@"END OF FILE from oggz_read?"];
             return 0;
         } else if (ret == OGGZ_ERR_STOP_OK) {
             // we processed enough packets for now,
             // but come back for more later please!
-            //NSLog(@"ASKED TO STOP from oggz_read? %d %d", (int)self.frameReady, (int)self.audioReady);
             return 1;
         } else {
-            NSLog(@"Error from oggz_read? %ld", ret);
+            [OGVKit.singleton.logger fatalWithFormat:@"Error from oggz_read? %ld", ret];
             abort();
         }
     } else if (self.inputStream.state == OGVInputStreamStateReading) {
@@ -620,10 +617,10 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
         return 1;
     } else if (self.inputStream.state == OGVInputStreamStateSeeking) {
         // this shouldn't actually happen!
-        NSLog(@"Called decoder process during seeking, beware!");
+        [OGVKit.singleton.logger errorWithFormat:@"Called decoder process during seeking, beware!"];
         return 1;
     } else {
-        NSLog(@"Input stream done or errored, state %d", (int)self.inputStream.state);
+        [OGVKit.singleton.logger errorWithFormat:@"Input stream done or errored, state %d", (int)self.inputStream.state];
         return 0;
     }
 }
@@ -754,7 +751,7 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
     if (ret == 0) {
         return offset;
     } else {
-        NSLog(@"Error %d getting Ogg skeleton keypoint offset", ret);
+        [OGVKit.singleton.logger errorWithFormat:@"Error %d getting Ogg skeleton keypoint offset", ret];
         return 0;
     }
 }
@@ -769,7 +766,7 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
     ogg_int64_t pos = oggz_seek_units(oggz, milliseconds, SEEK_SET);
     if (pos < 0) {
         // uhhh.... not good.
-        NSLog(@"OGVDecoderOgg failed to seek to time position within file");
+        [OGVKit.singleton.logger errorWithFormat:@"OGVDecoderOgg failed to seek to time position within file"];
         return NO;
     }
     
@@ -800,7 +797,7 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
             [self flush];
             if (pos < 0) {
                 // still not good!
-                NSLog(@"OGVDecoderOgg failed to seek to keyframe time position within file");
+                [OGVKit.singleton.logger errorWithFormat:@"OGVDecoderOgg failed to seek to keyframe time position within file"];
                 return NO;
             }
 
@@ -854,7 +851,7 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
         return skelDuration;
     } else {
         // something went awry?
-        NSLog(@"Confused about ogg skeleton duration? (%f to %f looks wrong)", firstSample, lastSample);
+        [OGVKit.singleton.logger errorWithFormat:@"Confused about ogg skeleton duration? (%f to %f looks wrong)", firstSample, lastSample];
         return INFINITY;
     }
 }

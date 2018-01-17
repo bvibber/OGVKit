@@ -35,7 +35,7 @@
         case OGVPixelFormatYCbCr444:
             return 0;
         default:
-            NSLog(@"Invalid pixel format in hDecimation");
+            [OGVKit.singleton.logger fatalWithFormat:@"Invalid pixel format in hDecimation"];
             abort();
     }
 }
@@ -49,7 +49,7 @@
         case OGVPixelFormatYCbCr444:
             return 0;
         default:
-            NSLog(@"Invalid pixel format in hDecimation");
+            [OGVKit.singleton.logger fatalWithFormat:@"Invalid pixel format in hDecimation"];
             abort();
     }
 }

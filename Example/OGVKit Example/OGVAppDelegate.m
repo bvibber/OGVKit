@@ -8,11 +8,15 @@
 
 #import "OGVAppDelegate.h"
 
+@import OGVKit;
+
 @implementation OGVAppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    // Override point for customization after application launch.
+    // Log everything to console in the demo.
+    OGVKit.singleton.logger.level = OGVLogLevelDebug;
+
     return YES;
 }
 							

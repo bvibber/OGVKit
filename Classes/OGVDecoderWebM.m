@@ -190,7 +190,7 @@ static int64_t tellCallback(void * userdata)
 -(BOOL)processBegin
 {
     if (nestegg_init(&demuxContext, ioCallbacks, logCallback, -1) < 0) {
-        NSLog(@"nestegg_init failed");
+        [OGVKit.singleton.logger errorWithFormat:@"nestegg_init failed"];
         return NO;
     }
     
@@ -274,7 +274,7 @@ static int64_t tellCallback(void * userdata)
                     size_t len;
                     int ret = nestegg_track_codec_data(demuxContext, audioTrack, i, &data, &len);
                     if (ret < 0) {
-                        NSLog(@"failed to read codec data %d", i);
+                        [OGVKit.singleton.logger errorWithFormat:@"failed to read codec data %d", i];
                         return NO;
                     }
                     ogg_packet audioPacket;
@@ -289,7 +289,7 @@ static int64_t tellCallback(void * userdata)
                     if (ret == 0) {
                         vorbisHeaders++;
                     } else {
-                        NSLog(@"Invalid vorbis header? %d", ret);
+                        [OGVKit.singleton.logger errorWithFormat:@"Invalid vorbis header? %d", ret];
                         return NO;
                     }
                 }
@@ -303,14 +303,14 @@ static int64_t tellCallback(void * userdata)
                 assert(opusDecoder == NULL);
                 opusDecoder = opus_decoder_create(opusSampleRate, opusChannels, &opusErr);
                 if (opusErr != OPUS_OK) {
-                    NSLog(@"Unable to initialize opus decoder with %dHz and %d channels. Error %d", opusSampleRate, opusChannels, opusErr);
+                    [OGVKit.singleton.logger errorWithFormat:@"Unable to initialize opus decoder with %dHz and %d channels. Error %d", opusSampleRate, opusChannels, opusErr];
                     return NO;
                 }
 
                 unsigned int codecDataCount;
                 int nesteggErr = nestegg_track_codec_data_count(demuxContext, audioTrack, &codecDataCount);
                 if (nesteggErr != 0) {
-                    NSLog(@"Unable to get tracks count");
+                    [OGVKit.singleton.logger errorWithFormat:@"Unable to get tracks count"];
                     return NO;
                 }
 
@@ -319,12 +319,12 @@ static int64_t tellCallback(void * userdata)
                     size_t len;
                     int ret = nestegg_track_codec_data(demuxContext, audioTrack, i, &data, &len);
                     if (ret < 0) {
-                        NSLog(@"failed to read codec data %d", i);
+                        [OGVKit.singleton.logger errorWithFormat:@"failed to read codec data %d", i];
                         return NO;
                     }
 
                     // Skip OPUS-specific header like this: "OpusHead\x01\x028\x01\x80\xbb"
-                    NSLog(@"Skip handling OPUS packet");
+                    [OGVKit.singleton.logger debugWithFormat:@"Skip handling OPUS packet"];
                 }
 
                 assert(opusPcmNonInterleaved == NULL);
@@ -537,10 +537,10 @@ static int64_t tellCallback(void * userdata)
                         audiobufTime = (double)audiobufGranulepos / self.audioFormat.sampleRate;
                     }
                 } else {
-                    NSLog(@"Vorbis decoder gave an empty packet!");
+                    [OGVKit.singleton.logger errorWithFormat:@"Vorbis decoder gave an empty packet!"];
                 }
             } else {
-                NSLog(@"Vorbis decoder failed mysteriously? %d", ret);
+                [OGVKit.singleton.logger errorWithFormat:@"Vorbis decoder failed mysteriously? %d", ret];
             }
         }
 #endif
@@ -570,7 +570,7 @@ static int64_t tellCallback(void * userdata)
                     audiobufTime = (double)audiobufGranulepos / self.audioFormat.sampleRate;
                 }
             } else {
-                NSLog(@"OPUS decoder gave an empty packet!");
+                [OGVKit.singleton.logger errorWithFormat:@"OPUS decoder gave an empty packet!"];
             }
         }
 #endif
@@ -587,7 +587,7 @@ static int64_t tellCallback(void * userdata)
         return [self processDecoding];
     } else {
         // uhhh...
-        NSLog(@"Invalid appState in -[OGVDecoderWebM process]\n");
+        [OGVKit.singleton.logger errorWithFormat:@"Invalid appState in -[OGVDecoderWebM process]\n"];
         return NO;
     }
 }
@@ -661,7 +661,7 @@ static int64_t tellCallback(void * userdata)
             assert(opusDecoder != NULL);
             int opusErr = opus_decoder_init(opusDecoder, opusSampleRate, opusChannels);
             if (opusErr != OPUS_OK) {
-                NSLog(@"Unable to initialize previously allocated opus decoder with rate %d and channels %d", opusSampleRate, opusChannels);
+                [OGVKit.singleton.logger errorWithFormat:@"Unable to initialize previously allocated opus decoder with rate %d and channels %d", opusSampleRate, opusChannels];
                 assert(false);
             }
         }
@@ -677,18 +677,18 @@ static int64_t tellCallback(void * userdata)
         if (ret < 0) {
             // uhhh.... not good.
 #ifdef OGVKIT_WEBM_SEEK_BRUTE_FORCE
-            NSLog(@"brute force WebM seek; restarting file");
+            [OGVKit.singleton.logger errorWithFormat:@"brute force WebM seek; restarting file"];
             [self.inputStream seek:0L blocking:YES];
             ret = nestegg_init(&demuxContext, ioCallbacks, logCallback, -1);
             if (ret < 0) {
-                NSLog(@"nestegg_init returned %d", ret);
+                [OGVKit.singleton.logger errorWithFormat:@"nestegg_init returned %d", ret];
             }
             while (YES) {
                 nestegg_packet *nepacket;
                 ret = nestegg_read_packet(demuxContext, &nepacket);
                 if (ret == 0) {
                     // end of stream?
-                    NSLog(@"End of stream during brute-force WebM seek");
+                    [OGVKit.singleton.logger debugWithFormat:@"End of stream during brute-force WebM seek"];
                     return NO;
                 } else if (ret > 0) {
                     OGVDecoderWebMPacket *packet = [[OGVDecoderWebMPacket alloc] initWithNesteggPacket:nepacket];
@@ -697,18 +697,18 @@ static int64_t tellCallback(void * userdata)
                         continue;
                     } else {
                         // We found it!
-                        NSLog(@"brute force WebM seek found destination!");
+                        [OGVKit.singleton.logger debugWithFormat:@"brute force WebM seek found destination!"];
                         [self _queue:packet];
                         return YES;
                     }
                 } else {
                     // err
-                    NSLog(@"nestegg_read_packet returned %d", ret);
+                    [OGVKit.singleton.logger errorWithFormat:@"nestegg_read_packet returned %d", ret];
                     return NO;
                 }
             }
 #else
-            NSLog(@"OGVDecoderWebM failed to seek to time position within file");
+            [OGVKit.singleton.logger errorWithFormat:@"OGVDecoderWebM failed to seek to time position within file"];
             return NO;
 #endif /* OGVKIT_WEBM_SEEK_BRUTE_FORCE */
         } else {

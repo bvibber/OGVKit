@@ -436,7 +436,7 @@ static const GLfloat conversionMatrixSRGB[] = {
     GLenum err = glGetError();
     if (err != GL_NO_ERROR) {
         NSString *str = [self stringForGLError:err];
-        NSLog(@"GL error: %d %@", (int)err, str);
+        [OGVKit.singleton.logger errorWithFormat:@"GL error: %d %@", (int)err, str];
         @throw [NSException exceptionWithName:@"OGVFrameViewException"
                                        reason:str
                                      userInfo:@{@"glError": @((int)err),

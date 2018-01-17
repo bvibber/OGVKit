@@ -28,6 +28,7 @@ Pod::Spec.new do |s|
 
   s.subspec "Core" do |score|
     score.source_files = "Classes/OGVKit.{h,m}",
+                         "Classes/OGVLogger.{h,m}",
                          "Classes/OGVQueue.{h,m}",
                          "Classes/OGVMediaType.{h,m}",
                          "Classes/OGVAudioFormat.{h,m}",
@@ -47,6 +48,7 @@ Pod::Spec.new do |s|
                          "Classes/OGVPlayerView.{h,m}"
 
     score.public_header_files = "Classes/OGVKit.h",
+                                "Classes/OGVLogger.h",
                                 "Classes/OGVMediaType.h",
                                 "Classes/OGVAudioFormat.h",
                                 "Classes/OGVAudioBuffer.h",

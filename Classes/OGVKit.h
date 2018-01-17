@@ -13,6 +13,7 @@
 
 @class OGVKit;
 
+#import "OGVLogger.h"
 #import "OGVMediaType.h"
 
 #import "OGVAudioFormat.h"
@@ -62,5 +63,10 @@
  * not correctly labeled or the type was vague.
  */
 - (OGVDecoder *)decoderForType:(OGVMediaType *)mediaType;
+
+/**
+ * The logger; can be set to override the default one or its settings.
+ */
+@property OGVLogger *logger;
 
 @end

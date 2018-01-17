@@ -95,7 +95,7 @@
         NSError *err;
         assetReader = [AVAssetReader assetReaderWithAsset:asset error:&err];
         if (!assetReader) {
-            NSLog(@"failed to init AVAssetReader: %@", err);
+            [OGVKit.singleton.logger errorWithFormat:@"failed to init AVAssetReader: %@", err];
             asset = nil;
             return NO;
         }
@@ -145,7 +145,7 @@
         }
 
         if (![assetReader startReading]) {
-            NSLog(@"failed to read AVFoundation asset");
+            [OGVKit.singleton.logger errorWithFormat:@"failed to read AVFoundation asset"];
         }
 
         self.dataReady = YES;
@@ -302,7 +302,7 @@
     char *charPtr;
     OSStatus ret = CMBlockBufferGetDataPointer(buffer, 0, NULL, NULL, &charPtr);
     if (ret != kCMBlockBufferNoErr) {
-        NSLog(@"CMBlockBufferGetDataPointer failed %d", ret);
+        [OGVKit.singleton.logger errorWithFormat:@"CMBlockBufferGetDataPointer failed %d", ret];
     }
     
     float *floatPtr = (float *)charPtr;
