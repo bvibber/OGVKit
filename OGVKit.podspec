@@ -108,7 +108,6 @@ Pod::Spec.new do |s|
 
   # Demuxer module subspecs
   s.subspec "OggDemuxer" do |soggdemuxer|
-    soggdemuxer.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_OGG_DEMUXER' }
     soggdemuxer.source_files = "Classes/OGVDecoderOgg.{h,m}",
                                "Classes/OGVDecoderOggPacket.{h,m}"
     soggdemuxer.private_header_files = "Classes/OGVDecoderOgg.h",
@@ -118,7 +117,6 @@ Pod::Spec.new do |s|
     soggdemuxer.dependency 'OGVKit/libskeleton', '~>0.4'
   end
   s.subspec "WebMDemuxer" do |swebmdemuxer|
-    swebmdemuxer.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_WEBM_DEMUXER' }
     swebmdemuxer.source_files = "Classes/OGVDecoderWebM.{h,m}",
                                 "Classes/OGVDecoderWebMPacket.{h,m}"
     swebmdemuxer.private_header_files = "Classes/OGVDecoderWebM.h",
@@ -153,7 +151,6 @@ Pod::Spec.new do |s|
 
   # AVFoundation-backed playback for MP4, MP3
   s.subspec "AVDecoder" do |savdecoder|
-    savdecoder.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_AV_DECODER' }
     savdecoder.dependency 'OGVKit/Core'
     savdecoder.source_files = "Classes/OGVDecoderAV.{h,m}"
     savdecoder.private_header_files = "Classes/OGVDecoderAV.h"
@@ -179,5 +176,5 @@ Pod::Spec.new do |s|
 
     sskel.dependency 'libogg'
   end
-  
+
 end

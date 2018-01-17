@@ -30,6 +30,11 @@
     OGVVideoBuffer *queuedFrame;
 }
 
++ (void)load
+{
+    [OGVKit.singleton registerDecoderClass:[OGVDecoderAV class]];
+}
+
 -(instancetype)init
 {
     self = [super init];

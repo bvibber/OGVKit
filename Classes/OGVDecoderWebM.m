@@ -153,6 +153,11 @@ static int64_t tellCallback(void * userdata)
 }
 
 
++ (void)load
+{
+    [OGVKit.singleton registerDecoderClass:[OGVDecoderWebM class]];
+}
+
 -(instancetype)init
 {
     self = [super init];

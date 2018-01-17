@@ -8,18 +8,6 @@
 
 #import "OGVKit.h"
 
-#ifdef OGVKIT_HAVE_OGG_DEMUXER
-#import "OGVDecoderOgg.h"
-#endif
-
-#ifdef OGVKIT_HAVE_WEBM_DEMUXER
-#import "OGVDecoderWebM.h"
-#endif
-
-#ifdef OGVKIT_HAVE_AV_DECODER
-#import "OGVDecoderAV.h"
-#endif
-
 @implementation OGVKit
 {
     NSMutableArray *decoderClasses;
@@ -31,19 +19,6 @@
     if (self) {
         self.logger = [[OGVLogger alloc] init];
         decoderClasses = [[NSMutableArray alloc] init];
-
-#ifdef OGVKIT_HAVE_OGG_DEMUXER
-        [self registerDecoderClass:[OGVDecoderOgg class]];
-#endif
-
-#ifdef OGVKIT_HAVE_WEBM_DEMUXER
-        [self registerDecoderClass:[OGVDecoderWebM class]];
-#endif
-
-#ifdef OGVKIT_HAVE_AV_DECODER
-        [self registerDecoderClass:[OGVDecoderAV class]];
-#endif
-
     }
     return self;
 }

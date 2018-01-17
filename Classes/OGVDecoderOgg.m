@@ -140,6 +140,10 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
     } appState;
 }
 
++ (void)load
+{
+    [OGVKit.singleton registerDecoderClass:[OGVDecoderOgg class]];
+}
 
 - (id)init
 {

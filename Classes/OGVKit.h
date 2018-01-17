@@ -41,7 +41,7 @@
 /**
  * Return the OGVKit singleton, used for some internal library management.
  */
-+ (OGVKit *)singleton;
+@property (class, readonly) OGVKit *singleton;
 
 /**
  * Load the OGVKitResources bundle in the executable.
