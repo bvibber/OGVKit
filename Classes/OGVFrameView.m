@@ -266,7 +266,7 @@ static const GLfloat conversionMatrixSRGB[] = {
 
 -(void)setupConversionMatrix
 {
-    GLfloat *matrix;
+    const GLfloat *matrix;
     switch (format.colorSpace) {
         case OGVColorSpaceBT601:
             // SDTV NTSC

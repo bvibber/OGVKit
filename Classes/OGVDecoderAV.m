@@ -120,8 +120,8 @@
             CGSize size = CMVideoFormatDescriptionGetPresentationDimensions(desc, YES, YES);
             self.videoFormat = [[OGVVideoFormat alloc] initWithFrameWidth:dim.width
                                                               frameHeight:dim.height
-                                                             pictureWidth:dim.width
-                                                            pictureHeight:dim.height
+                                                             pictureWidth:size.width
+                                                            pictureHeight:size.height
                                                            pictureOffsetX:0
                                                            pictureOffsetY:0
                                                               pixelFormat:OGVPixelFormatYCbCr420
@@ -140,7 +140,7 @@
             self.hasAudio = YES;
 
             CMFormatDescriptionRef desc = (__bridge CMFormatDescriptionRef)(audioTrack.formatDescriptions.firstObject);
-            AudioStreamBasicDescription *basic = CMAudioFormatDescriptionGetStreamBasicDescription(desc);
+            const AudioStreamBasicDescription *basic = CMAudioFormatDescriptionGetStreamBasicDescription(desc);
             self.audioFormat = [[OGVAudioFormat alloc] initWithChannels:basic->mChannelsPerFrame sampleRate:basic->mSampleRate];
         }
 
@@ -290,7 +290,7 @@
 {
     // @fixme reuse the format?
     CMFormatDescriptionRef formatDesc = CMSampleBufferGetFormatDescription(sample);
-    AudioStreamBasicDescription *audioDesc = CMAudioFormatDescriptionGetStreamBasicDescription(formatDesc);
+    const AudioStreamBasicDescription *audioDesc = CMAudioFormatDescriptionGetStreamBasicDescription(formatDesc);
     int channels = audioDesc->mChannelsPerFrame;
     OGVAudioFormat *format = [[OGVAudioFormat alloc] initWithChannels:channels
                                                            sampleRate:audioDesc->mSampleRate];

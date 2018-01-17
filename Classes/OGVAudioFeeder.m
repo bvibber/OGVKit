@@ -24,7 +24,7 @@
 static const int nBuffers = 3;
 static const int circularBufferSize = 8192 * 16;
 
-typedef OSStatus (^OSStatusWrapperBlock)();
+typedef OSStatus (^OSStatusWrapperBlock)(void);
 
 static void throwIfError(OSStatusWrapperBlock wrappedBlock) {
     OSStatus status = wrappedBlock();
@@ -386,7 +386,7 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
         samplesQueued += samples;
 
         // AudioToolbox wants interleaved
-        float *srcData[channels];
+        const float *srcData[channels];
         for (int channel = 0; channel < channels; channel++) {
             srcData[channel] = [buffer PCMForChannel:channel];
         }

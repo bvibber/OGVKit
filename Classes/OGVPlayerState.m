@@ -245,7 +245,7 @@
 
 #pragma mark - Private decode thread methods
 
-- (void)callDelegateSelector:(SEL)selector sync:(BOOL)sync withBlock:(void(^)())block
+- (void)callDelegateSelector:(SEL)selector sync:(BOOL)sync withBlock:(void(^)(void))block
 {
     if ([delegate respondsToSelector:selector]) {
         if (delegateQueue) {
@@ -397,13 +397,11 @@
         }
 
         float nextDelay = INFINITY;
-        const float fudgeDelta = 0.1f;
         float playbackPosition = self.playbackPosition;
         float frameDelay = (frameEndTimestamp - playbackPosition);
         
         // See if the frame timestamp is behind the playhead
         BOOL readyToDecodeFrame = (frameDelay <= 0.0);
-        BOOL readyToDrawFrame = readyToDecodeFrame; // hack hack
         
         
         if (decoder.hasAudio) {

@@ -6,7 +6,7 @@
 //  Copyright (c) 2013-2015 Brion Vibber. All rights reserved.
 //
 
-typedef void (^OGVVideoBufferLockCallback)();
+typedef void (^OGVVideoBufferLockCallback)(void);
 
 typedef enum : NSUInteger {
     OGVVideoPlaneIndexY,

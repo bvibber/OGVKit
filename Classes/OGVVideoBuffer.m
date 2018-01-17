@@ -54,11 +54,11 @@
 - (instancetype)copyWithZone:(NSZone *)zone
 {
     __block OGVVideoBuffer *copied;
-    [self lock:^(OGVVideoPlane *Y, OGVVideoPlane *Cb, OGVVideoPlane *Cr) {
+    [self lock:^() {
         copied = [[OGVVideoBuffer alloc] initWithFormat:self.format
-                                                      Y:[Y copyWithZone:zone]
-                                                     Cb:[Cb copyWithZone:zone]
-                                                     Cr:[Cr copyWithZone:zone]
+                                                      Y:[self.Y copyWithZone:zone]
+                                                     Cb:[self.Cb copyWithZone:zone]
+                                                     Cr:[self.Cr copyWithZone:zone]
                                               timestamp:self.timestamp];
 
     }];
@@ -254,9 +254,9 @@
     size_t lumaInStride = self.Y.stride;
     size_t chromaCbInStride = self.Cb.stride;
     size_t chromaCrInStride = self.Cr.stride;
-    unsigned char *lumaIn = self.Y.data.bytes;
-    unsigned char *chromaCbIn = self.Cb.data.bytes;
-    unsigned char *chromaCrIn = self.Cr.data.bytes;
+    const unsigned char *lumaIn = self.Y.data.bytes;
+    const unsigned char *chromaCbIn = self.Cb.data.bytes;
+    const unsigned char *chromaCrIn = self.Cr.data.bytes;
     
     size_t outStride = CVPixelBufferGetBytesPerRow(pixelBuffer);
     unsigned char *pixelOut = CVPixelBufferGetBaseAddress(pixelBuffer);
