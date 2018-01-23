@@ -14,33 +14,36 @@ Roadmap section below for more detailed plans.
 
 Containers:
 * Ogg
- * playback: yes
- * duration: yes (uses skeleton or slow seek)
- * seeking: yes  (uses skeleton or slow bisection)
+    * playback: yes
+    * duration: yes (uses skeleton or slow seek)
+    * seeking: yes  (uses skeleton or slow bisection)
 * WebM
- * playback: yes
- * duration: yes
- * seeking: yes (requires cues)
+    * playback: yes
+    * duration: yes
+    * seeking: yes (requires cues)
 * MP4 (backed by AVFoundation)
- * playback: yes (from URLs only)
- * duration: yes
- * seeking: yes
+    * playback: yes (from URLs only)
+    * duration: yes
+    * seeking: yes
 
 Video:
 * Theora (ogg only)
- * decode: yes
- * encode: not yet
+    * decode: yes
+    * encode: not yet
 * VP8 (WebM only)
- * decode: yes
- * encode: not yet
+    * decode: yes
+    * encode: not yet
+* VP9 (WebM only)
+    * decode: yes
+    * encode: not yet
 
 Audio:
 * Vorbis
- * decode: yes
- * encode: not yet
+    * decode: yes
+    * encode: not yet
 * Opus
- * decode: yes (WebM only)
- * encode: not yet
+    * decode: yes (WebM only)
+    * encode: not yet
 
 # Getting started
 
