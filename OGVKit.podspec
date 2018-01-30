@@ -129,7 +129,7 @@ Pod::Spec.new do |s|
   s.subspec "TheoraDecoder" do |stheoradecoder|
     stheoradecoder.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_THEORA_DECODER' }
     stheoradecoder.dependency 'OGVKit/Core'
-    stheoradecoder.dependency 'libtheora'
+    stheoradecoder.dependency 'libtheora', '1.2.0-1'
   end
   s.subspec "VP8Decoder" do |svp8decoder|
     svp8decoder.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_VP8_DECODER' }
