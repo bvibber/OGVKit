@@ -156,19 +156,19 @@ static const GLfloat conversionMatrixSRGB[] = {
     CVPixelBufferRef nextCb = [buffer copyPixelBufferWithPlane:OGVVideoPlaneIndexCb];
     CVPixelBufferRef nextCr = [buffer copyPixelBufferWithPlane:OGVVideoPlaneIndexCr];
     dispatch_async(dispatch_get_main_queue(), ^{
-        format = nextFormat;
-        if (pixelBufferY) {
-            CFRelease(pixelBufferY);
+        self->format = nextFormat;
+        if (self->pixelBufferY) {
+            CFRelease(self->pixelBufferY);
         }
-        if (pixelBufferCb) {
-            CFRelease(pixelBufferCb);
+        if (self->pixelBufferCb) {
+            CFRelease(self->pixelBufferCb);
         }
-        if (pixelBufferCr) {
-            CFRelease(pixelBufferCr);
+        if (self->pixelBufferCr) {
+            CFRelease(self->pixelBufferCr);
         }
-        pixelBufferY = nextY;
-        pixelBufferCb = nextCb;
-        pixelBufferCr = nextCr;
+        self->pixelBufferY = nextY;
+        self->pixelBufferCb = nextCb;
+        self->pixelBufferCr = nextCr;
         
         [self setNeedsDisplay];
     });
@@ -177,18 +177,18 @@ static const GLfloat conversionMatrixSRGB[] = {
 - (void)clearFrame
 {
     dispatch_async(dispatch_get_main_queue(), ^{
-        format = nil;
-        if (pixelBufferY) {
-            CFRelease(pixelBufferY);
-            pixelBufferY = NULL;
+        self->format = nil;
+        if (self->pixelBufferY) {
+            CFRelease(self->pixelBufferY);
+            self->pixelBufferY = NULL;
         }
-        if (pixelBufferCb) {
-            CFRelease(pixelBufferCb);
-            pixelBufferCb = NULL;
+        if (self->pixelBufferCb) {
+            CFRelease(self->pixelBufferCb);
+            self->pixelBufferCb = NULL;
         }
-        if (pixelBufferCr) {
-            CFRelease(pixelBufferCr);
-            pixelBufferCr = NULL;
+        if (self->pixelBufferCr) {
+            CFRelease(self->pixelBufferCr);
+            self->pixelBufferCr = NULL;
         }
         [self setNeedsDisplay];
     });

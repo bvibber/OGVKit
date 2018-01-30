@@ -124,20 +124,20 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
         formatDescription.mReserved = 0;
         
         throwIfError(^() {
-            return AudioQueueNewOutput(&formatDescription,
+            return AudioQueueNewOutput(&self->formatDescription,
                                        OGVAudioFeederBufferHandler,
                                        (__bridge void *)self,
                                        NULL,
                                        NULL,
                                        0,
-                                       &queue);
+                                       &self->queue);
         });
         
         for (int i = 0; i < nBuffers; i++) {
             throwIfError(^() {
-                return AudioQueueAllocateBuffer(queue,
-                                                bufferByteSize,
-                                                &buffers[i]);
+                return AudioQueueAllocateBuffer(self->queue,
+                                                self->bufferByteSize,
+                                                &self->buffers[i]);
             });
         }
     }
@@ -224,7 +224,7 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
             __block AudioTimeStamp ts;
             
             throwIfError(^() {
-                return AudioQueueGetCurrentTime(queue, NULL, &ts, NULL);
+                return AudioQueueGetCurrentTime(self->queue, NULL, &ts, NULL);
             });
 
             float samplesOutput = ts.mSampleTime;
@@ -277,7 +277,7 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
             buffer->mAudioDataByteSize = (UInt32)packetSize;
             
             throwIfError(^() {
-                return AudioQueueEnqueueBuffer(queue, buffer, 0, NULL);
+                return AudioQueueEnqueueBuffer(self->queue, buffer, 0, NULL);
             });
         } else {
             [OGVKit.singleton.logger warnWithFormat:@"starved for audio!"];
@@ -296,7 +296,7 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
             __block UInt32 _isRunning = 0;
             __block UInt32 _size = sizeof(_isRunning);
             throwIfError(^(){
-                return AudioQueueGetProperty(queue, prop, &_isRunning, &_size);
+                return AudioQueueGetProperty(self->queue, prop, &_isRunning, &_size);
             });
             isRunning = (BOOL)_isRunning;
             if (isStarting) {
@@ -333,14 +333,14 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
 
         throwIfError(^(){
             // Set a listener to update isRunning
-            return AudioQueueAddPropertyListener(queue,
+            return AudioQueueAddPropertyListener(self->queue,
                                                  kAudioQueueProperty_IsRunning,
                                                  OGVAudioFeederPropListener,
                                                  (__bridge void *)self);
         });
 
         throwIfError(^() {
-            return AudioQueueStart(queue, NULL);
+            return AudioQueueStart(self->queue, NULL);
         });
     }
 }

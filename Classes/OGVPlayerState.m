@@ -83,8 +83,8 @@
         // Start loading the URL and processing header data
         dispatch_async(decodeQueue, ^() {
             // @todo set our own state to connecting!
-            stream.delegate = self;
-            [stream start];
+            self->stream.delegate = self;
+            [self->stream start];
         });
     }
     return self;
@@ -93,16 +93,16 @@
 -(void)play
 {
     dispatch_async(decodeQueue, ^() {
-        if (playing) {
+        if (self->playing) {
             // Already playing
-        } else if (ended) {
-            ended = NO;
-            playing = YES;
+        } else if (self->ended) {
+            self->ended = NO;
+            self->playing = YES;
             [self seek:0.0f];
-        } else if (decoder.dataReady) {
-            [self startPlayback:decoder.hasAudio ? audioPausePosition : frameEndTimestamp];
+        } else if (self->decoder.dataReady) {
+            [self startPlayback:self->decoder.hasAudio ? self->audioPausePosition : self->frameEndTimestamp];
         } else {
-            playAfterLoad = YES;
+            self->playAfterLoad = YES;
         }
     });
 }
@@ -111,16 +111,16 @@
 {
     dispatch_async(decodeQueue, ^() {
         float newBaseTime = self.baseTime;
-        offsetTime = self.playbackPosition;
-        initTime = newBaseTime;
-        if (audioFeeder) {
+        self->offsetTime = self.playbackPosition;
+        self->initTime = newBaseTime;
+        if (self->audioFeeder) {
             [self stopAudio];
         }
 
-        if (playing) {
-            playing = NO;
+        if (self->playing) {
+            self->playing = NO;
             [self callDelegateSelector:@selector(ogvPlayerStateDidPause:) sync:NO withBlock:^() {
-                [delegate ogvPlayerStateDidPause:self];
+                [self->delegate ogvPlayerStateDidPause:self];
             }];
         }
     });
@@ -131,11 +131,11 @@
     [self pause];
 
     dispatch_async(decodeQueue, ^() {
-        if (stream) {
-            [stream cancel];
+        if (self->stream) {
+            [self->stream cancel];
         }
-        stream = nil;
-        decoder = nil;
+        self->stream = nil;
+        self->decoder = nil;
     });
 }
 
@@ -148,45 +148,45 @@
         [decoder.inputStream restart];
     }
     dispatch_async(decodeQueue, ^() {
-        if (decoder && decoder.seekable) {
+        if (self->decoder && self->decoder.seekable) {
             BOOL wasPlaying = !self.paused;
             if (wasPlaying) {
                 [self pause];
             }
-            dispatch_async(decodeQueue, ^() {
-                BOOL ok = [decoder seek:time];
+            dispatch_async(self->decodeQueue, ^() {
+                BOOL ok = [self->decoder seek:time];
 
                 if (ok) {
                     // Adjust the offset for the seek
-                    offsetTime = time;
-                    initTime = self.baseTime;
+                    self->offsetTime = time;
+                    self->initTime = self.baseTime;
 
                     // Find out the actual time we seeked to!
                     // We may have gone to a keyframe nearby.
                     [self syncAfterSeek:time exact:YES];
-                    if (decoder.frameReady) {
-                        frameEndTimestamp = decoder.frameTimestamp;
-                        offsetTime = frameEndTimestamp;
+                    if (self->decoder.frameReady) {
+                        self->frameEndTimestamp = self->decoder.frameTimestamp;
+                        self->offsetTime = self->frameEndTimestamp;
                     } else {
                         // probably at end?
-                        frameEndTimestamp = time;
+                        self->frameEndTimestamp = time;
                     }
-                    if (decoder.audioReady) {
-                        audioPausePosition = decoder.audioTimestamp;
-                        offsetTime = audioPausePosition;
+                    if (self->decoder.audioReady) {
+                        self->audioPausePosition = self->decoder.audioTimestamp;
+                        self->offsetTime = self->audioPausePosition;
                     } else {
                         // probably at end?
-                        audioPausePosition = time;
+                        self->audioPausePosition = time;
                     }
 
                     [self callDelegateSelector:@selector(ogvPlayerStateDidSeek:) sync:NO withBlock:^() {
-                        [delegate ogvPlayerStateDidSeek:self];
+                        [self->delegate ogvPlayerStateDidSeek:self];
                     }];
                     if (wasPlaying) {
                         [self play];
-                    } else if (decoder.hasVideo) {
+                    } else if (self->decoder.hasVideo) {
                         // Show where we left off
-                        if ([decoder decodeFrame]) {
+                        if ([self->decoder decodeFrame]) {
                             [self drawFrame];
                         }
                     }
@@ -288,7 +288,7 @@
     }
 
     [self callDelegateSelector:@selector(ogvPlayerStateDidPlay:) sync:NO withBlock:^() {
-        [delegate ogvPlayerStateDidPlay:self];
+        [self->delegate ogvPlayerStateDidPlay:self];
     }];
     [self pingProcessing:0];
 }
@@ -338,7 +338,7 @@
     if (ok) {
         if (decoder.dataReady) {
             [self callDelegateSelector:@selector(ogvPlayerStateDidLoadMetadata:) sync:NO withBlock:^() {
-                [delegate ogvPlayerStateDidLoadMetadata:self];
+                [self->delegate ogvPlayerStateDidLoadMetadata:self];
             }];
             if (playAfterLoad) {
                 playAfterLoad = NO;
@@ -389,7 +389,7 @@
                     [self pause];
                     ended = YES;
                     [self callDelegateSelector:@selector(ogvPlayerStateDidEnd:) sync:NO withBlock:^() {
-                        [delegate ogvPlayerStateDidEnd:self];
+                        [self->delegate ogvPlayerStateDidEnd:self];
                     }];
                 }
                 return;
@@ -519,7 +519,7 @@
     frameEndTimestamp = buffer.timestamp;
     // Note: this must be sync because memory may belong to the decoder!
     [self callDelegateSelector:@selector(ogvPlayerState:drawFrame:) sync:YES withBlock:^() {
-        [delegate ogvPlayerState:self drawFrame:buffer];
+        [self->delegate ogvPlayerState:self drawFrame:buffer];
     }];
 }
 
@@ -591,7 +591,7 @@
 -(void)OGVInputStream:(OGVInputStream *)sender customizeURLRequest:(NSMutableURLRequest *)request
 {
     [self callDelegateSelector:@selector(ogvPlayerState:customizeURLRequest:) sync:YES withBlock:^() {
-        [delegate ogvPlayerState:self customizeURLRequest:request];
+        [self->delegate ogvPlayerState:self customizeURLRequest:request];
     }];
 }
 
