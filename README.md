@@ -4,9 +4,8 @@ Currently provides a basic high-level player widget (OGVPlayerView) that can str
 audio and video files over HTTP(S), including seeking if Range: header is supported,
 or from the local filesystem.
 
-Will continue to improve this interface, add support for Opus audio codec, and add
-lower-level interfaces suitable for transcoding to/from AVFoundation formats. See the
-Roadmap section below for more detailed plans.
+Will continue to improve this interface and add lower-level interfaces suitable for
+transcoding to/from AVFoundation formats. See the Roadmap section below for more detailed plans.
 
 ![Player example](https://raw.githubusercontent.com/brion/OGVKit/master/Docs/images/example.jpg)
 
@@ -42,7 +41,7 @@ Audio:
     * decode: yes
     * encode: not yet
 * Opus
-    * decode: yes (WebM only)
+    * decode: yes
     * encode: not yet
 
 # Getting started
@@ -183,6 +182,8 @@ See [milestones in issue tracker](https://github.com/brion/OGVKit/milestones) fo
 * v0.5.7 more seek-to-end fixes
 * v0.5.8 fix regressions and old bugs in audio dropout case
 * v0.5.9 fix regressions and old bugs in audio, threading
+* ... various fixes ...
+* v0.5.13 added Opus for Ogg container
 
 Future:
 * v1 stable player API
