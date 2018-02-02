@@ -87,6 +87,8 @@
                                                     filename:@"Bach_C_Major_Prelude_Werckmeister.ogg"],
                 [[OGVCommonsExampleItem alloc] initWithTitle:@"Arigato (short audio)"
                                                     filename:@"Ja-arigato.oga"],
+                [[OGVCommonsExampleItem alloc] initWithTitle:@"O du froehliche (Opus audio)"
+                                                    filename:@"O du froehliche - GL 238 audio.opus"],
                 
                 // Local test files
                 [[OGVLinkedExampleItem alloc] initWithTitle:@"Res switching (local)"
@@ -182,11 +184,18 @@
 {
     formats = [source formats];
     if (![formats containsObject:format]) {
+        format = formats[0];
+        if ([formats containsObject:@"ogg"]) {
+            // prefer ogg over mp3
+            format = @"ogg";
+        }
+        if ([formats containsObject:@"opus"]) {
+            // prefer opus over ogg
+            format = @"opus";
+        }
         if ([formats containsObject:@"webm"]) {
             // prefer webm over ogv
             format = @"webm";
-        } else {
-            format = formats[0];
         }
     }
     

@@ -34,13 +34,19 @@
                 if (![formats containsObject:dformat]) {
                     [formats addObject:dformat];
                 }
+            } else {
+                [formats addObject:derivative[@"transcodekey"]];
             }
         }
     }
     
     // hack for audio files for now
-    if ([formats count] == 0) {
-        [formats addObject:@"ogg"];
+    NSString *ext = [[self.filename pathExtension] lowercaseString];
+    if ([ext isEqualToString:@"oga"]) {
+        ext = @"ogg";
+    }
+    if (![formats containsObject:ext]) {
+        [formats addObject:ext];
     }
     return formats;
 }

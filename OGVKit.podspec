@@ -83,6 +83,10 @@ Pod::Spec.new do |s|
       soggvorbis.dependency 'OGVKit/OggDemuxer'
       soggvorbis.dependency 'OGVKit/VorbisDecoder'
     end
+    sogg.subspec "Opus" do |soggopus|
+      soggopus.dependency 'OGVKit/OggDemuxer'
+      soggopus.dependency 'OGVKit/OpusDecoder'
+    end
   end
   s.subspec "WebM" do |swebm|
     swebm.subspec "VP8" do |swebmvp8|
@@ -113,7 +117,7 @@ Pod::Spec.new do |s|
     soggdemuxer.private_header_files = "Classes/OGVDecoderOgg.h",
                                        "Classes/OGVDecoderOggPacket.h"
     soggdemuxer.dependency 'OGVKit/Core'
-    soggdemuxer.dependency 'liboggz'
+    soggdemuxer.dependency 'liboggz', '1.2.0-1'
     soggdemuxer.dependency 'OGVKit/libskeleton', '~>0.4'
   end
   s.subspec "WebMDemuxer" do |swebmdemuxer|
@@ -129,7 +133,7 @@ Pod::Spec.new do |s|
   s.subspec "TheoraDecoder" do |stheoradecoder|
     stheoradecoder.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_THEORA_DECODER' }
     stheoradecoder.dependency 'OGVKit/Core'
-    stheoradecoder.dependency 'libtheora', '1.2.0-1'
+    stheoradecoder.dependency 'libtheora', '1.2.0-3'
   end
   s.subspec "VP8Decoder" do |svp8decoder|
     svp8decoder.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_VP8_DECODER' }
@@ -147,6 +151,8 @@ Pod::Spec.new do |s|
     sopusdecoder.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_OPUS_DECODER'  }
     sopusdecoder.dependency 'OGVKit/Core'
     sopusdecoder.dependency 'libopus'
+    sopusdecoder.source_files = "opus-tools/src/opus_header.h",
+                                "opus-tools/src/opus_header.c"
   end
 
   # AVFoundation-backed playback for MP4, MP3

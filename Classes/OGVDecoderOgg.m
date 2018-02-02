@@ -22,6 +22,11 @@
 #include <theora/theoradec.h>
 #endif
 
+#ifdef OGVKIT_HAVE_OPUS_DECODER
+#include "libopus/opus_multistream.h"
+#include "opus_header.h"
+#endif
+
 #include "skeleton.h"
 
 #import "OGVDecoderOgg.h"
@@ -121,14 +126,22 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
     OGVVideoBuffer *queuedFrame;
     
     /* Audio decode state */
-    int              vorbis_p;
-    int              vorbis_processing_headers;
 #ifdef OGVKIT_HAVE_VORBIS_DECODER
+    int              vorbis_processing_headers;
     //ogg_stream_state vo;
     vorbis_info      vi;
     vorbis_dsp_state vd;
     vorbis_block     vb;
     vorbis_comment   vc;
+#endif
+#ifdef OGVKIT_HAVE_OPUS_DECODER
+    int              opus_processing_headers;
+
+    OpusMSDecoder    *opusDecoder;
+    float* opusPcmNonInterleaved;
+    float* opusPcmInterleaved;
+    /* 120ms at 48000 */
+#define OPUS_MAX_FRAME_SIZE (960*6)
 #endif
     OGVAudioBuffer *queuedAudio;
 
@@ -246,6 +259,34 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
     }
 #endif /* OGVKIT_HAVE_VORBIS_DECODER */
 
+#ifdef OGVKIT_HAVE_OPUS_DECODER
+    if (!audioStream && content == OGGZ_CONTENT_OPUS) {
+        OpusHeader header;
+        if (opus_header_parse(packet.oggPacket->packet, (int)packet.oggPacket->bytes, &header)) {
+            int err;
+            opusDecoder = opus_multistream_decoder_create(48000, header.channels, header.nb_streams, header.nb_coupled, header.stream_map, &err);
+            if (err != OPUS_OK) {
+                [OGVKit.singleton.logger warnWithFormat:@"error %d in opus setup; skipping track", err];
+            } else {
+                opusPcmNonInterleaved = (float*) malloc(sizeof(float) * header.channels * OPUS_MAX_FRAME_SIZE);
+                opusPcmInterleaved = (float*) malloc(sizeof(float) * header.channels * OPUS_MAX_FRAME_SIZE);
+
+                opus_multistream_decoder_ctl(opusDecoder, OPUS_SET_GAIN(header.gain));
+
+                audioCodec = content;
+                audioStream = serialno;
+
+                self.audioFormat = [[OGVAudioFormat alloc] initWithChannels:header.channels
+                                                                 sampleRate:48000];
+
+                opus_processing_headers = 1;
+            }
+        } else {
+            [OGVKit.singleton.logger warnWithFormat:@"invalid Opus header, skipping track"];
+        }
+    }
+#endif
+    
     if (!skeletonStream && content == OGGZ_CONTENT_SKELETON) {
         skeletonStream = serialno;
         
@@ -333,6 +374,19 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
             }
 #endif /* OGVKIT_HAVE_VORBIS_DECODER */
 
+#ifdef OGVKIT_HAVE_OPUS_DECODER
+            if (audioCodec == OGGZ_CONTENT_OPUS) {
+                if (opus_processing_headers == 1) {
+                    opus_processing_headers++;
+                    // skip over comment header
+                    [OGVKit.singleton.logger debugWithFormat:@"skipping opus comment header"];
+                    audioHeadersComplete = YES;
+                } else {
+                    [OGVKit.singleton.logger warnWithFormat:@"Unexpected opus header count %d", opus_processing_headers];
+                }
+            }
+#endif /* OGVKIT_HAVE_OPUS_DECODER */
+            
         }
     }
 
@@ -552,6 +606,41 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
     }
 #endif /* OGVKIT_HAVE_VORBIS_DECODER */
 
+#ifdef OGVKIT_HAVE_OPUS_DECODER
+    if (audioCodec == OGGZ_CONTENT_OPUS) {
+        int sampleCount = opus_multistream_decode_float(opusDecoder,
+                                                        packet.oggPacket->packet,
+                                                        (int)packet.oggPacket->bytes,
+                                                        opusPcmInterleaved,
+                                                        OPUS_MAX_FRAME_SIZE,
+                                                        0);
+        if (sampleCount > 0) {
+            int opusChannels = self.audioFormat.channels;
+            for (int channel = 0; channel < opusChannels; channel++) {
+                for (int sample = 0; sample < sampleCount; sample++) {
+                    opusPcmNonInterleaved[channel * sampleCount + sample] = opusPcmInterleaved[channel + opusChannels * sample];
+                }
+            }
+            
+            float* pcmJagged[opusChannels];
+            for (int i = 0; i < opusChannels; i++) {
+                pcmJagged[i] = &(opusPcmNonInterleaved[i * sampleCount]);
+            }
+
+            ogg_int64_t audiobuf_granulepos = packet.oggzPacket->pos.calc_granulepos;
+            float audiobuf_time = (double)audiobuf_granulepos / 48000.0;
+
+            queuedAudio = [[OGVAudioBuffer alloc] initWithPCM:pcmJagged samples:sampleCount format:self.audioFormat timestamp:audiobuf_time];
+
+            return YES;
+        } else {
+            [OGVKit.singleton.logger errorWithFormat:@"OPUS decoder gave an empty packet!"];
+            return NO;
+        }
+
+    }
+#endif /* OGVKIT_HAVE_OPUS_DECODER */
+
     return NO;
 }
 
@@ -648,7 +737,20 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
     vorbis_comment_clear(&vc);
     vorbis_info_clear(&vi);
 #endif
-
+#ifdef OGVKIT_HAVE_OPUS_DECODER
+    if (audioCodec == OGGZ_CONTENT_OPUS) {
+        if (opusDecoder) {
+            opus_multistream_decoder_destroy(opusDecoder);
+        }
+        if (opusPcmInterleaved) {
+            free(opusPcmInterleaved);
+        }
+        if (opusPcmNonInterleaved) {
+            free(opusPcmNonInterleaved);
+        }
+    }
+#endif
+    
     oggskel_destroy(skeleton);
 
     oggz_close(oggz);
@@ -887,14 +989,14 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
 
 - (float)audioTimestamp
 {
-#ifdef OGVKIT_HAVE_VORBIS_DECODER
-    OGVDecoderOggPacket *packet = [audioPackets peek];
-    if (packet) {
-        ogg_int64_t audiobuf_granulepos = packet.oggzPacket->pos.calc_granulepos;
-        float audiobuf_time = vorbis_granule_time(&vd, audiobuf_granulepos);
-        return audiobuf_time;
+    if (self.audioFormat) {
+        OGVDecoderOggPacket *packet = [audioPackets peek];
+        if (packet) {
+            ogg_int64_t audiobuf_granulepos = packet.oggzPacket->pos.calc_granulepos;
+            float audiobuf_time = (float)audiobuf_granulepos / self.audioFormat.sampleRate;
+            return audiobuf_time;
+        }
     }
-#endif
     return -1;
 }
 
@@ -932,6 +1034,12 @@ static int readPacketCallback(OGGZ *oggz, oggz_packet *packet, long serialno, vo
 #endif
 #ifdef OGVKIT_HAVE_VORBIS_DECODER
                 if ([codec isEqualToString:@"vorbis"]) {
+                    knownCodecs++;
+                    continue;
+                }
+#endif
+#ifdef OGVKIT_HAVE_OPUS_DECODER
+                if ([codec isEqualToString:@"opus"]) {
                     knownCodecs++;
                     continue;
                 }
