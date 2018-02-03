@@ -26,8 +26,6 @@
 
     OGVQueue *audioBuffers;
     OGVQueue *frameBuffers;
-    OGVAudioBuffer *queuedAudio;
-    OGVVideoBuffer *queuedFrame;
 }
 
 + (void)load
@@ -55,20 +53,20 @@
     return self;
 }
 
--(BOOL)decodeFrame
+-(BOOL)decodeFrameWithBlock:(void (^)(OGVVideoBuffer *))block
 {
     if ([frameBuffers peek]) {
-        queuedFrame = [frameBuffers dequeue];
+        block([frameBuffers dequeue]);
         return YES;
     } else {
         return NO;
     }
 }
 
--(BOOL)decodeAudio
+-(BOOL)decodeAudioWithBlock:(void (^)(OGVAudioBuffer *))block
 {
     if ([audioBuffers peek]) {
-        queuedAudio = [audioBuffers dequeue];
+        block([audioBuffers dequeue]);
         return YES;
     } else {
         return NO;
@@ -173,16 +171,6 @@
     return NO; // will block
 }
 
-- (OGVVideoBuffer *)frameBuffer
-{
-    return queuedFrame;
-}
-
-- (OGVAudioBuffer *)audioBuffer
-{
-    return queuedAudio;
-}
-
 -(void)dealloc
 {
 }
@@ -191,8 +179,6 @@
 {
     [frameBuffers flush];
     [audioBuffers flush];
-    queuedAudio = nil;
-    queuedFrame = nil;
 }
 
 - (BOOL)seek:(float)seconds

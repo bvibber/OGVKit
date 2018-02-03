@@ -143,9 +143,6 @@ static int64_t tellCallback(void * userdata)
     int opusFrameSize;
 #endif
 
-    OGVAudioBuffer *queuedAudio;
-    OGVVideoBuffer *queuedFrame;
-
     enum AppState {
         STATE_BEGIN,
         STATE_DECODING
@@ -407,7 +404,7 @@ static int64_t tellCallback(void * userdata)
     }
 }
 
--(BOOL)decodeFrame
+-(BOOL)decodeFrameWithBlock:(void (^)(OGVVideoBuffer *))block
 {
     OGVDecoderWebMPacket *packet = [videoPackets dequeue];
     
@@ -415,10 +412,6 @@ static int64_t tellCallback(void * userdata)
         unsigned int chunks = packet.count;
 
         videobufTime = packet.timestamp;
-        if (queuedFrame) {
-            [queuedFrame neuter];
-            queuedFrame = nil;
-        }
 
 #ifdef OGVKIT_HAVE_VP8_DECODER
         // uh, can this happen? curiouser :D
@@ -457,14 +450,16 @@ static int64_t tellCallback(void * userdata)
                 self.videoFormat = format;
             }
 
-            queuedFrame = [self.videoFormat createVideoBufferWithYBytes:image->planes[0]
-                                                                YStride:image->stride[0]
-                                                                CbBytes:image->planes[1]
-                                                               CbStride:image->stride[1]
-                                                                CrBytes:image->planes[2]
-                                                               CrStride:image->stride[2]
-                                                              timestamp:videobufTime];
-
+            OGVVideoBuffer *frame = [self.videoFormat createVideoBufferWithYBytes:image->planes[0]
+                                                                          YStride:image->stride[0]
+                                                                          CbBytes:image->planes[1]
+                                                                         CbStride:image->stride[1]
+                                                                          CrBytes:image->planes[2]
+                                                                         CrStride:image->stride[2]
+                                                                        timestamp:videobufTime];
+            block(frame);
+            [frame neuter];
+            
             return YES;
         }
 #endif
@@ -512,7 +507,7 @@ static int64_t tellCallback(void * userdata)
     }
 }
 
--(BOOL)decodeAudio
+-(BOOL)decodeAudioWithBlock:(void (^)(OGVAudioBuffer *))block
 {
     BOOL foundSome = NO;
     
@@ -533,7 +528,7 @@ static int64_t tellCallback(void * userdata)
                 int sampleCount = vorbis_synthesis_pcmout(&vorbisDspState, &pcm);
                 if (sampleCount > 0) {
                     foundSome = YES;
-                    queuedAudio = [[OGVAudioBuffer alloc] initWithPCM:pcm samples:sampleCount format:self.audioFormat timestamp:packet.timestamp];
+                    block([[OGVAudioBuffer alloc] initWithPCM:pcm samples:sampleCount format:self.audioFormat timestamp:packet.timestamp]);
                     
                     vorbis_synthesis_read(&vorbisDspState, sampleCount);
                     if (audiobufGranulepos != -1) {
@@ -567,7 +562,7 @@ static int64_t tellCallback(void * userdata)
                     pcmJagged[i] = &(opusPcmNonInterleaved[i * sampleCount]);
                 }
 
-                queuedAudio = [[OGVAudioBuffer alloc] initWithPCM:pcmJagged samples:sampleCount format:self.audioFormat timestamp:packet.timestamp];
+                block([[OGVAudioBuffer alloc] initWithPCM:pcmJagged samples:sampleCount format:self.audioFormat timestamp:packet.timestamp]);
 
                 if (audiobufGranulepos != -1) {
                     // keep track of how much time we've decodec
@@ -598,15 +593,6 @@ static int64_t tellCallback(void * userdata)
 }
 
 
-- (OGVVideoBuffer *)frameBuffer
-{
-    return queuedFrame;
-}
-
-- (OGVAudioBuffer *)audioBuffer
-{
-    return queuedAudio;
-}
 
 -(void)dealloc
 {
@@ -648,12 +634,10 @@ static int64_t tellCallback(void * userdata)
 -(void)flush
 {
     if (self.hasVideo) {
-        queuedFrame = nil;
         [videoPackets flush];
     }
     
     if (self.hasAudio) {
-        queuedAudio = nil;
         [audioPackets flush];
 
 #ifdef OGVKIT_HAVE_VORBIS_DECODER
