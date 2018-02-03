@@ -402,6 +402,19 @@
         
         // See if the frame timestamp is behind the playhead
         BOOL readyToDecodeFrame = (frameDelay <= 0.0);
+
+        // If we get behind audio, and there's a keyframe we can pick up on, skip to it.
+        if (frameEndTimestamp < playbackPosition) {
+            float nextKeyframe = [decoder findNextKeyframe];
+            if (nextKeyframe > decoder.frameTimestamp && nextKeyframe < playbackPosition) {
+                [OGVKit.singleton.logger debugWithFormat:@"behind by %f; skipping to next keyframe %f", frameDelay, nextKeyframe];
+                while (decoder.frameReady && decoder.frameTimestamp < nextKeyframe) {
+                    [decoder dequeueFrame];
+                }
+                frameEndTimestamp = decoder.frameTimestamp;
+                continue;
+            }
+        }
         
         
         if (decoder.hasAudio) {

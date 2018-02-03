@@ -44,9 +44,12 @@
 @property OGVInputStream *inputStream;
 
 - (BOOL)process;
+- (BOOL)dequeueFrame;
+- (BOOL)dequeueAudio;
 - (BOOL)decodeFrameWithBlock:(void (^)(OGVVideoBuffer *frameBuffer))block;
 - (BOOL)decodeAudioWithBlock:(void (^)(OGVAudioBuffer *audioBuffer))block;
 - (BOOL)seek:(float)seconds;
+- (float)findNextKeyframe;
 
 + (BOOL)canPlayType:(OGVMediaType *)mediaType;
 

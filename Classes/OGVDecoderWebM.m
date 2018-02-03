@@ -375,18 +375,24 @@ static int64_t tellCallback(void * userdata)
     }
 
     if (needData) {
-        // Do the nestegg_read_packet dance until it fails to read more data,
-        // at which point we ask for more. Hope it doesn't explode.
-        nestegg_packet *nepacket = NULL;
-        int ret = nestegg_read_packet(demuxContext, &nepacket);
-        if (ret == 0) {
-            // end of stream?
-            return NO;
-        } else if (ret > 0) {
-            [self _queue:[[OGVDecoderWebMPacket alloc] initWithNesteggPacket:nepacket]];
-        }
+        return [self processNextPacket];
     }
     
+    return YES;
+}
+
+-(BOOL)processNextPacket
+{
+    // Do the nestegg_read_packet dance until it fails to read more data,
+    // at which point we ask for more. Hope it doesn't explode.
+    nestegg_packet *nepacket = NULL;
+    int ret = nestegg_read_packet(demuxContext, &nepacket);
+    if (ret == 0) {
+        // end of stream?
+        return NO;
+    } else if (ret > 0) {
+        [self _queue:[[OGVDecoderWebMPacket alloc] initWithNesteggPacket:nepacket]];
+    }
     return YES;
 }
 
@@ -402,6 +408,16 @@ static int64_t tellCallback(void * userdata)
     } else {
         // throw away unknown packets
     }
+}
+
+- (BOOL)dequeueFrame
+{
+    return nil != [videoPackets dequeue];
+}
+
+- (BOOL)dequeueAudio
+{
+    return nil != [audioPackets dequeue];
 }
 
 -(BOOL)decodeFrameWithBlock:(void (^)(OGVVideoBuffer *))block
@@ -707,6 +723,85 @@ static int64_t tellCallback(void * userdata)
     } else {
         return NO;
     }
+}
+
+
+// cribbed from ogv.js
+// todo: share
+static int packet_is_keyframe_vp8(const unsigned char *data, size_t data_len) {
+    return (data_len > 0 && ((data[0] & 1) == 0));
+}
+
+// cribbed from ogv.js
+// todo: share
+static int big_endian_bit(unsigned char val, int index) {
+    return (val << index) & 0x80 ? 1 : 0;
+}
+
+// cribbed from ogv.js
+// todo: share
+static int packet_is_keyframe_vp9(const unsigned char *data, size_t data_len) {
+    if (data_len == 0) {
+        return 0;
+    }
+    
+    int shift = 0;
+    int frame_marker_high = big_endian_bit(data[0], shift++);
+    int frame_marker_low = big_endian_bit(data[0], shift++);
+    int frame_marker = (frame_marker_high << 1) + frame_marker_low;
+    if (frame_marker != 2) {
+        // invalid frame?
+        return 0;
+    }
+    int profile_high = big_endian_bit(data[0], shift++);
+    int profile_low = big_endian_bit(data[0], shift++);
+    int profile = (profile_high << 1) + profile_low;
+    if (profile == 3) {
+        // reserved 0
+        shift++;
+    }
+    int show_existing_frame = big_endian_bit(data[0], shift++);
+    if (show_existing_frame) {
+        return 0;
+    }
+    
+    int frame_type = big_endian_bit(data[0], shift++);
+    return (frame_type == 0);
+}
+
+- (float)findNextKeyframe;
+{
+    if (self.hasVideo) {
+        while (YES) {
+            // Note: this will do linear searches through the entire queue.
+            // Could be optimized by picking up where we left off.
+            OGVDecoderWebMPacket *packet = [videoPackets match:^BOOL(OGVDecoderWebMPacket *pkt) {
+                unsigned char *data;
+                size_t len;
+                if (nestegg_packet_data(pkt.nesteggPacket, 0, &data, &len) == 0) {
+#ifdef OGVKIT_HAVE_VP8_DECODER
+                    if (videoCodec == NESTEGG_CODEC_VP8) {
+                        return packet_is_keyframe_vp8(data, len);
+                    } else if (videoCodec == NESTEGG_CODEC_VP9) {
+                        return packet_is_keyframe_vp9(data, len);
+                    }
+#endif
+                }
+                return NO;
+            }];
+            if (packet) {
+                return packet.timestamp;
+            } else {
+                // No keyframe within queued packets; go fetch some more...
+                if ([self processNextPacket]) {
+                    continue;
+                } else {
+                    break;
+                }
+            }
+        }
+    }
+    return INFINITY;
 }
 
 #pragma mark - property getters

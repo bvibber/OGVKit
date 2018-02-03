@@ -53,6 +53,19 @@
     return self;
 }
 
+
+- (BOOL)dequeueFrame
+{
+    OGVVideoBuffer *frame = [frameBuffers dequeue];
+    return (frame != nil);
+}
+
+- (BOOL)dequeueAudio
+{
+    OGVAudioBuffer *buffer = [audioBuffers dequeue];
+    return (buffer != nil);
+}
+
 -(BOOL)decodeFrameWithBlock:(void (^)(OGVVideoBuffer *))block
 {
     if ([frameBuffers peek]) {
@@ -197,6 +210,12 @@
 
     [self flush];
     return YES;
+}
+
+- (float)findNextKeyframe
+{
+    // Not really keyframes anymore, so .... fake it.
+    return self.frameTimestamp;
 }
 
 #pragma mark - property getters
