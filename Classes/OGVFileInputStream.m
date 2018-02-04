@@ -127,7 +127,7 @@
 -(void)seek:(int64_t)offset blocking:(BOOL)blocking
 {
     // @todo support non-blocking reads from local filesystem
-    fseek(file, offset, SEEK_SET);
+    fseeko(file, offset, SEEK_SET);
     self.bytePosition = offset;
     self.state = OGVInputStreamStateReading;
 }

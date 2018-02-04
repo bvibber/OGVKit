@@ -15,7 +15,7 @@
 #include <oggz/oggz.h>
 
 #ifdef OGVKIT_HAVE_VORBIS_DECODER
-#include <vorbis/vorbisfile.h>
+#include <vorbis/codec.h>
 #endif
 
 #ifdef OGVKIT_HAVE_THEORA_DECODER

@@ -145,7 +145,7 @@
     if (ret != 0) {
         @throw [NSException
                 exceptionWithName:@"OGVVideoBufferException"
-                reason:[NSString stringWithFormat:@"Failed to create CMVideoFormatDescription %d", ret]
+                reason:[NSString stringWithFormat:@"Failed to create CMVideoFormatDescription %d", (int)ret]
                 userInfo:@{@"CMReturn": @(ret)}];
         return NULL;
     }
@@ -160,7 +160,7 @@
     if (ret != 0) {
         @throw [NSException
                 exceptionWithName:@"OGVVideoBufferException"
-                reason:[NSString stringWithFormat:@"Failed to create CMSampleBuffer %d", ret]
+                reason:[NSString stringWithFormat:@"Failed to create CMSampleBuffer %d", (int)ret]
                 userInfo:@{@"CMReturn": @(ret)}];
     }
     
