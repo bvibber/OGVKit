@@ -20,6 +20,7 @@
 #endif
 
 #ifdef OGVKIT_HAVE_VORBIS_DECODER
+#define OV_EXCLUDE_STATIC_CALLBACKS
 #include <ogg/ogg.h>
 #include <vorbis/codec.h>
 #endif
