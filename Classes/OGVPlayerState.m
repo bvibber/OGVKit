@@ -439,15 +439,15 @@
 
                 if (readyForAudio) {
                     BOOL ok = [decoder decodeAudioWithBlock:^(OGVAudioBuffer *audioBuffer) {
-                        if (![audioFeeder bufferData:audioBuffer]) {
-                            if ([audioFeeder isClosed]) {
+                        if (![self->audioFeeder bufferData:audioBuffer]) {
+                            if ([self->audioFeeder isClosed]) {
                                 // Audio died, perhaps due to starvation during slow decodes
                                 // or something else unexpected. Close it out and we'll start
                                 // up a new one.
                                 [OGVKit.singleton.logger debugWithFormat:@"CLOSING OUT CLOSED AUDIO FEEDER"];
                                 [self stopAudio];
                                 [self startAudio:audioTimestamp];
-                                [audioFeeder bufferData:audioBuffer];
+                                [self->audioFeeder bufferData:audioBuffer];
                             }
                         }
                     }];

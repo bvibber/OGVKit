@@ -781,9 +781,9 @@ static int packet_is_keyframe_vp9(const unsigned char *data, size_t data_len) {
                 size_t len;
                 if (nestegg_packet_data(pkt.nesteggPacket, 0, &data, &len) == 0) {
 #ifdef OGVKIT_HAVE_VP8_DECODER
-                    if (videoCodec == NESTEGG_CODEC_VP8) {
+                    if (self->videoCodec == NESTEGG_CODEC_VP8) {
                         return packet_is_keyframe_vp8(data, len);
-                    } else if (videoCodec == NESTEGG_CODEC_VP9) {
+                    } else if (self->videoCodec == NESTEGG_CODEC_VP9) {
                         return packet_is_keyframe_vp9(data, len);
                     }
 #endif
