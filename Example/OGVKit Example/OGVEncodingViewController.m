@@ -66,7 +66,7 @@
 - (void)imagePickerController:(UIImagePickerController *)picker
 didFinishPickingMediaWithInfo:(NSDictionary<NSString *,id> *)info
 {
-    [picker.parentViewController dismissViewControllerAnimated:YES completion:nil];
+    [picker dismissViewControllerAnimated:YES completion:nil];
 
     inputURL = info[UIImagePickerControllerMediaURL];
     outputURL = nil;
