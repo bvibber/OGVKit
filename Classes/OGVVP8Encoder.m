@@ -25,6 +25,7 @@
 
         vpx_codec_enc_cfg_t cfg;
         vpx_codec_enc_config_default(encoderInterface, &cfg, 0);
+        cfg.g_threads = (unsigned int)[NSProcessInfo processInfo].activeProcessorCount;
         cfg.g_w = format.frameWidth;
         cfg.g_h = format.frameHeight;
         cfg.g_timebase.num = 1;
