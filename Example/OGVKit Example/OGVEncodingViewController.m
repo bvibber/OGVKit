@@ -139,14 +139,14 @@ didFinishPickingMediaWithInfo:(NSDictionary<NSString *,id> *)info
             });
             if (doVideo) {
                 NSLog(@"frame");
-                if ([decoder decodeFrame]) {
-                    [encoder encodeFrame:decoder.frameBuffer];
-                }
+                [decoder decodeFrameWithBlock:^(OGVVideoBuffer *frameBuffer) {
+                    [encoder encodeFrame:frameBuffer];
+                }];
             } else if (doAudio) {
                 NSLog(@"audio");
-                if ([decoder decodeAudio]) {
-                    [encoder encodeAudio:decoder.audioBuffer];
-                }
+                [decoder decodeAudioWithBlock:^(OGVAudioBuffer *audioBuffer) {
+                    [encoder encodeAudio:audioBuffer];
+                }];
             }
             while ((decoder.hasAudio && !decoder.audioReady) || (decoder.hasVideo && !decoder.frameReady)) {
                 if (![decoder process]) {

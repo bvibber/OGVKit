@@ -346,6 +346,7 @@
 			inputPaths = (
 				"${SRCROOT}/Pods/Target Support Files/Pods-OGVKit Example/Pods-OGVKit Example-frameworks.sh",
 				"${BUILT_PRODUCTS_DIR}/OGVKit/OGVKit.framework",
+				"${PODS_ROOT}/WebM/WebM.framework",
 				"${BUILT_PRODUCTS_DIR}/libnestegg/nestegg.framework",
 				"${BUILT_PRODUCTS_DIR}/libogg/ogg.framework",
 				"${BUILT_PRODUCTS_DIR}/liboggz/oggz.framework",
@@ -357,6 +358,7 @@
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/OGVKit.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/WebM.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/nestegg.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ogg.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/oggz.framework",
