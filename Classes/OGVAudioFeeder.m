@@ -24,7 +24,7 @@
 static const int nBuffers = 3;
 static const int circularBufferSize = 8192 * 16;
 
-typedef OSStatus (^OSStatusWrapperBlock)();
+typedef OSStatus (^OSStatusWrapperBlock)(void);
 
 static void throwIfError(OSStatusWrapperBlock wrappedBlock) {
     OSStatus status = wrappedBlock();
@@ -50,7 +50,6 @@ static void throwIfNSError(NSErrorWrapperBlock wrappedBlock) {
 
 static void OGVAudioFeederBufferHandler(void *data, AudioQueueRef queue, AudioQueueBufferRef buffer)
 {
-    //NSLog(@"bufferHandler");
     OGVAudioFeeder *feeder = (__bridge OGVAudioFeeder *)data;
     @autoreleasepool {
         [feeder handleQueue:queue buffer:buffer];
@@ -125,20 +124,20 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
         formatDescription.mReserved = 0;
         
         throwIfError(^() {
-            return AudioQueueNewOutput(&formatDescription,
+            return AudioQueueNewOutput(&self->formatDescription,
                                        OGVAudioFeederBufferHandler,
                                        (__bridge void *)self,
                                        NULL,
                                        NULL,
                                        0,
-                                       &queue);
+                                       &self->queue);
         });
         
         for (int i = 0; i < nBuffers; i++) {
             throwIfError(^() {
-                return AudioQueueAllocateBuffer(queue,
-                                                bufferByteSize,
-                                                &buffers[i]);
+                return AudioQueueAllocateBuffer(self->queue,
+                                                self->bufferByteSize,
+                                                &self->buffers[i]);
             });
         }
     }
@@ -161,12 +160,9 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
         if (isClosing || isClosed) {
             return NO;
         }
-        //NSLog(@"queuing samples: %d", buffer.samples);
         if (buffer.samples > 0) {
             [self queueInput:buffer];
-            //NSLog(@"buffered count: %d", [self circularCount]);
             if (!isStarting && !isRunning && !isClosing && !isClosed && samplesQueued >= circularBufferSize / 4) {
-                //NSLog(@"Starting audio!");
                 [self startAudio];
             }
         }
@@ -228,7 +224,7 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
             __block AudioTimeStamp ts;
             
             throwIfError(^() {
-                return AudioQueueGetCurrentTime(queue, NULL, &ts, NULL);
+                return AudioQueueGetCurrentTime(self->queue, NULL, &ts, NULL);
             });
 
             float samplesOutput = ts.mSampleTime;
@@ -257,15 +253,12 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
 {
     @synchronized (timeLock) {
         if (shouldClose) {
-            //NSLog(@"Stopping queue");
             AudioQueueStop(queue, NO);
             return;
         }
         
         size_t samplesAvailable = samplesQueued - samplesPlayed;
         if (samplesAvailable > 0) {
-            //NSLog(@"handleQueue has data");
-            
             size_t sampleCount = samplesAvailable;
             if (sampleCount > bufferSize) {
                 sampleCount = bufferSize;
@@ -273,7 +266,6 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
             unsigned int channels = self.format.channels;
             size_t channelSize = sampleCount * sampleSize;
             size_t packetSize = channelSize * channels;
-            //NSLog(@"channelSize %d | packetSize %d | samples %d", channelSize, packetSize, sampleCount);
             
             Float32 *dest = (Float32 *)buffer->mAudioData;
             for (size_t i = 0; i < sampleCount * channels; i++) {
@@ -285,11 +277,10 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
             buffer->mAudioDataByteSize = (UInt32)packetSize;
             
             throwIfError(^() {
-                return AudioQueueEnqueueBuffer(queue, buffer, 0, NULL);
+                return AudioQueueEnqueueBuffer(self->queue, buffer, 0, NULL);
             });
         } else {
-            NSLog(@"starved for audio!");
-
+            [OGVKit.singleton.logger warnWithFormat:@"starved for audio!"];
             // Close it out when ready
             isClosing = YES;
             //AudioQueueStop(queue, NO);
@@ -305,10 +296,9 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
             __block UInt32 _isRunning = 0;
             __block UInt32 _size = sizeof(_isRunning);
             throwIfError(^(){
-                return AudioQueueGetProperty(queue, prop, &_isRunning, &_size);
+                return AudioQueueGetProperty(self->queue, prop, &_isRunning, &_size);
             });
             isRunning = (BOOL)_isRunning;
-            //NSLog(@"isRunning is %d", (int)isRunning);
             if (isStarting) {
                 isStarting = NO;
             }
@@ -343,14 +333,14 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
 
         throwIfError(^(){
             // Set a listener to update isRunning
-            return AudioQueueAddPropertyListener(queue,
+            return AudioQueueAddPropertyListener(self->queue,
                                                  kAudioQueueProperty_IsRunning,
                                                  OGVAudioFeederPropListener,
                                                  (__bridge void *)self);
         });
 
         throwIfError(^() {
-            return AudioQueueStart(queue, NULL);
+            return AudioQueueStart(self->queue, NULL);
         });
     }
 }
@@ -386,7 +376,7 @@ static void OGVAudioFeederPropListener(void *data, AudioQueueRef queue, AudioQue
         samplesQueued += samples;
 
         // AudioToolbox wants interleaved
-        float *srcData[channels];
+        const float *srcData[channels];
         for (int channel = 0; channel < channels; channel++) {
             srcData[channel] = [buffer PCMForChannel:channel];
         }

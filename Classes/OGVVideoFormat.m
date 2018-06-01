@@ -35,7 +35,7 @@
         case OGVPixelFormatYCbCr444:
             return 0;
         default:
-            NSLog(@"Invalid pixel format in hDecimation");
+            [OGVKit.singleton.logger fatalWithFormat:@"Invalid pixel format in hDecimation"];
             abort();
     }
 }
@@ -49,7 +49,7 @@
         case OGVPixelFormatYCbCr444:
             return 0;
         default:
-            NSLog(@"Invalid pixel format in hDecimation");
+            [OGVKit.singleton.logger fatalWithFormat:@"Invalid pixel format in hDecimation"];
             abort();
     }
 }
@@ -164,8 +164,8 @@
         CGRect cleanRect = CVImageBufferGetCleanRect(imageBuffer);
         
         // @fixme get the colorspace
-        return [self initWithFrameWidth:CVPixelBufferGetWidth(imageBuffer)
-                            frameHeight:CVPixelBufferGetHeight(imageBuffer)
+        return [self initWithFrameWidth:(int)CVPixelBufferGetWidth(imageBuffer)
+                            frameHeight:(int)CVPixelBufferGetHeight(imageBuffer)
                            pictureWidth:cleanRect.size.width
                           pictureHeight:cleanRect.size.height
                          pictureOffsetX:cleanRect.origin.x

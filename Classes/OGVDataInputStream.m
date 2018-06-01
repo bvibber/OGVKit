@@ -87,7 +87,7 @@
         case OGVInputStreamStateSeeking:
         case OGVInputStreamStateFailed:
         case OGVInputStreamStateCanceled:
-            NSLog(@"OGVDataInputStream reading in invalid state %d", (int)self.state);
+            [OGVKit.singleton.logger errorWithFormat:@"OGVDataInputStream reading in invalid state %d", (int)self.state ];
             @throw [NSError errorWithDomain:@"com.brionv.OGVKit"
                                        code:1000
                                    userInfo:@{@"URL": self.URL}];
@@ -102,7 +102,7 @@
         if (bytesToRead > nBytes) {
             bytesToRead = nBytes;
         }
-        NSRange range = NSMakeRange(self.bytePosition, bytesToRead);
+        NSRange range = NSMakeRange((NSUInteger)self.bytePosition, (NSUInteger)bytesToRead);
         
         self.bytePosition += bytesToRead;
         return [self.data subdataWithRange:range];

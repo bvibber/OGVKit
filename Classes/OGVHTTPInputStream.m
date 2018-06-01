@@ -101,7 +101,7 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
             case OGVInputStreamStateSeeking:
             case OGVInputStreamStateFailed:
             case OGVInputStreamStateCanceled:
-                NSLog(@"OGVInputStream reading in invalid state %d", (int)self.state);
+                [OGVKit.singleton.logger errorWithFormat:@"OGVInputStream reading in invalid state %d", (int)self.state];
                 return nil;
         }
     }
@@ -130,7 +130,7 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
                 // todo: make sure we actually got initial state on the stream somewheres
                 break;
             default:
-                NSLog(@"Unexpected input stream state for seeking: %d", self.state);
+                [OGVKit.singleton.logger errorWithFormat:@"Unexpected input stream state for seeking: %d", self.state];
                 return;
         }
         
@@ -146,7 +146,7 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
         [self waitForBytesAvailable:kOGVInputStreamBufferSizeSeeking];
         
         if (self.state != OGVInputStreamStateReading) {
-            NSLog(@"Unexpected input stream state after seeking: %d", self.state);
+            [OGVKit.singleton.logger errorWithFormat:@"Unexpected input stream state after seeking: %d", self.state];
         }
     }
 }
@@ -182,7 +182,7 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
         req.cachePolicy = NSURLRequestReloadIgnoringLocalCacheData;
         
         [req addValue:[self nextRange] forHTTPHeaderField:@"Range"];
-        NSLog(@"Range %lld: %@", (int64_t)rangeSize, [self nextRange]);
+        [OGVKit.singleton.logger debugWithFormat:@"Range %lld: %@", (int64_t)rangeSize, [self nextRange]];
         
         // Allow caller to add custom HTTP headers etc
         if ([self.delegate respondsToSelector:@selector(OGVInputStream:customizeURLRequest:)]) {
@@ -215,7 +215,7 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
         // we were waiting on it for a blocking read, it would be nice
         // to know about it.
         if (connection == obj && waitingForDataSemaphore) {
-            NSLog(@"URL download may have failed? poking foreground thread with a stick...");
+            [OGVKit.singleton.logger warnWithFormat:@"URL download may have failed? poking foreground thread with a stick..."];
             dispatch_semaphore_signal(waitingForDataSemaphore);
         }
     }
@@ -242,7 +242,7 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
                 waitingForDataSemaphore = dispatch_semaphore_create(0);
             }
             
-            NSLog(@"waiting: at %ld/%ld: have %ld, want %ld; done %d, state %d, rangeSize %d", (long)self.bytePosition, (long)(long)self.length, self.bytesAvailable, (long)nBytes, (int)doneDownloading, (int)self.state, (int)rangeSize);
+            [OGVKit.singleton.logger debugWithFormat:@"waiting: at %ld/%ld: have %ld, want %ld; done %d, state %d, rangeSize %d", (long)self.bytePosition, (long)(long)self.length, self.bytesAvailable, (long)nBytes, (int)doneDownloading, (int)self.state, (int)rangeSize];
             
             dispatch_time_t timeout = dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC);
             dispatch_semaphore_wait(waitingForDataSemaphore,
@@ -261,14 +261,14 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
                 self.state == OGVInputStreamStateCanceled) {
                 
                 if (tries) {
-                    NSLog(@"data received; continuing!");
+                    [OGVKit.singleton.logger debugWithFormat:@"data received; continuing!"];
                 }
                 return YES;
             }
         }
     }
     
-    NSLog(@"Blocking i/o timed out; may be wonky");
+    [OGVKit.singleton.logger warnWithFormat:@"Blocking i/o timed out; may be wonky"];
     self.state = OGVInputStreamStateFailed;
     return NO;
 }
@@ -428,17 +428,17 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
                     break;
                     
                 default:
-                    NSLog(@"invalid state %d in -[OGVInputStream connection:didReceiveResponse:]", (int)self.state);
+                    [OGVKit.singleton.logger errorWithFormat:@"invalid state %d in -[OGVInputStream connection:didReceiveResponse:]", (int)self.state];
                     self.state = OGVInputStreamStateFailed;
             }
             
             if (self.state == OGVInputStreamStateFailed) {
-                NSLog(@"Unexpected HTTP status %d in OGVInputStream connection", statusCode);
+                [OGVKit.singleton.logger errorWithFormat:@"Unexpected HTTP status %d in OGVInputStream connection", statusCode];
                 [connection cancel];
                 connection = nil;
             }
             
-            NSLog(@"RESPONSE %d RECEIVED (%d available)", statusCode, (int)self.bytesAvailable);
+            [OGVKit.singleton.logger debugWithFormat:@"RESPONSE %d RECEIVED (%d available)", statusCode, (int)self.bytesAvailable];
             if (waitingForDataSemaphore) {
                 dispatch_semaphore_signal(waitingForDataSemaphore);
             }
@@ -452,7 +452,6 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
         if (sender == connection) {
             [self queueData:data];
             
-            //NSLog(@"didReceiveData: %d (%d available)", (int)[data length], (int)self.bytesAvailable);
             if (waitingForDataSemaphore) {
                 dispatch_semaphore_signal(waitingForDataSemaphore);
             }
@@ -474,7 +473,6 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
             }
             connection = nil;
             
-            //NSLog(@"didFinishLoading! (%d available)", (int)self.bytesAvailable);
             if (waitingForDataSemaphore) {
                 dispatch_semaphore_signal(waitingForDataSemaphore);
             }
@@ -491,7 +489,6 @@ static const NSUInteger kOGVInputStreamBufferSizeReading = 1024 * 1024;
             self.state = OGVInputStreamStateFailed;
             self.dataAvailable = ([inputDataQueue count] > 0);
             
-            //NSLog(@"didFailWithError!");
             if (waitingForDataSemaphore) {
                 dispatch_semaphore_signal(waitingForDataSemaphore);
             }

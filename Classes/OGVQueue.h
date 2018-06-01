@@ -11,9 +11,9 @@
 @property (readonly) BOOL empty;
 
 - (void)queue:(id)object;
-- (void)swap:(id)object;
 - (id)peek;
 - (id)dequeue;
 - (void)flush;
+- (id)match:(BOOL(^)(id item))block;
 
 @end

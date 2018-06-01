@@ -105,7 +105,7 @@
         case OGVInputStreamStateSeeking:
         case OGVInputStreamStateFailed:
         case OGVInputStreamStateCanceled:
-            NSLog(@"OGVFileInputStream reading in invalid state %d", (int)self.state);
+            [OGVKit.singleton.logger errorWithFormat:@"OGVFileInputStream reading in invalid state %d", (int)self.state];
             @throw [NSError errorWithDomain:@"com.brionv.OGVKit"
                                        code:1000
                                    userInfo:@{@"URL": self.URL}];
@@ -129,7 +129,7 @@
 -(void)seek:(int64_t)offset blocking:(BOOL)blocking
 {
     // @todo support non-blocking reads from local filesystem
-    fseek(file, offset, SEEK_SET);
+    fseeko(file, offset, SEEK_SET);
     self.bytePosition = offset;
     self.state = OGVInputStreamStateReading;
 }

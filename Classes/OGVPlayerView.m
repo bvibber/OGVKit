@@ -464,7 +464,7 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
 - (void)ogvPlayerStateDidLoadMetadata:(OGVPlayerState *)sender
 {
     dispatch_async(dispatch_get_main_queue(), ^() {
-        if (sender == state) {
+        if (sender == self->state) {
             if ([self.delegate respondsToSelector:@selector(ogvPlayerDidLoadMetadata:)]) {
                 [self.delegate ogvPlayerDidLoadMetadata:self];
             }
@@ -475,7 +475,7 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
 - (void)ogvPlayerStateDidPlay:(OGVPlayerState *)sender
 {
     dispatch_async(dispatch_get_main_queue(), ^() {
-        if (sender == state) {
+        if (sender == self->state) {
             [self.pausePlayButton setTitle:kOGVPlayerIconCharPause forState:UIControlStateNormal];
             [self.pausePlayButton setTitle:kOGVPlayerIconCharPause forState:UIControlStateHighlighted];
             [self startTimeTimer];
@@ -500,7 +500,7 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
 - (void)ogvPlayerStateDidPause:(OGVPlayerState *)sender
 {
     dispatch_async(dispatch_get_main_queue(), ^() {
-        if (sender == state) {
+        if (sender == self->state) {
             [self.pausePlayButton setTitle:kOGVPlayerIconCharPlay forState:UIControlStateNormal];
             [self.pausePlayButton setTitle:kOGVPlayerIconCharPlay forState:UIControlStateHighlighted];
             [self updateTimeLabel];
@@ -522,7 +522,7 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
 - (void)ogvPlayerStateDidEnd:(OGVPlayerState *)sender
 {
     dispatch_async(dispatch_get_main_queue(), ^() {
-        if (sender == state) {
+        if (sender == self->state) {
             if ([self.delegate respondsToSelector:@selector(ogvPlayerDidEnd:)]) {
                 [self.delegate ogvPlayerDidEnd:self];
             }
@@ -533,8 +533,8 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
 - (void)ogvPlayerStateDidSeek:(OGVPlayerState *)sender
 {
     dispatch_async(dispatch_get_main_queue(), ^() {
-        if (sender == state) {
-            seeking = NO;
+        if (sender == self->state) {
+            self->seeking = NO;
             self.activityIndicator.hidden = YES;
             [self.activityIndicator stopAnimating];
             [self updateTimeLabel];

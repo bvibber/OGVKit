@@ -25,7 +25,7 @@
     return self;
 }
 
--(instancetype)initWithBytes:(uint8_t *)bytes
+-(instancetype)initWithBytes:(void *)bytes
                       stride:(size_t)stride
                        lines:(size_t)lines
 {
@@ -62,7 +62,7 @@
     CVPixelBufferLockBaseAddress(pixelBuffer, 0);
 
     size_t inStride = self.stride;
-    unsigned char *pixelIn = self.data.bytes;
+    const unsigned char *pixelIn = self.data.bytes;
 
     size_t outStride = CVPixelBufferGetBytesPerRow(pixelBuffer);
     unsigned char *pixelOut = CVPixelBufferGetBaseAddress(pixelBuffer);

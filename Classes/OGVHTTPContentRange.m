@@ -28,7 +28,7 @@
                                                                            options:NSRegularExpressionCaseInsensitive
                                                                              error:&err];
     if (err) {
-        NSLog(@"regex fail in OGVHTTPContentRange: %@", err);
+        [OGVKit.singleton.logger errorWithFormat:@"regex fail in OGVHTTPContentRange: %@", err];
         return;
     }
     NSTextCheckingResult *match = [regex firstMatchInString:string

@@ -26,8 +26,11 @@
 
     OGVQueue *audioBuffers;
     OGVQueue *frameBuffers;
-    OGVAudioBuffer *queuedAudio;
-    OGVVideoBuffer *queuedFrame;
+}
+
++ (void)load
+{
+    [OGVKit.singleton registerDecoderClass:[OGVDecoderAV class]];
 }
 
 -(instancetype)init
@@ -50,20 +53,33 @@
     return self;
 }
 
--(BOOL)decodeFrame
+
+- (BOOL)dequeueFrame
+{
+    OGVVideoBuffer *frame = [frameBuffers dequeue];
+    return (frame != nil);
+}
+
+- (BOOL)dequeueAudio
+{
+    OGVAudioBuffer *buffer = [audioBuffers dequeue];
+    return (buffer != nil);
+}
+
+-(BOOL)decodeFrameWithBlock:(void (^)(OGVVideoBuffer *))block
 {
     if ([frameBuffers peek]) {
-        queuedFrame = [frameBuffers dequeue];
+        block([frameBuffers dequeue]);
         return YES;
     } else {
         return NO;
     }
 }
 
--(BOOL)decodeAudio
+-(BOOL)decodeAudioWithBlock:(void (^)(OGVAudioBuffer *))block
 {
     if ([audioBuffers peek]) {
-        queuedAudio = [audioBuffers dequeue];
+        block([audioBuffers dequeue]);
         return YES;
     } else {
         return NO;
@@ -95,7 +111,7 @@
         NSError *err;
         assetReader = [AVAssetReader assetReaderWithAsset:asset error:&err];
         if (!assetReader) {
-            NSLog(@"failed to init AVAssetReader: %@", err);
+            [OGVKit.singleton.logger errorWithFormat:@"failed to init AVAssetReader: %@", err];
             asset = nil;
             return NO;
         }
@@ -120,8 +136,8 @@
             CGSize size = CMVideoFormatDescriptionGetPresentationDimensions(desc, YES, YES);
             self.videoFormat = [[OGVVideoFormat alloc] initWithFrameWidth:dim.width
                                                               frameHeight:dim.height
-                                                             pictureWidth:dim.width
-                                                            pictureHeight:dim.height
+                                                             pictureWidth:size.width
+                                                            pictureHeight:size.height
                                                            pictureOffsetX:0
                                                            pictureOffsetY:0
                                                               pixelFormat:OGVPixelFormatYCbCr420
@@ -140,12 +156,12 @@
             self.hasAudio = YES;
 
             CMFormatDescriptionRef desc = (__bridge CMFormatDescriptionRef)(audioTrack.formatDescriptions.firstObject);
-            AudioStreamBasicDescription *basic = CMAudioFormatDescriptionGetStreamBasicDescription(desc);
+            const AudioStreamBasicDescription *basic = CMAudioFormatDescriptionGetStreamBasicDescription(desc);
             self.audioFormat = [[OGVAudioFormat alloc] initWithChannels:basic->mChannelsPerFrame sampleRate:basic->mSampleRate];
         }
 
         if (![assetReader startReading]) {
-            NSLog(@"failed to read AVFoundation asset");
+            [OGVKit.singleton.logger errorWithFormat:@"failed to read AVFoundation asset"];
         }
 
         self.dataReady = YES;
@@ -168,16 +184,6 @@
     return NO; // will block
 }
 
-- (OGVVideoBuffer *)frameBuffer
-{
-    return queuedFrame;
-}
-
-- (OGVAudioBuffer *)audioBuffer
-{
-    return queuedAudio;
-}
-
 -(void)dealloc
 {
 }
@@ -186,8 +192,6 @@
 {
     [frameBuffers flush];
     [audioBuffers flush];
-    queuedAudio = nil;
-    queuedFrame = nil;
 }
 
 - (BOOL)seek:(float)seconds
@@ -206,6 +210,12 @@
 
     [self flush];
     return YES;
+}
+
+- (float)findNextKeyframe
+{
+    // Not really keyframes anymore, so .... fake it.
+    return self.frameTimestamp;
 }
 
 #pragma mark - property getters
@@ -290,7 +300,7 @@
 {
     // @fixme reuse the format?
     CMFormatDescriptionRef formatDesc = CMSampleBufferGetFormatDescription(sample);
-    AudioStreamBasicDescription *audioDesc = CMAudioFormatDescriptionGetStreamBasicDescription(formatDesc);
+    const AudioStreamBasicDescription *audioDesc = CMAudioFormatDescriptionGetStreamBasicDescription(formatDesc);
     int channels = audioDesc->mChannelsPerFrame;
     OGVAudioFormat *format = [[OGVAudioFormat alloc] initWithChannels:channels
                                                            sampleRate:audioDesc->mSampleRate];
@@ -302,7 +312,7 @@
     char *charPtr;
     OSStatus ret = CMBlockBufferGetDataPointer(buffer, 0, NULL, NULL, &charPtr);
     if (ret != kCMBlockBufferNoErr) {
-        NSLog(@"CMBlockBufferGetDataPointer failed %d", ret);
+        [OGVKit.singleton.logger errorWithFormat:@"CMBlockBufferGetDataPointer failed %d", ret];
     }
     
     float *floatPtr = (float *)charPtr;
@@ -311,7 +321,7 @@
         channelPtrs[i] = &floatPtr[i * samples];
     }
     OGVAudioBuffer *audioBuffer = [[OGVAudioBuffer alloc] initWithPCM:channelPtrs
-                                                              samples:samples
+                                                              samples:(unsigned int)samples
                                                                format:format
                                                             timestamp:time];
     free(channelPtrs);

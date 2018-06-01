@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = "OGVKit"
-  s.version      = "0.5.9"
+  s.version      = "0.5.13"
   s.summary      = "Ogg Vorbis/Theora and WebM media playback widget for iOS."
 
   s.description  = <<-DESC
@@ -28,6 +28,7 @@ Pod::Spec.new do |s|
 
   s.subspec "Core" do |score|
     score.source_files = "Classes/OGVKit.{h,m}",
+                         "Classes/OGVLogger.{h,m}",
                          "Classes/OGVQueue.{h,m}",
                          "Classes/OGVMediaType.{h,m}",
                          "Classes/OGVAudioFormat.{h,m}",
@@ -48,6 +49,7 @@ Pod::Spec.new do |s|
 
     score.public_header_files = "Classes/OGVKit.h",
                                 "Classes/OGVQueue.h",
+                                "Classes/OGVLogger.h",
                                 "Classes/OGVMediaType.h",
                                 "Classes/OGVAudioFormat.h",
                                 "Classes/OGVAudioBuffer.h",
@@ -82,6 +84,10 @@ Pod::Spec.new do |s|
       soggvorbis.dependency 'OGVKit/OggDemuxer'
       soggvorbis.dependency 'OGVKit/VorbisDecoder'
     end
+    sogg.subspec "Opus" do |soggopus|
+      soggopus.dependency 'OGVKit/OggDemuxer'
+      soggopus.dependency 'OGVKit/OpusDecoder'
+    end
   end
   s.subspec "WebM" do |swebm|
     swebm.subspec "VP8" do |swebmvp8|
@@ -93,6 +99,10 @@ Pod::Spec.new do |s|
       swebmvorbis.dependency 'OGVKit/WebMDemuxer'
       swebmvorbis.dependency 'OGVKit/VorbisDecoder'
     end
+    swebm.subspec "Opus" do |swebmopus|
+      swebmopus.dependency 'OGVKit/WebMDemuxer'
+      swebmopus.dependency 'OGVKit/OpusDecoder'
+    end
   end
   s.subspec "MP4" do |smp4|
     smp4.dependency 'OGVKit/AVDecoder'
@@ -103,35 +113,33 @@ Pod::Spec.new do |s|
 
   # Demuxer module subspecs
   s.subspec "OggDemuxer" do |soggdemuxer|
-    soggdemuxer.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_OGG_DEMUXER' }
     soggdemuxer.source_files = "Classes/OGVDecoderOgg.{h,m}",
                                "Classes/OGVDecoderOggPacket.{h,m}"
     soggdemuxer.private_header_files = "Classes/OGVDecoderOgg.h",
                                        "Classes/OGVDecoderOggPacket.h"
     soggdemuxer.dependency 'OGVKit/Core'
-    soggdemuxer.dependency 'liboggz'
+    soggdemuxer.dependency 'liboggz', '1.2.0-1'
     soggdemuxer.dependency 'OGVKit/libskeleton', '~>0.4'
   end
   s.subspec "WebMDemuxer" do |swebmdemuxer|
-    swebmdemuxer.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_WEBM_DEMUXER' }
     swebmdemuxer.source_files = "Classes/OGVDecoderWebM.{h,m}",
                                 "Classes/OGVDecoderWebMPacket.{h,m}"
     swebmdemuxer.private_header_files = "Classes/OGVDecoderWebM.h",
                                         "Classes/OGVDecoderWebMPacket.h"
     swebmdemuxer.dependency 'OGVKit/Core'
-    swebmdemuxer.dependency 'libnestegg'
+    swebmdemuxer.dependency 'libnestegg', '~>0.2'
   end
 
   # Video decoder module subspecs
   s.subspec "TheoraDecoder" do |stheoradecoder|
     stheoradecoder.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_THEORA_DECODER' }
     stheoradecoder.dependency 'OGVKit/Core'
-    stheoradecoder.dependency 'libtheora'
+    stheoradecoder.dependency 'libtheora', '1.2.0-3'
   end
   s.subspec "VP8Decoder" do |svp8decoder|
     svp8decoder.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_VP8_DECODER' }
     svp8decoder.dependency 'OGVKit/Core'
-    svp8decoder.dependency 'libvpx', '~>1.5.0-1021-g59ae167'
+    svp8decoder.dependency 'libvpx', '~>1.7.0'
   end
 
   # Audio decoder module subspecs
@@ -140,10 +148,16 @@ Pod::Spec.new do |s|
     svorbisdecoder.dependency 'OGVKit/Core'
     svorbisdecoder.dependency 'libvorbis'
   end
+  s.subspec "OpusDecoder" do |sopusdecoder|
+    sopusdecoder.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_OPUS_DECODER'  }
+    sopusdecoder.dependency 'OGVKit/Core'
+    sopusdecoder.dependency 'libopus'
+    sopusdecoder.source_files = "opus-tools/src/opus_header.h",
+                                "opus-tools/src/opus_header.c"
+  end
 
   # AVFoundation-backed playback for MP4, MP3
   s.subspec "AVDecoder" do |savdecoder|
-    savdecoder.xcconfig = { 'OTHER_CFLAGS' => '-DOGVKIT_HAVE_AV_DECODER' }
     savdecoder.dependency 'OGVKit/Core'
     savdecoder.source_files = "Classes/OGVDecoderAV.{h,m}"
     savdecoder.private_header_files = "Classes/OGVDecoderAV.h"

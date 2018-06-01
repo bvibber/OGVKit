@@ -15,6 +15,7 @@
 
 #import "OGVQueue.h"
 
+#import "OGVLogger.h"
 #import "OGVMediaType.h"
 
 #import "OGVAudioFormat.h"
@@ -51,7 +52,7 @@
 /**
  * Return the OGVKit singleton, used for some internal library management.
  */
-+ (OGVKit *)singleton;
+@property (class, readonly) OGVKit *singleton;
 
 /**
  * Load the OGVKitResources bundle in the executable.
@@ -77,5 +78,10 @@
 - (OGVMuxer *)muxerForType:(OGVMediaType *)mediaType;
 - (OGVVideoEncoder *)videoEncoderForType:(OGVMediaType *)mediaType format:(OGVVideoFormat *)format options:(NSDictionary *)options;
 - (OGVAudioEncoder *)audioEncoderForType:(OGVMediaType *)mediaType format:(OGVAudioFormat *)format options:(NSDictionary *)options;
+
+/**
+ * The logger; can be set to override the default one or its settings.
+ */
+@property OGVLogger *logger;
 
 @end
