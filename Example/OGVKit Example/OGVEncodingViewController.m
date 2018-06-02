@@ -17,6 +17,9 @@
 {
     NSURL *inputURL;
     NSURL *outputURL;
+    NSDate *startTime;
+    NSDate *endTime;
+    int frameCount;
 }
 
 - (void)viewDidLoad {
@@ -95,7 +98,11 @@ didFinishPickingMediaWithInfo:(NSDictionary<NSString *,id> *)info
     OGVMediaType *mp4 = [[OGVMediaType alloc] initWithString:@"video/mp4"];
     OGVDecoder *decoder = [[OGVKit singleton] decoderForType:mp4];
     decoder.inputStream = [OGVInputStream inputStreamWithURL:inputURL];
-    
+
+    startTime = [NSDate date];
+    frameCount = 0;
+    endTime = nil;
+
     dispatch_queue_t transcodeThread = dispatch_queue_create("Example.transcode", NULL);
     dispatch_async(transcodeThread, ^() {
         while (!decoder.dataReady) {
@@ -123,6 +130,7 @@ didFinishPickingMediaWithInfo:(NSDictionary<NSString *,id> *)info
         
         float total = decoder.duration;
         float lastTime = 0.0f;
+
         while (decoder.frameReady || decoder.audioReady) {
             BOOL doVideo = NO, doAudio = NO;
 
@@ -149,6 +157,12 @@ didFinishPickingMediaWithInfo:(NSDictionary<NSString *,id> *)info
             if (doVideo) {
                 [decoder decodeFrameWithBlock:^(OGVVideoBuffer *frameBuffer) {
                     [encoder encodeFrame:frameBuffer];
+
+                    self->frameCount++;
+                    if (self->frameCount % 100) {
+                        [OGVKit.singleton.logger debugWithFormat:@"%0.2f fps",
+                            (float)self->frameCount / [[NSDate date] timeIntervalSinceDate:self->startTime]];
+                    }
                 }];
             } else if (doAudio) {
                 [decoder decodeAudioWithBlock:^(OGVAudioBuffer *audioBuffer) {

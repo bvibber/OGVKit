@@ -97,7 +97,7 @@
                                                buffer.timestamp * 1000 /* timestamp in ms */,
                                                (1000/30) /* approx duration in ms */,
                                                0 /* flags */,
-                                               (1000000 / 30) /* deadline in us */);
+                                               1000 / 30 /*(1000000 / 30)*/ /* deadline in us */);
         if (ret != VPX_CODEC_OK) {
             
             [NSException raise:@"OGVVP8EncoderException"
