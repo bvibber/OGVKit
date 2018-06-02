@@ -16,5 +16,7 @@
 @property (weak, nonatomic) IBOutlet UIButton *transcodeButton;
 @property (weak, nonatomic) IBOutlet UIProgressView *transcodeProgress;
 @property (weak, nonatomic) IBOutlet OGVPlayerView *outputPlayer;
+@property (weak, nonatomic) IBOutlet UILabel *fpsLabel;
+@property (weak, nonatomic) IBOutlet UILabel *mbitsLabel;
 
 @end

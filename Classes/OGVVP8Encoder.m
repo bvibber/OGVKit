@@ -34,7 +34,7 @@
 
         NSNumber *bitrate = options[OGVVideoEncoderOptionsBitrateKey];
         if (bitrate) {
-            cfg.rc_target_bitrate = bitrate.intValue;
+            cfg.rc_target_bitrate = bitrate.intValue / 1000;
         }
 
         cfg.kf_mode = VPX_KF_AUTO;

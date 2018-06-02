@@ -189,8 +189,20 @@
                                             <constraint firstAttribute="width" constant="180" id="Ygw-3k-5lI"/>
                                         </constraints>
                                     </progressView>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Mbits" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="9Lq-wQ-WAU">
+                                        <rect key="frame" x="300" y="23.5" width="43" height="21"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                        <nil key="textColor"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="fps" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="hPe-hO-oXi">
+                                        <rect key="frame" x="0.0" y="23.5" width="25" height="21"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                        <nil key="textColor"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="zZ2-H0-Zbc" customClass="OGVPlayerView">
-                                        <rect key="frame" x="0.0" y="48" width="343" height="193"/>
+                                        <rect key="frame" x="0.0" y="47.5" width="343" height="193"/>
                                         <color key="backgroundColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                                         <constraints>
                                             <constraint firstAttribute="width" secondItem="zZ2-H0-Zbc" secondAttribute="height" multiplier="16:9" id="Xvs-Qz-ATs"/>
@@ -201,11 +213,15 @@
                                 <constraints>
                                     <constraint firstItem="sMn-Um-yJs" firstAttribute="centerX" secondItem="E75-XL-zPB" secondAttribute="centerX" id="0Wg-nB-8tt"/>
                                     <constraint firstItem="tQX-IY-68b" firstAttribute="top" secondItem="E75-XL-zPB" secondAttribute="top" id="QcX-xB-tfh"/>
+                                    <constraint firstItem="sMn-Um-yJs" firstAttribute="baseline" secondItem="hPe-hO-oXi" secondAttribute="baseline" id="SJW-Gf-d9q"/>
+                                    <constraint firstAttribute="trailing" secondItem="9Lq-wQ-WAU" secondAttribute="trailing" id="beC-0N-ArC"/>
                                     <constraint firstItem="sMn-Um-yJs" firstAttribute="top" secondItem="tQX-IY-68b" secondAttribute="bottom" constant="8" id="gBx-Ic-wHC"/>
                                     <constraint firstAttribute="trailing" secondItem="zZ2-H0-Zbc" secondAttribute="trailing" id="gP6-2F-sj6"/>
                                     <constraint firstItem="zZ2-H0-Zbc" firstAttribute="centerX" secondItem="E75-XL-zPB" secondAttribute="centerX" id="m4J-Rl-7r8"/>
                                     <constraint firstItem="tQX-IY-68b" firstAttribute="centerX" secondItem="E75-XL-zPB" secondAttribute="centerX" id="pRE-dc-Ur9"/>
+                                    <constraint firstItem="9Lq-wQ-WAU" firstAttribute="baseline" secondItem="hPe-hO-oXi" secondAttribute="baseline" id="qiU-CQ-FMR"/>
                                     <constraint firstItem="zZ2-H0-Zbc" firstAttribute="top" secondItem="sMn-Um-yJs" secondAttribute="bottom" constant="8" id="sOT-hD-vNl"/>
+                                    <constraint firstItem="hPe-hO-oXi" firstAttribute="leading" secondItem="E75-XL-zPB" secondAttribute="leading" id="uYa-Hw-Auo"/>
                                 </constraints>
                             </view>
                         </subviews>
@@ -225,7 +241,9 @@
                     <tabBarItem key="tabBarItem" title="Encoding" image="export" id="dlf-q4-4fI"/>
                     <connections>
                         <outlet property="chooserButton" destination="1Uq-S5-Yx0" id="z2b-5p-r1d"/>
+                        <outlet property="fpsLabel" destination="hPe-hO-oXi" id="6Oc-WU-dL4"/>
                         <outlet property="inputPlayer" destination="OZK-0q-HEo" id="CyN-xt-Byi"/>
+                        <outlet property="mbitsLabel" destination="9Lq-wQ-WAU" id="bfc-gD-eXY"/>
                         <outlet property="outputPlayer" destination="zZ2-H0-Zbc" id="rRu-ik-1Uw"/>
                         <outlet property="transcodeButton" destination="tQX-IY-68b" id="Cxq-fS-guD"/>
                         <outlet property="transcodeProgress" destination="sMn-Um-yJs" id="06n-HM-ILf"/>
@@ -233,7 +251,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="NNb-Ah-8Py" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="465" y="977.11267605633805"/>
+            <point key="canvasLocation" x="464.80000000000001" y="976.46176911544239"/>
         </scene>
     </scenes>
     <resources>

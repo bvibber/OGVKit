@@ -127,7 +127,7 @@ didFinishPickingMediaWithInfo:(NSDictionary<NSString *,id> *)info
         OGVEncoder *encoder = [[OGVEncoder alloc] initWithMediaType:webm];
         [encoder openOutputStream:outputStream];
         [encoder addVideoTrackFormat:decoder.videoFormat
-                             options:@{OGVVideoEncoderOptionsBitrateKey:@1000000,
+                             options:@{OGVVideoEncoderOptionsBitrateKey:@10000000,
                                        OGVVideoEncoderOptionsKeyframeIntervalKey: @150,
                                        OGVVideoEncoderOptionsSpeedKey: @4}];
         [encoder addAudioTrackFormat:decoder.audioFormat
@@ -187,6 +187,15 @@ didFinishPickingMediaWithInfo:(NSDictionary<NSString *,id> *)info
         dispatch_async(dispatch_get_main_queue(), ^() {
             NSLog(@"playing %@", path);
             self.transcodeProgress.progress = 1.0;
+            
+            float fps = (float)self->frameCount / [[NSDate date] timeIntervalSinceDate:self->startTime];
+            self.fpsLabel.text = [NSString stringWithFormat:@"%0.2f fps", fps];
+
+            NSError *err;
+            unsigned long long size = [[[NSFileManager defaultManager] attributesOfItemAtPath:path error:&err] fileSize];
+            float mbits = ((float)size * 8.0 / 1000000.0) / decoder.duration;
+            self.mbitsLabel.text = [NSString stringWithFormat:@"%0.2f Mbits", mbits];
+
             self.chooserButton.enabled = YES;
             self.outputPlayer.sourceURL = [NSURL fileURLWithPath:path];
             [self.outputPlayer play];
