@@ -48,6 +48,8 @@
         cfg.g_usage = 0;
         
         vpx_codec_enc_init(&codec, encoderInterface, &cfg, 0);
+
+        //vpx_codec_control(&codec, VP8E_SET_CPUUSED, 4);
     }
     return self;
 }
@@ -97,7 +99,7 @@
                                                buffer.timestamp * 1000 /* timestamp in ms */,
                                                (1000/30) /* approx duration in ms */,
                                                0 /* flags */,
-                                               1000 / 30 /*(1000000 / 30)*/ /* deadline in us */);
+                                               VPX_DL_REALTIME /*(1000000 / 30)*/ /* deadline in usec */);
         if (ret != VPX_CODEC_OK) {
             
             [NSException raise:@"OGVVP8EncoderException"

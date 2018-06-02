@@ -56,11 +56,15 @@
     picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
     picker.mediaTypes = @[(__bridge id)kUTTypeMovie];
     if (@available(iOS 11.0, *)) {
-        // AVAssetExportPresetAppleM4V480pSD
-        // AVAssetExportPresetAppleM4V720pHD
-        // AVAssetExportPresetAppleM4V1080pHD
+        // AVAssetExportPreset640x480
+        // AVAssetExportPreset960x540
+        // AVAssetExportPreset1280x720
+        // AVAssetExportPreset1920x1080
+        // AVAssetExportPreset3840x2160
+        // AVAssetExportPresetHEVC1920x1080
+        // AVAssetExportPresetHEVC3840x2160
         // AVAssetExportPresetPassthrough
-        picker.videoExportPreset = AVAssetExportPresetPassthrough;
+        picker.videoExportPreset = AVAssetExportPreset1280x720;
     } else {
         // Assume H.264
     }
