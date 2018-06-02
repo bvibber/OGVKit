@@ -141,7 +141,7 @@ didFinishPickingMediaWithInfo:(NSDictionary<NSString *,id> *)info
         OGVEncoder *encoder = [[OGVEncoder alloc] initWithMediaType:webm];
         [encoder openOutputStream:outputStream];
         [encoder addVideoTrackFormat:decoder.videoFormat
-                             options:@{OGVVideoEncoderOptionsBitrateKey:@(bitrate),
+                             options:@{OGVVideoEncoderOptionsBitrateKey:@(self->bitrate),
                                        OGVVideoEncoderOptionsKeyframeIntervalKey: @150,
                                        OGVVideoEncoderOptionsSpeedKey: @4}];
         [encoder addAudioTrackFormat:decoder.audioFormat
