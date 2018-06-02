@@ -38,7 +38,7 @@ public:
     // Writes out |len| bytes of |buf|. Returns 0 on success.
     virtual mkvmuxer::int32 Write(const void* buf, mkvmuxer::uint32 len) override {
         @try {
-            NSData *data = [NSData dataWithBytesNoCopy:(void * _Nonnull)buf length:len];
+            NSData *data = [NSData dataWithBytesNoCopy:(void * _Nonnull)buf length:len freeWhenDone:NO];
             [stream write:data];
             return 0;
         } @catch (NSException *e) {
