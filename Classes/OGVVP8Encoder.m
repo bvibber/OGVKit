@@ -94,10 +94,10 @@
         // @fixme get correct duration from input data...
         vpx_codec_err_t ret = vpx_codec_encode(&codec,
                                                &img,
-                                               buffer.timestamp * 1000,
-                                               /*buffer.duration * 1000*/(1000/30),
-                                               0,
-                                               VPX_DL_REALTIME /* deadline */);
+                                               buffer.timestamp * 1000 /* timestamp in ms */,
+                                               (1000/30) /* approx duration in ms */,
+                                               0 /* flags */,
+                                               (1000000 / 30) /* deadline in us */);
         if (ret != VPX_CODEC_OK) {
             
             [NSException raise:@"OGVVP8EncoderException"

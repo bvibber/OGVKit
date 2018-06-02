@@ -53,7 +53,10 @@
     picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
     picker.mediaTypes = @[(__bridge id)kUTTypeMovie];
     if (@available(iOS 11.0, *)) {
-        // Allow HEVC, we'll just export it
+        // AVAssetExportPresetAppleM4V480pSD
+        // AVAssetExportPresetAppleM4V720pHD
+        // AVAssetExportPresetAppleM4V1080pHD
+        // AVAssetExportPresetPassthrough
         picker.videoExportPreset = AVAssetExportPresetPassthrough;
     } else {
         // Assume H.264
