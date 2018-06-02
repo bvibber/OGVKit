@@ -55,6 +55,7 @@
             deadline = VPX_DL_REALTIME;
         } else {
             deadline = VPX_DL_GOOD_QUALITY;
+            cfg.g_lag_in_frames = 25;
         }
 
         NSNumber *speed = options[OGVVideoEncoderOptionsSpeedKey];
