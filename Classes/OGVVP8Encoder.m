@@ -36,6 +36,8 @@
         if (bitrate) {
             cfg.rc_target_bitrate = bitrate.intValue / 1000;
         }
+        cfg.rc_min_quantizer = 0; // hack
+        cfg.rc_max_quantizer = 32; // hack
 
         cfg.kf_mode = VPX_KF_AUTO;
         cfg.kf_min_dist = 0;
