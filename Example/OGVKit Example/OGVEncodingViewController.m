@@ -128,7 +128,8 @@ didFinishPickingMediaWithInfo:(NSDictionary<NSString *,id> *)info
         [encoder openOutputStream:outputStream];
         [encoder addVideoTrackFormat:decoder.videoFormat
                              options:@{OGVVideoEncoderOptionsBitrateKey:@1000000,
-                                       OGVVideoEncoderOptionsKeyframeIntervalKey: @150}];
+                                       OGVVideoEncoderOptionsKeyframeIntervalKey: @150,
+                                       OGVVideoEncoderOptionsSpeedKey: @4}];
         [encoder addAudioTrackFormat:decoder.audioFormat
                              options:@{OGVAudioEncoderOptionsBitrateKey:@128000}];
         
@@ -163,7 +164,7 @@ didFinishPickingMediaWithInfo:(NSDictionary<NSString *,id> *)info
                     [encoder encodeFrame:frameBuffer];
 
                     self->frameCount++;
-                    if (self->frameCount % 100) {
+                    if (self->frameCount % 100 == 0) {
                         [OGVKit.singleton.logger debugWithFormat:@"%0.2f fps",
                             (float)self->frameCount / [[NSDate date] timeIntervalSinceDate:self->startTime]];
                     }

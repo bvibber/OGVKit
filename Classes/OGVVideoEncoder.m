@@ -1,5 +1,5 @@
 //
-//  OGVVideoEncoder.h
+//  OGVVideoEncoder.m
 //  OGVKit
 //
 //  Copyright (c) 2016-2018 Brion Vibber. All rights reserved.
@@ -9,6 +9,8 @@
 
 const NSString *OGVVideoEncoderOptionsBitrateKey = @"videoBitrate";
 const NSString *OGVVideoEncoderOptionsKeyframeIntervalKey = @"keyframeInterval";
+const NSString *OGVVideoEncoderOptionsRealtimeKey = @"realtime"; // -> bool @YES or @NO (default)
+const NSString *OGVVideoEncoderOptionsSpeedKey = @"speed"; // -> encoder-specific speed option; "cpuused" for VP8/VP9
 
 @implementation OGVVideoEncoder
 

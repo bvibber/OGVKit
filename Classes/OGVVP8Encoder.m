@@ -15,6 +15,7 @@
 @implementation OGVVP8Encoder
 {
     vpx_codec_ctx_t codec;
+    unsigned long deadline;
 }
 
 -(instancetype)initWithFormat:(OGVVideoFormat *)format options:(NSDictionary *)options
@@ -49,7 +50,20 @@
         
         vpx_codec_enc_init(&codec, encoderInterface, &cfg, 0);
 
-        //vpx_codec_control(&codec, VP8E_SET_CPUUSED, 4);
+        NSNumber *realtime = options[OGVVideoEncoderOptionsRealtimeKey];
+        if (realtime && realtime.boolValue) {
+            deadline = VPX_DL_REALTIME;
+        } else {
+            deadline = VPX_DL_GOOD_QUALITY;
+        }
+
+        NSNumber *speed = options[OGVVideoEncoderOptionsSpeedKey];
+        if (speed) {
+            //vpx_codec_control(&codec, VP8E_SET_CPUUSED, 8); // feels pretty fast, quality is meh
+            //vpx_codec_control(&codec, VP8E_SET_CPUUSED, 4); // little better balance
+            //vpx_codec_control(&codec, VP8E_SET_CPUUSED, 2); // pretty darn slow
+            vpx_codec_control(&codec, VP8E_SET_CPUUSED, speed.intValue);
+        }
     }
     return self;
 }
@@ -99,7 +113,7 @@
                                                buffer.timestamp * 1000 /* timestamp in ms */,
                                                (1000/30) /* approx duration in ms */,
                                                0 /* flags */,
-                                               VPX_DL_REALTIME /*(1000000 / 30)*/ /* deadline in usec */);
+                                               deadline /* deadline in usec or constant */);
         if (ret != VPX_CODEC_OK) {
             
             [NSException raise:@"OGVVP8EncoderException"
