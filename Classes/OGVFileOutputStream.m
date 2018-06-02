@@ -37,7 +37,7 @@
 
 -(void)seek:(int64_t)pos
 {
-    fseek(file, pos, SEEK_SET);
+    fseeko(file, pos, SEEK_SET);
 }
 
 -(void)write:(NSData *)data
