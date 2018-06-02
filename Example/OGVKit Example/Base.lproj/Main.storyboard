@@ -148,8 +148,16 @@
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="S5f-hL-4ZM" userLabel="TopHalf">
                                 <rect key="frame" x="16" y="20" width="343" height="333.5"/>
                                 <subviews>
+                                    <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="1" translatesAutoresizingMaskIntoConstraints="NO" id="E3a-pr-drA">
+                                        <rect key="frame" x="0.0" y="0.0" width="161" height="29"/>
+                                        <segments>
+                                            <segment title="480p"/>
+                                            <segment title="720p"/>
+                                            <segment title="1080p"/>
+                                        </segments>
+                                    </segmentedControl>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="1Uq-S5-Yx0">
-                                        <rect key="frame" x="129.5" y="0.0" width="85" height="30"/>
+                                        <rect key="frame" x="250" y="0.0" width="85" height="30"/>
                                         <state key="normal" title="Select video"/>
                                         <connections>
                                             <action selector="chooserAction:" destination="UpT-6e-czY" eventType="touchUpInside" id="Acs-Px-7h3"/>
@@ -165,9 +173,11 @@
                                 </subviews>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <constraints>
-                                    <constraint firstItem="1Uq-S5-Yx0" firstAttribute="centerX" secondItem="S5f-hL-4ZM" secondAttribute="centerX" id="5Kl-sM-DtT"/>
+                                    <constraint firstItem="E3a-pr-drA" firstAttribute="top" secondItem="S5f-hL-4ZM" secondAttribute="top" id="Dmh-vN-XcG"/>
                                     <constraint firstAttribute="trailing" secondItem="OZK-0q-HEo" secondAttribute="trailing" id="Vug-Yc-oUZ"/>
+                                    <constraint firstAttribute="trailing" secondItem="1Uq-S5-Yx0" secondAttribute="trailing" constant="8" id="YBO-uu-PXs"/>
                                     <constraint firstItem="OZK-0q-HEo" firstAttribute="centerX" secondItem="S5f-hL-4ZM" secondAttribute="centerX" id="gdh-0E-iNu"/>
+                                    <constraint firstItem="E3a-pr-drA" firstAttribute="leading" secondItem="S5f-hL-4ZM" secondAttribute="leading" id="iyC-5N-jyW"/>
                                     <constraint firstItem="OZK-0q-HEo" firstAttribute="top" secondItem="1Uq-S5-Yx0" secondAttribute="bottom" constant="8" id="lQH-jj-c6j"/>
                                     <constraint firstItem="1Uq-S5-Yx0" firstAttribute="top" secondItem="S5f-hL-4ZM" secondAttribute="top" id="sZj-3K-ypL"/>
                                 </constraints>
@@ -245,6 +255,7 @@
                         <outlet property="inputPlayer" destination="OZK-0q-HEo" id="CyN-xt-Byi"/>
                         <outlet property="mbitsLabel" destination="9Lq-wQ-WAU" id="bfc-gD-eXY"/>
                         <outlet property="outputPlayer" destination="zZ2-H0-Zbc" id="rRu-ik-1Uw"/>
+                        <outlet property="resolutionSelector" destination="E3a-pr-drA" id="YvI-ZU-6vV"/>
                         <outlet property="transcodeButton" destination="tQX-IY-68b" id="Cxq-fS-guD"/>
                         <outlet property="transcodeProgress" destination="sMn-Um-yJs" id="06n-HM-ILf"/>
                     </connections>

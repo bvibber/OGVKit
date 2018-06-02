@@ -18,5 +18,6 @@
 @property (weak, nonatomic) IBOutlet OGVPlayerView *outputPlayer;
 @property (weak, nonatomic) IBOutlet UILabel *fpsLabel;
 @property (weak, nonatomic) IBOutlet UILabel *mbitsLabel;
+@property (weak, nonatomic) IBOutlet UISegmentedControl *resolutionSelector;
 
 @end

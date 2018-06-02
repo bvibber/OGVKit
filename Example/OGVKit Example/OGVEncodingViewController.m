@@ -20,6 +20,7 @@
     NSDate *startTime;
     NSDate *endTime;
     int frameCount;
+    int bitrate;
 }
 
 - (void)viewDidLoad {
@@ -64,9 +65,21 @@
         // AVAssetExportPresetHEVC1920x1080
         // AVAssetExportPresetHEVC3840x2160
         // AVAssetExportPresetPassthrough
-        picker.videoExportPreset = AVAssetExportPreset1280x720;
+        switch (self.resolutionSelector.selectedSegmentIndex) {
+            case 0:
+                picker.videoExportPreset = AVAssetExportPreset640x480;
+                break;
+            case 1:
+                picker.videoExportPreset = AVAssetExportPreset1280x720;
+                break;
+            case 2:
+                picker.videoExportPreset = AVAssetExportPreset1920x1080;
+                break;
+            default:
+                picker.videoExportPreset = AVAssetExportPresetPassthrough;
+        }
     } else {
-        // Assume H.264
+        // Can't pre-select the resolution on iOS 10 and below?
     }
 
     if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
@@ -106,6 +119,7 @@ didFinishPickingMediaWithInfo:(NSDictionary<NSString *,id> *)info
     startTime = [NSDate date];
     frameCount = 0;
     endTime = nil;
+    bitrate = [self selectBitrate];
 
     dispatch_queue_t transcodeThread = dispatch_queue_create("Example.transcode", NULL);
     dispatch_async(transcodeThread, ^() {
@@ -127,7 +141,7 @@ didFinishPickingMediaWithInfo:(NSDictionary<NSString *,id> *)info
         OGVEncoder *encoder = [[OGVEncoder alloc] initWithMediaType:webm];
         [encoder openOutputStream:outputStream];
         [encoder addVideoTrackFormat:decoder.videoFormat
-                             options:@{OGVVideoEncoderOptionsBitrateKey:@4000000,
+                             options:@{OGVVideoEncoderOptionsBitrateKey:@(bitrate),
                                        OGVVideoEncoderOptionsKeyframeIntervalKey: @150,
                                        OGVVideoEncoderOptionsSpeedKey: @4}];
         [encoder addAudioTrackFormat:decoder.audioFormat
@@ -201,6 +215,20 @@ didFinishPickingMediaWithInfo:(NSDictionary<NSString *,id> *)info
             [self.outputPlayer play];
         });
     });
+}
+
+-(int)selectBitrate
+{
+    switch (self.resolutionSelector.selectedSegmentIndex) {
+        case 0:
+            return 2000000; // 480p @ 2 megabits -> lots of headroom
+        case 1:
+            return 4000000; // 720p @ 4 megabits -> lots of headroom
+        case 2:
+            return 8000000; // 1080p @ 8 megabits -> lots of headroom
+        default:
+            return 8000000;
+    }
 }
 
 @end
