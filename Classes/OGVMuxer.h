@@ -8,8 +8,6 @@
 
 @interface OGVMuxer : NSObject
 
--(instancetype)init;
-
 -(void)addAudioTrack:(OGVAudioEncoder *)audioEncoder;
 
 -(void)addVideoTrack:(OGVVideoEncoder *)videoEncoder;

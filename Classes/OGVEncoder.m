@@ -77,8 +77,6 @@
 // Don't write out the last packets, since there might be stuff after
 -(void)writePackets
 {
-    OGVPacket *videoPacket;
-    OGVPacket *audioPacket;
     while ([audioEncoder.packets peek] && [videoEncoder.packets peek]) {
         while ([audioEncoder.packets peek] && ((OGVPacket *)[audioEncoder.packets peek]).timestamp <= ((OGVPacket *)[videoEncoder.packets peek]).timestamp) {
             [muxer appendAudioPacket:[audioEncoder.packets dequeue]];

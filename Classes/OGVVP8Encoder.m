@@ -2,7 +2,7 @@
 //  OGVVP8Encoder
 //  OGVKit
 //
-//  Copyright (c) 2016 Brion Vibber. All rights reserved.
+//  Copyright (c) 2016-2018 Brion Vibber. All rights reserved.
 //
 
 #import "OGVKit.h"
@@ -33,9 +33,20 @@
 
         NSNumber *bitrate = options[OGVVideoEncoderOptionsBitrateKey];
         if (bitrate) {
-            cfg.rc_target_bitrate = bitrate.integerValue;
+            cfg.rc_target_bitrate = bitrate.intValue;
         }
 
+        cfg.kf_mode = VPX_KF_AUTO;
+        cfg.kf_min_dist = 0;
+        NSNumber *interval = options[OGVVideoEncoderOptionsKeyframeIntervalKey];
+        if (interval) {
+            cfg.kf_max_dist = interval.intValue;
+        } else {
+            // some reasonable default
+            cfg.kf_max_dist = 256;
+        }
+        cfg.g_usage = 0;
+        
         vpx_codec_enc_init(&codec, encoderInterface, &cfg, 0);
     }
     return self;
@@ -66,7 +77,7 @@
             break;
         default:
             [NSException raise:@"OGVVP8EncoderException"
-                        format:@"unexpected pixel format type %d", buffer.format.pixelFormat];
+                        format:@"unexpected pixel format type %d", (int)buffer.format.pixelFormat];
     }
 
     vpx_image_t img;
@@ -81,7 +92,12 @@
         }];
         
         // @fixme get correct duration from input data...
-        vpx_codec_err_t ret = vpx_codec_encode(&codec, &img, buffer.timestamp * 1000, /*buffer.duration * 1000*/(1000/30), 0, 0);
+        vpx_codec_err_t ret = vpx_codec_encode(&codec,
+                                               &img,
+                                               buffer.timestamp * 1000,
+                                               /*buffer.duration * 1000*/(1000/30),
+                                               0,
+                                               VPX_DL_REALTIME /* deadline */);
         if (ret != VPX_CODEC_OK) {
             
             [NSException raise:@"OGVVP8EncoderException"
@@ -91,10 +107,8 @@
         vpx_img_free(&img);
     }
 
-    OGVPacket *packet = nil;
-
     vpx_codec_iter_t iter = NULL;
-    vpx_codec_cx_pkt_t *pkt;
+    const vpx_codec_cx_pkt_t *pkt;
     while ((pkt = vpx_codec_get_cx_data(&codec, &iter)) != NULL) {
         [self.packets queue:[[OGVPacket alloc] initWithData:[NSData dataWithBytes:pkt->data.frame.buf length:pkt->data.frame.sz]
                                                   timestamp:pkt->data.frame.pts / 1000.0
@@ -103,7 +117,7 @@
     }
 }
 
--(void)copyPlane:(OGVVideoPlane *)plane image:(vpx_image_t *)img index:(size_t)index
+-(void)copyPlane:(OGVVideoPlane *)plane image:(const vpx_image_t *)img index:(size_t)index
 {
     for (size_t y = 0; y < plane.lines; y++) {
         memcpy(img->planes[index] + y * img->stride[index],
