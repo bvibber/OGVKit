@@ -147,12 +147,10 @@ didFinishPickingMediaWithInfo:(NSDictionary<NSString *,id> *)info
                 self.transcodeProgress.progress = percent;
             });
             if (doVideo) {
-                NSLog(@"frame");
                 [decoder decodeFrameWithBlock:^(OGVVideoBuffer *frameBuffer) {
                     [encoder encodeFrame:frameBuffer];
                 }];
             } else if (doAudio) {
-                NSLog(@"audio");
                 [decoder decodeAudioWithBlock:^(OGVAudioBuffer *audioBuffer) {
                     [encoder encodeAudio:audioBuffer];
                 }];

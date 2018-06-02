@@ -2,7 +2,7 @@
 //  OGVVideoEncoder.h
 //  OGVKit
 //
-//  Copyright (c) 2016 Brion Vibber. All rights reserved.
+//  Copyright (c) 2016-2018 Brion Vibber. All rights reserved.
 //
 
 #import "OGVKit.h"
@@ -26,7 +26,7 @@ const NSString *OGVVideoEncoderOptionsKeyframeIntervalKey = @"keyframeInterval";
 
 -(void)encodeFrame:(OGVVideoBuffer *)buffer
 {
-    NSLog(@"encoding not implemented");
+    [OGVKit.singleton.logger errorWithFormat:@"encoding not implemented"];
 }
 
 -(void)close

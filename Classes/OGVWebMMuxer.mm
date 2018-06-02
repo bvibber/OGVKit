@@ -211,7 +211,8 @@ public:
     //frame.set_duration(packet.duration * NSEC_PER_SEC);
     frame.set_is_key(packet.keyframe);
     
-    NSLog(@"appending audio %f %f %d", packet.timestamp, packet.duration, (int)packet.keyframe);
+    //[OGVKit.singleton.logger debugWithFormat:@"appending audio %f %f %d", packet.timestamp, packet.duration, (int)packet.keyframe];
+
     if (!segment->AddGenericFrame(&frame)) {
         [NSException raise:@"OGVWebMMuxerException"
                     format:@"failed to add webm audio frame"];
@@ -230,7 +231,7 @@ public:
     //frame.set_duration(packet.duration * NSEC_PER_SEC);
     frame.set_is_key(packet.keyframe);
     
-    NSLog(@"appending video %f %f %d", packet.timestamp, packet.duration, (int)packet.keyframe);
+    //[OGVKit.singleton.logger debugWithFormat:@"appending video %f %f %d", packet.timestamp, packet.duration, (int)packet.keyframe];
     if (!segment->AddGenericFrame(&frame)) {
         [NSException raise:@"OGVWebMMuxerException"
                     format:@"failed to add webm frame"];
