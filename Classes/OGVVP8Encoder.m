@@ -26,7 +26,16 @@
 
         vpx_codec_enc_cfg_t cfg;
         vpx_codec_enc_config_default(encoderInterface, &cfg, 0);
-        cfg.g_threads = (unsigned int)[NSProcessInfo processInfo].activeProcessorCount;
+
+        unsigned int threads = (unsigned int)[NSProcessInfo processInfo].activeProcessorCount;
+        if (threads > 2) {
+            // Don't use >2 threads on iPhone X etc
+            // That ends up slower as we pull the total clock speed down.
+            threads = 2;
+        }
+        cfg.g_threads = threads;
+        vpx_codec_control(&codec, VP8E_SET_TOKEN_PARTITIONS, threads);
+
         cfg.g_w = format.frameWidth;
         cfg.g_h = format.frameHeight;
         cfg.g_timebase.num = 1;
