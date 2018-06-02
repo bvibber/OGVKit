@@ -52,7 +52,13 @@
     picker.delegate = self;
     picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
     picker.mediaTypes = @[(__bridge id)kUTTypeMovie];
-    
+    if (@available(iOS 11.0, *)) {
+        // Allow HEVC, we'll just export it
+        picker.videoExportPreset = AVAssetExportPresetPassthrough;
+    } else {
+        // Assume H.264
+    }
+
     if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
         picker.modalPresentationStyle = UIModalPresentationPopover;
     }
