@@ -28,7 +28,7 @@
 
     self = [super initWithFormat:format options:options];
     if (self) {
-        int bitrate = ((NSNumber *)options[OGVAudioEncoderOptionsBitrateKey]).integerValue;
+        int bitrate = ((NSNumber *)options[OGVAudioEncoderOptionsBitrateKey]).intValue;
 
         vorbis_info_init(&vi);
         ret = vorbis_encode_init(&vi, format.channels, format.sampleRate, bitrate, bitrate, bitrate);

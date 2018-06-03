@@ -7,6 +7,8 @@
 
 extern const NSString *OGVVideoEncoderOptionsBitrateKey;
 extern const NSString *OGVVideoEncoderOptionsKeyframeIntervalKey;
+extern const NSString *OGVVideoEncoderOptionsRealtimeKey;
+extern const NSString *OGVVideoEncoderOptionsSpeedKey;
 
 @interface OGVVideoEncoder : NSObject
 

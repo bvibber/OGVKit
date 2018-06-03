@@ -563,6 +563,7 @@
 				DEVELOPMENT_TEAM = 7LBY3ZCYK9;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = "OGVKit Example/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.brionv.OGVKit-Example";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -585,6 +586,7 @@
 				DEVELOPMENT_TEAM = 7LBY3ZCYK9;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = "OGVKit Example/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.brionv.OGVKit-Example";
 				PRODUCT_NAME = "$(TARGET_NAME)";

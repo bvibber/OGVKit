@@ -2,7 +2,7 @@
 //  OGVMuxer.m
 //  OGVKit
 //
-//  Copyright (c) 2016 Brion Vibber. All rights reserved.
+//  Copyright (c) 2016-2018 Brion Vibber. All rights reserved.
 //
 
 #import "OGVKit.h"
@@ -23,12 +23,12 @@
 
 -(void)appendAudioPacket:(OGVPacket *)packet
 {
-    NSLog(@"encoding not implemented");
+    [OGVKit.singleton.logger errorWithFormat:@"encoding not implemented"];
 }
 
 -(void)appendVideoPacket:(OGVPacket *)packet
 {
-    NSLog(@"encoding not implemented");
+    [OGVKit.singleton.logger errorWithFormat:@"encoding not implemented"];
 }
 
 -(void)close
