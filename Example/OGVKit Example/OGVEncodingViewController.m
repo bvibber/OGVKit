@@ -133,7 +133,15 @@ didFinishPickingMediaWithInfo:(NSDictionary<NSString *,id> *)info
             // hack to make sure found packets
             [decoder process];
         }
+
         
+        NSError *err;
+        unsigned long long size = [[[NSFileManager defaultManager] attributesOfItemAtPath:inputURL.path error:&err] fileSize];
+        float mbits = ((float)size * 8.0 / 1000000.0) / decoder.duration;
+        dispatch_async(dispatch_get_main_queue(), ^{
+            self.inputMbitsLabel.text = [NSString stringWithFormat:@"%0.2f Mbits", mbits];
+        });
+
         NSString *path = [NSTemporaryDirectory() stringByAppendingPathComponent:@"output.webm"];
         OGVFileOutputStream *outputStream = [[OGVFileOutputStream alloc] initWithPath:path];
 

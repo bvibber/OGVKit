@@ -169,13 +169,6 @@
                                             <constraint firstAttribute="width" secondItem="OZK-0q-HEo" secondAttribute="height" multiplier="16:9" id="19N-mo-odN"/>
                                         </constraints>
                                     </view>
-                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="tQX-IY-68b">
-                                        <rect key="frame" x="102.5" y="306" width="138" height="30"/>
-                                        <state key="normal" title="Transcode to WebM"/>
-                                        <connections>
-                                            <action selector="transcodeAction:" destination="UpT-6e-czY" eventType="touchUpInside" id="E4G-hk-Wdi"/>
-                                        </connections>
-                                    </button>
                                     <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" progress="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="sMn-Um-yJs">
                                         <rect key="frame" x="16" y="360" width="311" height="2"/>
                                     </progressView>
@@ -212,6 +205,19 @@
                                         <nil key="textColor"/>
                                         <nil key="highlightedColor"/>
                                     </label>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Mbits" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Gkc-qa-TFQ">
+                                        <rect key="frame" x="292" y="306" width="43" height="21"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                        <nil key="textColor"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="tQX-IY-68b">
+                                        <rect key="frame" x="102" y="322" width="138" height="30"/>
+                                        <state key="normal" title="Transcode to WebM"/>
+                                        <connections>
+                                            <action selector="transcodeAction:" destination="UpT-6e-czY" eventType="touchUpInside" id="E4G-hk-Wdi"/>
+                                        </connections>
+                                    </button>
                                 </subviews>
                                 <constraints>
                                     <constraint firstAttribute="trailing" secondItem="9Lq-wQ-WAU" secondAttribute="trailing" constant="8" id="1pc-cJ-yDR"/>
@@ -221,21 +227,23 @@
                                     <constraint firstItem="zZ2-H0-Zbc" firstAttribute="top" secondItem="sMn-Um-yJs" secondAttribute="bottom" constant="16" id="JJ8-85-WOz"/>
                                     <constraint firstAttribute="trailing" secondItem="zZ2-H0-Zbc" secondAttribute="trailing" id="ReB-Z5-fY4"/>
                                     <constraint firstItem="OZK-0q-HEo" firstAttribute="top" secondItem="1Uq-S5-Yx0" secondAttribute="bottom" constant="8" id="RgV-gZ-Wn9"/>
+                                    <constraint firstAttribute="trailing" secondItem="Gkc-qa-TFQ" secondAttribute="trailing" constant="8" id="Sq8-Jo-046"/>
                                     <constraint firstItem="1Uq-S5-Yx0" firstAttribute="top" secondItem="E3a-pr-drA" secondAttribute="bottom" constant="19" id="UuY-0p-pee"/>
                                     <constraint firstAttribute="trailing" secondItem="sMn-Um-yJs" secondAttribute="trailing" constant="16" id="Uxc-Zp-bvT"/>
                                     <constraint firstItem="9Lq-wQ-WAU" firstAttribute="top" secondItem="zZ2-H0-Zbc" secondAttribute="bottom" constant="8" id="Uxq-6O-xMU"/>
                                     <constraint firstItem="E3a-pr-drA" firstAttribute="top" secondItem="UtS-kU-23t" secondAttribute="top" constant="20" id="Y5c-Jp-4Er"/>
                                     <constraint firstItem="sMn-Um-yJs" firstAttribute="leading" secondItem="UtS-kU-23t" secondAttribute="leading" constant="16" id="Y6L-g5-5g7"/>
-                                    <constraint firstItem="sMn-Um-yJs" firstAttribute="top" secondItem="tQX-IY-68b" secondAttribute="bottom" constant="24" id="YIY-Gt-itq"/>
+                                    <constraint firstItem="sMn-Um-yJs" firstAttribute="top" secondItem="tQX-IY-68b" secondAttribute="bottom" constant="8" id="YIY-Gt-itq"/>
                                     <constraint firstAttribute="bottom" secondItem="9Lq-wQ-WAU" secondAttribute="bottom" constant="8" id="Zql-D7-SEL"/>
                                     <constraint firstAttribute="bottom" secondItem="hPe-hO-oXi" secondAttribute="bottom" constant="8" id="d59-c7-rIB"/>
-                                    <constraint firstItem="tQX-IY-68b" firstAttribute="top" secondItem="OZK-0q-HEo" secondAttribute="bottom" constant="8" id="dv1-0M-bxE"/>
+                                    <constraint firstItem="tQX-IY-68b" firstAttribute="top" secondItem="OZK-0q-HEo" secondAttribute="bottom" constant="24" id="dv1-0M-bxE"/>
                                     <constraint firstItem="tQX-IY-68b" firstAttribute="centerX" secondItem="UtS-kU-23t" secondAttribute="centerX" id="eet-3O-wGz"/>
                                     <constraint firstItem="OZK-0q-HEo" firstAttribute="leading" secondItem="UtS-kU-23t" secondAttribute="leading" id="efE-MV-a9V"/>
                                     <constraint firstAttribute="trailing" secondItem="E3a-pr-drA" secondAttribute="trailing" constant="8" id="hHg-Xb-Che"/>
                                     <constraint firstItem="E3a-pr-drA" firstAttribute="baseline" secondItem="lgr-wY-wzs" secondAttribute="baseline" id="l4J-cS-lRi"/>
                                     <constraint firstAttribute="trailing" secondItem="OZK-0q-HEo" secondAttribute="trailing" id="np7-Em-IoY"/>
                                     <constraint firstItem="1Uq-S5-Yx0" firstAttribute="centerX" secondItem="UtS-kU-23t" secondAttribute="centerX" id="qFl-Zn-zRA"/>
+                                    <constraint firstItem="Gkc-qa-TFQ" firstAttribute="top" secondItem="OZK-0q-HEo" secondAttribute="bottom" constant="8" id="rjO-Kp-na7"/>
                                     <constraint firstItem="hPe-hO-oXi" firstAttribute="leading" secondItem="UtS-kU-23t" secondAttribute="leading" constant="8" id="tM4-ZJ-1Qj"/>
                                     <constraint firstItem="zZ2-H0-Zbc" firstAttribute="leading" secondItem="UtS-kU-23t" secondAttribute="leading" id="wF8-sS-urr"/>
                                 </constraints>
@@ -255,6 +263,7 @@
                     <connections>
                         <outlet property="chooserButton" destination="1Uq-S5-Yx0" id="z2b-5p-r1d"/>
                         <outlet property="fpsLabel" destination="hPe-hO-oXi" id="6Oc-WU-dL4"/>
+                        <outlet property="inputMbitsLabel" destination="Gkc-qa-TFQ" id="VRN-ZY-7lt"/>
                         <outlet property="inputPlayer" destination="OZK-0q-HEo" id="CyN-xt-Byi"/>
                         <outlet property="mbitsLabel" destination="9Lq-wQ-WAU" id="bfc-gD-eXY"/>
                         <outlet property="outputPlayer" destination="zZ2-H0-Zbc" id="rRu-ik-1Uw"/>
