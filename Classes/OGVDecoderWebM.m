@@ -242,8 +242,13 @@ static int64_t tellCallback(void * userdata)
                 vpxDecoder = vpx_codec_vp9_dx();
             }
 
+            unsigned int threads = (unsigned int)[NSProcessInfo processInfo].activeProcessorCount;
+            if (threads > 2) {
+                // Using more than 2 threads on iPhone X slows down overall decoding?
+                threads = 2;
+            }
             vpx_codec_dec_cfg_t cfg;
-            cfg.threads = (unsigned int)[NSProcessInfo processInfo].activeProcessorCount;
+            cfg.threads = threads;
             cfg.w = 0;
             cfg.h = 0;
 
