@@ -288,11 +288,12 @@
                 pixelFormat = kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange;
                 break;
             case OGVPixelFormatYCbCr422:
+                // Warning: does not render on iPhone 5c (iOS 10) or iPod Touch 5th-gen (iOS 9)
                 pixelFormat = kCVPixelFormatType_422YpCbCr8_yuvs;
                 break;
             case OGVPixelFormatYCbCr444:
-                // Warning: does not render on iOS device with AVSampleBufferDisplayLayer
-                pixelFormat = kCVPixelFormatType_444YpCbCr8;
+                // Warning: does not render on iPhone 5c (iOS 10) or iPod Touch 5th-gen (iOS 9)
+                pixelFormat = kCVPixelFormatType_4444AYpCbCr8;
                 break;
         }
         samplePool = [self createPixelBufferPoolWithFormat:pixelFormat
