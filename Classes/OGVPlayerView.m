@@ -47,6 +47,7 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
     NSTimer *seekTimeout;
     BOOL seeking;
     AVSampleBufferDisplayLayer *displayLayer;
+    CMSampleBufferRef lastFrame;
 }
 
 #pragma mark - Public methods
@@ -111,8 +112,14 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
     [[NSNotificationCenter defaultCenter] removeObserver:self
                                                     name:UIApplicationDidEnterBackgroundNotification
                                                   object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self
+                                                    name:UIApplicationDidBecomeActiveNotification
+                                                  object:nil];
     if (state) {
         [state cancel];
+    }
+    if (lastFrame) {
+        CFRelease(lastFrame);
     }
 }
 
@@ -202,6 +209,10 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(appDidEnterBackground:)
                                                  name:UIApplicationDidEnterBackgroundNotification
+                                               object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(appDidBecomeActive:)
+                                                 name:UIApplicationDidBecomeActiveNotification
                                                object:nil];
 }
 
@@ -338,6 +349,17 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
     [self pause];
 }
 
+-(void)appDidBecomeActive:(id)obj
+{
+    if (lastFrame) {
+        if (displayLayer.status == AVQueuedSampleBufferRenderingStatusFailed) {
+            // In case we failed while switching out, it gets confused.
+            [displayLayer flush];
+        }
+        [displayLayer enqueueSampleBuffer:lastFrame];
+    }
+}
+
 -(void)stopTimeTimer
 {
     if (timeTimer) {
@@ -411,7 +433,13 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
     // Draw on the main thread!
     dispatch_async(dispatch_get_main_queue(), ^() {
         if (sender == self->state) {
-            //NSLog(@"Layer %d %@", displayLayer.status, displayLayer.error);
+            // Keep the frame in case we have to re-display it in a bit.
+            if (self->lastFrame) {
+                CFRelease(self->lastFrame);
+            }
+            self->lastFrame = sampleBuffer;
+            CFRetain(self->lastFrame);
+
             [self->displayLayer enqueueSampleBuffer:sampleBuffer];
         }
         CFRelease(sampleBuffer);
