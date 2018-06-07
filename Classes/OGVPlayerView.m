@@ -16,7 +16,7 @@
 //  - image isn't retained when app goes into background
 //  - 4:4:4 doesn't output at all on device
 //
-//#define USE_LAYER 1
+#define USE_LAYER 1
 
 static NSString *kOGVPlayerTimeLabelEmpty = @"-:--";
 
