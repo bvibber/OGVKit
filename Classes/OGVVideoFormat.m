@@ -22,8 +22,6 @@
 @implementation OGVVideoFormat
 {
     CVPixelBufferPoolRef samplePool;
-    CVPixelBufferPoolRef lumaPool;
-    CVPixelBufferPoolRef chromaPool;
 }
 
 - (int)hDecimation
@@ -78,12 +76,6 @@
 {
     if (samplePool) {
         CFRelease(samplePool);
-    }
-    if (lumaPool) {
-        CFRelease(lumaPool);
-    }
-    if (chromaPool) {
-        CFRelease(chromaPool);
     }
 }
 
@@ -199,30 +191,6 @@
 -(OGVVideoBuffer *)createVideoBufferWithSampleBuffer:(CMSampleBufferRef)sampleBuffer
 {
     return [[OGVVideoBuffer alloc] initWithFormat:self sampleBuffer:sampleBuffer];
-}
-
-- (CVPixelBufferRef)createPixelBufferLuma
-{
-    if (lumaPool == NULL) {
-        lumaPool = [self createPixelBufferPoolWithFormat:kCVPixelFormatType_OneComponent8
-                                                   width:self.lumaWidth
-                                                  height:self.lumaHeight];
-    }
-    return [self createPixelBufferWithPool:lumaPool
-                                     width:self.lumaWidth
-                                    height:self.lumaHeight];
-}
-
-- (CVPixelBufferRef)createPixelBufferChroma
-{
-    if (chromaPool == NULL) {
-        chromaPool = [self createPixelBufferPoolWithFormat:kCVPixelFormatType_OneComponent8
-                                                     width:self.chromaWidth
-                                                    height:self.chromaHeight];
-    }
-    return [self createPixelBufferWithPool:chromaPool
-                                     width:self.chromaWidth
-                                    height:self.chromaHeight];
 }
 
 -(CVPixelBufferRef)createPixelBufferWithPool:(CVPixelBufferPoolRef)bufferPool

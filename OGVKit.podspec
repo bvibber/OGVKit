@@ -42,7 +42,6 @@ Pod::Spec.new do |s|
                          "Classes/OGVFileInputStream.{h,m}",
                          "Classes/OGVHTTPInputStream.{h,m}",
                          "Classes/OGVDecoder.{h,m}",
-                         "Classes/OGVFrameView.{h,m}",
                          "Classes/OGVAudioFeeder.{h,m}",
                          "Classes/OGVPlayerState.{h,m}",
                          "Classes/OGVPlayerView.{h,m}"
@@ -58,15 +57,12 @@ Pod::Spec.new do |s|
                                 "Classes/OGVVideoBuffer.h",
                                 "Classes/OGVInputStream.h",
                                 "Classes/OGVDecoder.h",
-                                "Classes/OGVFrameView.h",
                                 "Classes/OGVAudioFeeder.h",
                                 "Classes/OGVPlayerState.h",
                                 "Classes/OGVPlayerView.h"
 
     score.resource_bundle = {
       'OGVKitResources' => [
-        'Resources/OGVFrameView.fsh',
-        'Resources/OGVFrameView.vsh',
         'Resources/OGVPlayerView.xib',
         'Resources/ogvkit-iconfont.ttf'
       ]

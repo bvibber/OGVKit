@@ -107,34 +107,6 @@
     }
 }
 
--(CVPixelBufferRef)copyPixelBufferWithPlane:(OGVVideoPlaneIndex)plane;
-{
-    __block CVPixelBufferRef pixelBuffer;
-    [self lock:^() {
-        __block OGVVideoPlane *source;
-        switch (plane) {
-            case OGVVideoPlaneIndexY:
-                pixelBuffer = [self.format createPixelBufferLuma];
-                source = self.Y;
-                break;
-            case OGVVideoPlaneIndexCb:
-                pixelBuffer = [self.format createPixelBufferChroma];
-                source = self.Cb;
-                break;
-            case OGVVideoPlaneIndexCr:
-                pixelBuffer = [self.format createPixelBufferChroma];
-                source = self.Cr;
-                break;
-            default:
-                [NSException raise:@"OGVVideoBufferException"
-                            format:@"invalid plane %d", (int)plane];
-        }
-        
-        [source updatePixelBuffer:pixelBuffer];
-    }];
-    return pixelBuffer;
-}
-
 -(CMSampleBufferRef)copyAsSampleBuffer
 {
     CVPixelBufferRef pixelBuffer = [self.format createPixelBuffer];

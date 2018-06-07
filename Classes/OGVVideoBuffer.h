@@ -78,11 +78,6 @@ typedef enum : NSUInteger {
 -(void)neuter;
 
 /**
- * Copy one of the plane's bytes to a GPU-backed buffer
- */
--(CVPixelBufferRef)copyPixelBufferWithPlane:(OGVVideoPlaneIndex)plane;
-
-/**
  * Copy and remix bytes to a GPU-backed CMSampleBuffer,
  * which can then be sent to AVAssetWriter, etc.
  */

@@ -10,14 +10,6 @@
 
 @import CoreText;
 
-// Uncomment to use experimental output via AVSampleBufferDisplayLayer
-// instead of OGVFrameView. This has some issues:
-//  - requires extra pixel format conversions
-//  - image isn't retained when app goes into background
-//  - 4:4:4 doesn't output at all on device
-//
-#define USE_LAYER 1
-
 static NSString *kOGVPlayerTimeLabelEmpty = @"-:--";
 
 // Icons from Font Awesome custom subset
@@ -54,11 +46,7 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
     NSTimer *controlsTimeout;
     NSTimer *seekTimeout;
     BOOL seeking;
-#ifdef USE_LAYER
     AVSampleBufferDisplayLayer *displayLayer;
-#else
-    OGVFrameView *frameView;
-#endif
 }
 
 #pragma mark - Public methods
@@ -100,11 +88,7 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
 {
     if (state) {
         [state cancel];
-#ifdef USE_LAYER
         [displayLayer flushAndRemoveImage];
-#else
-        [frameView clearFrame];
-#endif
         state = nil;
     }
     _inputStream = inputStream;
@@ -167,11 +151,7 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
 -(void)layoutSubviews
 {
     [super layoutSubviews];
-#ifdef USE_LAYER
     displayLayer.frame = self.bounds;
-#else
-    frameView.frame = self.bounds;
-#endif
 }
 
 #pragma mark - private methods
@@ -188,15 +168,9 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
     }
     
     // Output layer
-#ifdef USE_LAYER
     displayLayer = [[AVSampleBufferDisplayLayer alloc] init];
     displayLayer.frame = self.bounds;
     [self.layer addSublayer:displayLayer];
-#else
-    frameView = [[OGVFrameView alloc] initWithFrame:self.bounds
-                                            context:[self createGLContext]];
-    [self addSubview:frameView];
-#endif
 
     // Controls
     UINib *nib = [UINib nibWithNibName:@"OGVPlayerView" bundle:bundle];
@@ -229,18 +203,6 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
                                              selector:@selector(appDidEnterBackground:)
                                                  name:UIApplicationDidEnterBackgroundNotification
                                                object:nil];
-}
-
--(EAGLContext *)createGLContext
-{
-    EAGLContext *context;
-    if (floor(NSFoundationVersionNumber) >= NSFoundationVersionNumber_iOS_7_0) {
-        context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3];
-    }
-    if (context == nil) {
-        context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
-    }
-    return context;
 }
 
 - (IBAction)togglePausePlay:(id)sender
@@ -442,22 +404,18 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
 
 - (void)ogvPlayerState:(OGVPlayerState *)sender drawFrame:(OGVVideoBuffer *)buffer
 {
-#ifdef USE_LAYER
     // Copy on the background thread
     CMSampleBufferRef sampleBuffer = [buffer copyAsSampleBuffer];
     CMSetAttachment(sampleBuffer, kCMSampleAttachmentKey_DisplayImmediately, kCFBooleanTrue, kCMAttachmentMode_ShouldPropagate);
     
     // Draw on the main thread!
     dispatch_async(dispatch_get_main_queue(), ^() {
-        if (sender == state) {
+        if (sender == self->state) {
             //NSLog(@"Layer %d %@", displayLayer.status, displayLayer.error);
-            [displayLayer enqueueSampleBuffer:sampleBuffer];
+            [self->displayLayer enqueueSampleBuffer:sampleBuffer];
         }
         CFRelease(sampleBuffer);
     });
-#else
-    [frameView drawFrame:buffer];
-#endif
 }
 
 - (void)ogvPlayerStateDidLoadMetadata:(OGVPlayerState *)sender
@@ -480,9 +438,7 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
             [self startTimeTimer];
             [self updateTimeLabel];
             
-#ifdef USE_LAYER
-            [displayLayer flush];
-#endif
+            [self->displayLayer flush];
 
             if (![self controlsAreVisible]) {
                 [self showControls];
@@ -538,9 +494,7 @@ static BOOL OGVPlayerViewDidRegisterIconFont = NO;
             [self.activityIndicator stopAnimating];
             [self updateTimeLabel];
 
-#ifdef USE_LAYER
-            [displayLayer flush];
-#endif
+            [self->displayLayer flush];
 
             if ([self.delegate respondsToSelector:@selector(ogvPlayerDidSeek:)]) {
                 [self.delegate ogvPlayerDidSeek:self];

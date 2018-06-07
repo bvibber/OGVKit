@@ -28,7 +28,6 @@
 #import "OGVInputStream.h"
 #import "OGVDecoder.h"
 
-#import "OGVFrameView.h"
 #import "OGVAudioFeeder.h"
 #import "OGVPlayerState.h"
 
