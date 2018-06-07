@@ -20,6 +20,7 @@ Containers:
     * playback: yes
     * duration: yes
     * seeking: yes (requires cues)
+    * muxing: yes (VP8 and Vorbis only; API in flux)
 * MP4 (backed by AVFoundation)
     * playback: yes (from URLs only)
     * duration: yes
@@ -31,14 +32,14 @@ Video:
     * encode: not yet
 * VP8 (WebM only)
     * decode: yes
-    * encode: not yet
+    * encode: yes; API in flux
 * VP9 (WebM only)
     * decode: yes
     * encode: not yet
 
 Audio:
 * Vorbis
-    * decode: yes
+    * decode: yes; API in flux
     * encode: not yet
 * Opus
     * decode: yes
