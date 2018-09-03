@@ -63,6 +63,9 @@ typedef NS_ENUM(int, OGVInputStreamState) {
  * Fetch the appropriate subclass
  */
 +(OGVInputStream *)inputStreamWithURL:(NSURL *)URL;
++(OGVInputStream *)createWithUrl:(NSURL *)url; // Swift cover
+
 +(OGVInputStream *)inputStreamWithData:(NSData *)data;
++(OGVInputStream *)createWithData:(NSData *)data; // Swift cover
 
 @end

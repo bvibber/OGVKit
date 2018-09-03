@@ -227,9 +227,18 @@
     }
 }
 
++(OGVInputStream *)createWithUrl:(NSURL *)url
+{
+    return [OGVInputStream inputStreamWithURL:url];
+}
+
 +(OGVInputStream *)inputStreamWithData:(NSData *)data
 {
     return [[OGVDataInputStream alloc] initWithData:data];
+}
+
++(OGVInputStream *)createWithData:(NSData *)data {
+    return [OGVInputStream inputStreamWithData:data];
 }
 
 
