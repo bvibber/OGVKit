@@ -1,3 +1,9 @@
+THIS PROJECT IS NO LONGER UNDER DEVELOPMENT. NO SUPPORT IS IMPLIED OR PROVIDED. DO NOT USE FOR ANY PURPOSE.
+
+Recommend using VLCKit or GStreamer instead.
+
+----
+
 Lightweight iOS media player widget for free Ogg Theora/Vorbis and WebM VP8/VP9 codecs.
 
 Currently provides a basic high-level player widget (OGVPlayerView) that can stream
